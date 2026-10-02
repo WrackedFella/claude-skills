@@ -41,3 +41,7 @@ The plugin is project-agnostic. A project using it states in its `CLAUDE.md`:
 - **Planning index and standards** (where features and work items live, ID format).
 - **Base branch** that agent branches start from and PRs target.
 - **Domain-logic paths** whose tests need human review before implementation.
+
+## License
+
+MIT; see [LICENSE](LICENSE).
