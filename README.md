@@ -38,6 +38,8 @@ The plugin is project-agnostic. A project using it states in its `CLAUDE.md`:
 
 - **Gate command** that must pass before any commit (for example `just check`).
 - **Mutation command** for changed code (for example `just mutants`).
+- **Full-platform CI command**, if PR CI covers fewer targets than release (for example
+  `gh workflow run CI --ref <branch>`).
 - **Planning index and standards** (where features and work items live, ID format).
 - **Base branch** that agent branches start from and PRs target.
 - **Domain-logic paths** whose tests need human review before implementation.
