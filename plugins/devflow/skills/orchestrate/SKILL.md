@@ -28,8 +28,9 @@ task:
 is `ready`: acceptance criteria and tech spec present, test map filled, gate class
 set. Otherwise comment on the issue with what's missing and stop.
 
-Create a branch from the project's base branch named per its standards, and set the
-card to `in progress`.
+Use the item's work branch if the Tech Lead already pushed one (it carries the spec
+commit); otherwise create it from the project's base branch, named per its standards.
+Set the card to `in progress`.
 
 ## 2. Failing tests
 
@@ -46,6 +47,10 @@ approval before continuing. **Gate class `glue`:** continue.
 
 Delegate to `devflow:implementer` with the tech spec and the failing-test list. Check
 its report against the spec: scope respected, no tests or lints touched, gate green.
+
+If the spec turns out to be wrong, the implementer does the minimal correct thing
+within scope; record the deviation and its reason in the card and the PR. If the fix
+changes scope or a public contract the spec didn't name, stop and ask the user.
 
 ## 4. Adversarial challenge (at most 2 rounds)
 
@@ -66,15 +71,24 @@ justification in the PR. Record caught / missed / unviable counts.
 
 ## 6. Quality passes
 
-Run `/simplify` on the changed code, then `/devflow:comment-audit`. Re-run the gate.
+Run `/simplify` on the changed code, then `/devflow:comment-audit`, both through the
+Skill tool rather than an inline imitation. Re-run the gate. If a pass is skipped (for
+example the diff has no comments), the PR says so and why.
 
-## 7. Independent review (at most 2 rounds)
+## 7. Platform coverage
+
+If the change could behave differently per platform (target-specific code or
+dependencies, auto traits of platform types, file paths, threading) and PR CI doesn't
+cover every target, trigger the project's full-platform CI run on the branch (command
+in its `CLAUDE.md`) and report the result in the PR. Don't ship on reasoning alone.
+
+## 8. Independent review (at most 2 rounds)
 
 Delegate to `devflow:reviewer` with the issue number, card path and base branch.
 Fix material findings via the implementer, or turn them into tests via the
 test-writer. Re-review only if a fix was non-trivial.
 
-## 8. Ship
+## 9. Ship
 
 Update the card (status, anything the Verification section needs from a human) and
 any feature item table per the project's standards. Then `/devflow:ship`: the PR body
