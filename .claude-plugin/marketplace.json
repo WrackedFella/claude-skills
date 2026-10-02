@@ -1,0 +1,12 @@
+{
+  "name": "claude-skills",
+  "description": "Spec-driven, test-first agentic development workflow: role skills, worker agents and engineering standards",
+  "owner": { "name": "WrackedFella" },
+  "plugins": [
+    {
+      "name": "devflow",
+      "source": "./plugins/devflow",
+      "description": "Business Analyst, Tech Lead and Orchestrator roles; test-writer, implementer and reviewer agents; Rust standards, comment audit, ship and sitrep skills"
+    }
+  ]
+}

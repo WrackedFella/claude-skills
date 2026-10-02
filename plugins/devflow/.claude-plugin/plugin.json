@@ -1,0 +1,15 @@
+{
+  "name": "devflow",
+  "version": "0.1.0",
+  "description": "Spec-driven, test-first agentic development workflow",
+  "author": {
+    "name": "WrackedFella"
+  },
+  "repository": "https://github.com/WrackedFella/claude-skills",
+  "keywords": [
+    "workflow",
+    "tdd",
+    "rust",
+    "agents"
+  ]
+}
