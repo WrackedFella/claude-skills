@@ -32,15 +32,33 @@ point is to recover where *this session* stands. Do not delegate it to a subagen
   change, or work discussed is uncommitted), report the disagreement; the repo wins on
   facts, the conversation on intent.
 
+## Verify
+
+- **Exit criteria (features and gates):** go through every criterion on its own. Run its
+  check command when it is cheap and read-only (`cargo tree`, the project's deny or
+  licence command, `gh`); otherwise cite the evidence found (file, PR, ADR status). Mark
+  each **met**, **not met** or **unverified**. If the wording is not literally met, quote
+  the gap. Never write "appear met". A gate is met only when every criterion is met.
+- **Records vs. merged work:** compare card statuses, the feature's item table, the
+  roadmap or index status and issue state against what has actually merged. Report each
+  mismatch on one line (e.g. "ENG-F7-02, legion removed: PR merged, card still in
+  progress"). Read the project's `CLAUDE.md` first: if it uses feature integration
+  branches, card PRs do not auto-close issues, so an open issue is not a mismatch until
+  the rule says it should be closed.
+
 ## Report
 
-At most ~12 lines:
+At most ~12 lines, stretching to ~15 when a criteria list is included. Everything else
+stays terse. Pair every work-item ID with a short description ("ENG-F7-02, legion
+removed"), never a bare ID. Use lists for groups of items.
 
 - **Where we left off:** one line: the last concrete thing done and what was pending
   (session scope only; omit for `project`).
 - **Status:** one line (e.g. "in progress: 2/4 items done, PR #12 awaiting review").
-- **Done / in flight / not started:** item IDs only, grouped.
-- **Gates:** CI and checks for open PRs; exit criteria met vs open (features).
+- **Done / in flight / not started:** items grouped, each as ID plus description.
+- **Gates:** CI and checks for open PRs; for features, one line per exit criterion with
+  its met / not met / unverified mark and the gap quoted where not met.
+- **Record mismatches:** one line each, from the Verify step; omit if none.
 - **Blockers / decisions needed:** only real ones, each one line, including decisions
   made in conversation but not yet recorded in a card or ADR.
 - **Next:** the single most useful next action and who owns it (human or agent).
