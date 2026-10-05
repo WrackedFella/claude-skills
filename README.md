@@ -17,6 +17,18 @@ claude plugin install devflow@claude-skills --scope project
 Commit the resulting `.claude/settings.json`. Pin the marketplace to a tag or
 commit so a standards change never silently changes agent behavior.
 
+## Upgrading
+
+After the project's pinned ref changes (for example to a new tag), each machine must run:
+
+```bash
+claude plugin marketplace add "<owner>/claude-skills#<tag>" --scope project
+claude plugin update devflow@claude-skills --scope project
+```
+
+Then restart the session. The first command may rewrite `.claude/settings.json` with
+only a key-order change; revert that rewrite.
+
 ## What's in devflow
 
 | Kind | Name | Use |
@@ -29,7 +41,7 @@ commit so a standards change never silently changes agent behavior.
 | Agent | `devflow:reviewer` | Fresh-context review of a diff against its spec |
 | Skill | `/devflow:comment-audit` | Removes comments that don't earn their place from a diff |
 | Skill | `/devflow:ship` | Gate, commit, push and open a PR with evidence |
-| Skill | `/devflow:sitrep` | Short status report on a feature or issue (draft) |
+| Skill | `/devflow:sitrep` | Short status report on a feature or issue, checking each exit criterion and record (draft) |
 | Knowledge | `devflow:rust-standards` | Engineering standards, loaded when writing or reviewing Rust |
 
 ## Project contract
