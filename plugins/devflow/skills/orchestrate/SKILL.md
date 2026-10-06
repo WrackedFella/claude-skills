@@ -1,6 +1,6 @@
 ---
 name: orchestrate
-description: Orchestrator role - drive one ready work item (GitHub issue) from failing tests through implementation, adversarial challenge, mutation testing, quality passes and independent review to a PR. Never merges.
+description: Orchestrator role - drive one ready work item (GitHub issue) red-green-refactor: failing tests, implementation, adversarial challenge, refactor, mutation testing, comment audit and independent review to a PR. Never merges.
 argument-hint: "<issue-number>"
 arguments: [issue]
 disable-model-invocation: true
@@ -62,37 +62,50 @@ Vague concerns don't count.
 Have `devflow:test-writer` turn each challenge into a test. If it fails, send it to
 `devflow:implementer`. Stop after two rounds or when a round produces no failing test.
 
-## 5. Mutation testing
+## 5. Refactor
+
+Green came from the minimum code; now improve its structure with every test held
+fixed. Review the change against the tech spec and `rust-standards`: duplication,
+naming, responsibilities, layering, and any shortcut taken to get green. Send concrete
+restructurings to `devflow:implementer` as a refactor brief. Then run `/simplify` on
+the changed code through the Skill tool.
+
+Refactoring changes structure, never behavior: no test edits, no new behavior, and it
+stays within the code this work touched and the spec's scope. Re-run the gate after
+each change set. Commit it on its own (`refactor(scope): ...`) so the PR shows
+red, green, refactor. If nothing warrants restructuring, the PR says so.
+
+## 6. Mutation testing
 
 Run the project's mutation command on changed code. For each surviving mutant in
 code this work changed, have `devflow:test-writer` strengthen the tests, never weaken
 the code. A mutant you judge equivalent (no observable behavior change) gets a one-line
 justification in the PR. Record caught / missed / unviable counts.
 
-## 6. Quality passes
+## 7. Comment audit
 
-Run `/simplify` on the changed code, then `/devflow:comment-audit`, both through the
-Skill tool rather than an inline imitation. Re-run the gate. If a pass is skipped (for
-example the diff has no comments), the PR says so and why.
+Run `/devflow:comment-audit` through the Skill tool rather than an inline imitation.
+Re-run the gate. If it's skipped (for example the diff has no comments), the PR says
+so and why.
 
-## 7. Platform coverage
+## 8. Platform coverage
 
 If the change could behave differently per platform (target-specific code or
 dependencies, auto traits of platform types, file paths, threading) and PR CI doesn't
 cover every target, trigger the project's full-platform CI run on the branch (command
 in its `CLAUDE.md`) and report the result in the PR. Don't ship on reasoning alone.
 
-## 8. Independent review (at most 2 rounds)
+## 9. Independent review (at most 2 rounds)
 
 Delegate to `devflow:reviewer` with the issue number, card path and base branch.
 Fix material findings via the implementer, or turn them into tests via the
 test-writer. Re-review only if a fix was non-trivial.
 
-## 9. Ship
+## 10. Ship
 
 Update the card (status, anything the Verification section needs from a human) and
 any feature item table per the project's standards. Then `/devflow:ship`: the PR body
-links the issue and includes gate output, mutation counts, challenges raised, reviewer
+links the issue and includes gate output, mutation counts, challenges raised, refactorings made, reviewer
 findings and their resolution, and manual verification still required.
 
 Finish with a short report: PR link, what the human must check, and anything left
