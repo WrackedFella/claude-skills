@@ -35,7 +35,7 @@ only a key-order change; revert that rewrite.
 |---|---|---|
 | Role skill | `/devflow:business-analyst` | Negotiate features down to a minimal increment and write behavioral requirements (Gherkin acceptance criteria) |
 | Role skill | `/devflow:tech-lead` | Turn requirements into a tech spec: design, test map, ADRs |
-| Role skill | `/devflow:orchestrate <issue>` | Drive one ready work item red-green-refactor through the gates to a PR |
+| Role skill | `/devflow:orchestrate [issue]` | Drive one ready work item red-green-refactor through the gates to a PR; with no issue, take the board's queue head |
 | Agent | `devflow:test-writer` | Writes failing tests from acceptance criteria only |
 | Agent | `devflow:implementer` | Writes the minimum code to pass the tests, then refactors under green |
 | Agent | `devflow:reviewer` | Fresh-context review of a diff against its spec |
@@ -55,6 +55,24 @@ The plugin is project-agnostic. A project using it states in its `CLAUDE.md`:
 - **Planning index and standards** (where features and work items live, ID format).
 - **Base branch** that agent branches start from and PRs target.
 - **Domain-logic paths** whose tests need human review before implementation.
+- **Project board** (optional): the GitHub Project's owner and number. When set, its
+  Status field replaces card status as the record of item state.
+
+### Project board
+
+A board needs these single-select fields; names must match exactly:
+
+| Field | Options |
+|---|---|
+| Status | Backlog, Needs spec, Ready, In progress, In review, Done |
+| Priority | P0, P1, … (sorted by name; lower is more urgent) |
+| Gate class | domain, glue |
+| Agent-eligible | Yes, No |
+
+Skills change fields only through `plugins/devflow/scripts/board`, which resolves names
+to the API's IDs. `gh` needs the `project` scope (`gh auth refresh -s project`). The
+orchestrator's queue is open issues with Status Ready and Agent-eligible Yes and no open
+blocking issues, highest Priority first; it claims an item by moving it to In progress.
 
 ## License
 

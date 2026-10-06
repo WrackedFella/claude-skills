@@ -70,6 +70,10 @@ give names, labels and templates):
 1. Create the item's work branch from the base branch, set the card to `ready`, update
    the feature's item table, and commit the spec there (`docs(...)`); push the branch.
    The implementing PR then carries spec, tests and code together.
-2. File the issue from the work-item template, apply the line and `agent-ready`
-   labels, and link it as a sub-issue of the feature's parent issue when one exists.
+2. File the issue from the work-item template and link it as a sub-issue of the
+   feature's parent issue when one exists. With a board, set `Status=Ready`,
+   `Gate class` and `Agent-eligible` through `${CLAUDE_SKILL_DIR}/../../scripts/board` (`Agent-eligible=No`
+   when the user wants to drive the item personally); the board replaces the card
+   status and the `agent-ready` label. Without a board, apply the line and
+   `agent-ready` labels.
 3. Report the issue number and branch; the next step is `/devflow:orchestrate`.
