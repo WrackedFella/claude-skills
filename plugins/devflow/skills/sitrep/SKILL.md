@@ -26,7 +26,8 @@ point is to recover where *this session* stands. Do not delegate it to a subagen
   verify, not as ground truth.
 - From the repo: the feature or item file(s) (status, exit or acceptance criteria),
   linked issue and PR state (`gh issue view`, `gh pr list --search`, `gh pr checks`),
-  and branch state (commits ahead of the base branch, uncommitted changes, last gate
+  board fields when the project has a board (`${CLAUDE_SKILL_DIR}/../../scripts/board` `get`), and branch
+  state (commits ahead of the base branch, uncommitted changes, last gate
   run if visible).
 - Where the conversation and the repo disagree (e.g. a card says ready but we planned a
   change, or work discussed is uncommitted), report the disagreement; the repo wins on
@@ -39,7 +40,7 @@ point is to recover where *this session* stands. Do not delegate it to a subagen
   licence command, `gh`); otherwise cite the evidence found (file, PR, ADR status). Mark
   each **met**, **not met** or **unverified**. If the wording is not literally met, quote
   the gap. Never write "appear met". A gate is met only when every criterion is met.
-- **Records vs. merged work:** compare card statuses, the feature's item table, the
+- **Records vs. merged work:** compare board Status (or card statuses without a board), the feature's item table, the
   roadmap or index status and issue state against what has actually merged. Report each
   mismatch on one line (e.g. "ENG-F7-02, legion removed: PR merged, card still in
   progress"). Read the project's `CLAUDE.md` first: if it uses feature integration
