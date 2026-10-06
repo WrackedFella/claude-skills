@@ -33,11 +33,11 @@ only a key-order change; revert that rewrite.
 
 | Kind | Name | Use |
 |---|---|---|
-| Role skill | `/devflow:business-analyst` | Plan features and write behavioral requirements (Gherkin acceptance criteria) |
+| Role skill | `/devflow:business-analyst` | Negotiate features down to a minimal increment and write behavioral requirements (Gherkin acceptance criteria) |
 | Role skill | `/devflow:tech-lead` | Turn requirements into a tech spec: design, test map, ADRs |
-| Role skill | `/devflow:orchestrate <issue>` | Drive implementation of one ready work item through the gates to a PR |
+| Role skill | `/devflow:orchestrate <issue>` | Drive one ready work item red-green-refactor through the gates to a PR |
 | Agent | `devflow:test-writer` | Writes failing tests from acceptance criteria only |
-| Agent | `devflow:implementer` | Writes the minimum code to pass the tests |
+| Agent | `devflow:implementer` | Writes the minimum code to pass the tests, then refactors under green |
 | Agent | `devflow:reviewer` | Fresh-context review of a diff against its spec |
 | Skill | `/devflow:comment-audit` | Removes comments that don't earn their place from a diff |
 | Skill | `/devflow:ship` | Gate, commit, push and open a PR with evidence |
