@@ -55,9 +55,13 @@ them; it has no other context). Verify yourself that every new test fails, and f
 for the right reason. Commit the tests on their own (`test(scope): ...`) so the PR
 shows test-first history.
 
-**Gate class `domain`:** stop here. Present a checkpoint (`/devflow:ship --checkpoint`
-format): tests added → scenario, failure reasons, open questions. Wait for the user's
-approval before continuing. **Gate class `glue`:** continue.
+**Gate class `domain`, with domain-test review required** (the project's `CLAUDE.md`
+sets it; required unless it says otherwise): stop here. Present a checkpoint
+(`/devflow:ship --checkpoint` format): tests added → scenario, failure reasons, open
+questions. Wait for the user's approval before continuing. **Otherwise** (gate class
+`glue`, or domain-test review not required): continue. A `domain` item that continues
+without review lists its tests in the PR body under a heading saying they were not
+reviewed before implementation, so the PR review covers them.
 
 ## 3. Implementation
 

@@ -81,6 +81,10 @@ delays) and then accept their call. The user decides; you make the trade visible
   (and those deliberately left open) that the design must respect or keep open, plus
   any technical risks you noticed, as open questions.
 - Keep cards terse. Cut narration and history.
+- **Who approves cards.** While the project requires card review (its `CLAUDE.md`;
+  required unless it says otherwise), cards stay local drafts until the user approves
+  them. Without card review, hand them straight to the Tech Lead, and ask the user only
+  the questions the approved feature leaves open.
 
 End each session with the files changed, what was deferred and where it was recorded,
 and what still needs the user's approval.

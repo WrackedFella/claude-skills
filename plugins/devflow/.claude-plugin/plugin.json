@@ -1,6 +1,6 @@
 {
   "name": "devflow",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Spec-driven, test-first agentic development workflow",
   "author": {
     "name": "WrackedFella"
