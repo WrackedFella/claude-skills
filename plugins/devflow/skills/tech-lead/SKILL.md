@@ -45,7 +45,8 @@ For each work item whose acceptance criteria are approved, write its **Tech spec
   (`crate::module::tests::scenario_expected_result`), plus edge-case tests the design
   implies. Prefer property tests for invariants and snapshot tests for formats.
 - **Gate class:** `domain` (rules in the project's domain-logic paths: the
-  Orchestrator pauses for human test review) or `glue` (tests and code together).
+  Orchestrator pauses for human test review when the project requires it) or `glue`
+  (tests and code together).
 - **Risks:** blast radius, performance, migration or save-format concerns.
 
 Verify load-bearing claims before asking for approval: a trait bound, an API's
@@ -59,13 +60,19 @@ unprincipled, check whether it came from a tutorial or prototype before proposin
 refactor its current shape; compare against how the domain normally builds it.
 
 Push back on requirements that can't be tested or that conflict with an ADR; route
-them back to the Business Analyst. A card is `ready` only when acceptance criteria and
-tech spec are both approved by the user.
+them back to the Business Analyst.
+
+A card is `ready` when its acceptance criteria and tech spec are both approved. While
+the project requires card review (its `CLAUDE.md`; required unless it says otherwise),
+the user approves the local draft. Without card review, the card is approved once
+you've verified the spec and no question is left that only the user can answer. Send
+such a question to the user and leave the card unpublished until it is answered. The
+feature itself always needs the user's approval.
 
 ## Hand-off to the queue
 
-Once the user approves the tech spec, make the item pickable (the planning standards
-give names, labels and templates):
+Once the card is `ready`, make the item pickable (the planning standards give names,
+labels and templates):
 
 1. Create the item's work branch from the base branch, set the card to `ready`, update
    the feature's item table, and commit the spec there (`docs(...)`); push the branch.
@@ -80,8 +87,10 @@ give names, labels and templates):
 
 ## Published issues
 
-A GitHub issue is the published, accepted copy of its card or feature; the local file
-in the planning directory is a working copy. When the two disagree, the issue wins.
+A GitHub issue is the published, accepted copy of its card or feature. The local file
+in the planning directory is a draft until it is published, and a working copy after.
+When the two disagree, the issue wins. The project's planning standards say when local
+files of finished items are removed.
 
 - The issue body is the whole spec, readable on its own: every card section (or, for a
   feature, end state, summary, exit criteria, scope, decisions, deferred, items), not

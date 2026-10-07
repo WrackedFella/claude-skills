@@ -54,7 +54,16 @@ The plugin is project-agnostic. A project using it states in its `CLAUDE.md`:
   `gh workflow run CI --ref <branch>`).
 - **Planning index and standards** (where features and work items live, ID format).
 - **Base branch** that agent branches start from and PRs target.
-- **Domain-logic paths** whose tests need human review before implementation.
+- **Domain-logic paths:** items whose rules live there get gate class `domain`.
+- **Human review points** (optional; each defaults to `required`):
+  - `Card review`: the user approves each card's local draft (acceptance criteria and
+    tech spec) before it is published. When `not required`, the Business Analyst and
+    Tech Lead publish cards themselves and escalate only open questions.
+  - `Domain-test review`: the orchestrator pauses on `domain` items for the user to
+    review the failing tests. When `not required`, it continues and flags those tests
+    in the PR.
+
+  Approving a feature and merging a PR are always the user's.
 - **Project board** (optional): the GitHub Project's owner and number. When set, its
   Status field replaces card status as the record of item state.
 
