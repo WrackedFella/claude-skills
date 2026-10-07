@@ -20,6 +20,9 @@ which is the accepted spec; a local card file is only a working copy. Report ONL
 - Unsound `unsafe`, API misuse, error swallowing, panics in library code.
 - Frame-budget regressions in hot paths (allocation or dynamic dispatch per frame).
 - Scope creep beyond the tech spec.
+- Docs drift, when the project's `CLAUDE.md` names a docs directory: a page that
+  describes code this diff changed but no longer matches it, or a new structure,
+  pattern or convention with no docs where the project's wiki would put it.
 
 No style preferences, no praise. Cite `file:line` for each finding with a one-line
 failure scenario. If nothing material remains, say exactly that.

@@ -108,25 +108,34 @@ Run `/devflow:comment-audit` through the Skill tool rather than an inline imitat
 Re-run the gate. If it's skipped (for example the diff has no comments), the PR says
 so and why.
 
-## 8. Platform coverage
+## 8. Docs
+
+If the project names a docs directory, run `/devflow:wiki` through the Skill tool. It
+updates the wiki where this change adds or alters a structure, pattern or convention
+a new developer needs, or reports why none is needed. Check that the pages it touched
+describe only what this diff does, and commit them on their own (`docs(scope): ...`).
+Carry its report into the PR body; new pages are flagged there for the user's review.
+
+## 9. Platform coverage
 
 If the change could behave differently per platform (target-specific code or
 dependencies, auto traits of platform types, file paths, threading) and PR CI doesn't
 cover every target, trigger the project's full-platform CI run on the branch (command
 in its `CLAUDE.md`) and report the result in the PR. Don't ship on reasoning alone.
 
-## 9. Independent review (at most 2 rounds)
+## 10. Independent review (at most 2 rounds)
 
 Delegate to `devflow:reviewer` with the issue number (its body is the spec) and the base branch.
 Fix material findings via the implementer, or turn them into tests via the
 test-writer. Re-review only if a fix was non-trivial.
 
-## 10. Ship
+## 11. Ship
 
 Update the card and, per the tech lead's Published issues rule, the issue body
 (anything the Verification section needs from a human, any recorded deviation) and
 any feature item table per the project's standards. Then `/devflow:ship`: the PR body
-links the issue and includes gate output, mutation counts, challenges raised, refactorings made, reviewer
+links the issue and includes gate output, mutation counts, challenges raised, refactorings made, the
+docs report (pages updated, new pages flagged, or why none were needed), reviewer
 findings and their resolution, and manual verification still required. Once the PR
 is open, set the board Status to `In review` (or the card status without a board).
 

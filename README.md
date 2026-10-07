@@ -40,6 +40,7 @@ only a key-order change; revert that rewrite.
 | Agent | `devflow:implementer` | Writes the minimum code to pass the tests, then refactors under green |
 | Agent | `devflow:reviewer` | Fresh-context review of a diff against its spec |
 | Skill | `/devflow:comment-audit` | Removes comments that don't earn their place from a diff |
+| Skill | `/devflow:wiki` | Updates onboarding docs where a diff adds or alters a structure, pattern or convention; otherwise reports why none is needed |
 | Skill | `/devflow:ship` | Gate, commit, push and open a PR with evidence |
 | Skill | `/devflow:sitrep` | Short status report on a feature or issue, checking each exit criterion and record (draft) |
 | Knowledge | `devflow:rust-standards` | Engineering standards, loaded when writing or reviewing Rust |
@@ -54,6 +55,9 @@ The plugin is project-agnostic. A project using it states in its `CLAUDE.md`:
   `gh workflow run CI --ref <branch>`).
 - **Planning index and standards** (where features and work items live, ID format).
 - **Base branch** that agent branches start from and PRs target.
+- **Docs directory** (optional): the wiki the orchestrator keeps current through
+  `/devflow:wiki`. Its index page states sections and conventions. Without one, the
+  docs step is skipped.
 - **Domain-logic paths:** items whose rules live there get gate class `domain`.
 - **Human review points** (optional; each defaults to `required`):
   - `Card review`: the user approves each card's local draft (acceptance criteria and
