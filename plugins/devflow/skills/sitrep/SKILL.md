@@ -46,6 +46,9 @@ point is to recover where *this session* stands. Do not delegate it to a subagen
   progress"). Read the project's `CLAUDE.md` first: if it uses feature integration
   branches, card PRs do not auto-close issues, so an open issue is not a mismatch until
   the rule says it should be closed.
+- **Published spec vs. working copy:** where a card or feature has an issue, the issue
+  body is the accepted spec. Report a local file whose spec differs from its issue, or
+  an issue body that is only a pointer to the file.
 
 ## Report
 
