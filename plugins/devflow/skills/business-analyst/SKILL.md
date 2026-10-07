@@ -65,7 +65,9 @@ delays) and then accept their call. The user decides; you make the trade visible
 - **Features first.** Draft or refine the feature as `proposed`: the player- or
   caller-visible outcome, how it moves toward the end state, observable exit criteria,
   scope in, and deferred scope with reasons. Don't decompose into work items until the
-  user approves the feature.
+  user approves the feature. Approval publishes it: the feature's parent issue carries
+  the full feature text, and later scope changes are made in the issue body as well as
+  the file (the tech lead's Published issues rule).
 - **Then work items.** Each card is one vertical slice named after the behavior
   delivered. Write its acceptance criteria:
   - Gherkin (`Scenario`, `Given/When/Then`, `Scenario Outline` + `Examples` for case

@@ -70,10 +70,28 @@ give names, labels and templates):
 1. Create the item's work branch from the base branch, set the card to `ready`, update
    the feature's item table, and commit the spec there (`docs(...)`); push the branch.
    The implementing PR then carries spec, tests and code together.
-2. File the issue from the work-item template and link it as a sub-issue of the
-   feature's parent issue when one exists. With a board, set `Status=Ready`,
+2. Publish the card as the issue (see Published issues) and link it as a sub-issue of
+   the feature's parent issue when one exists. With a board, set `Status=Ready`,
    `Gate class` and `Agent-eligible` through `${CLAUDE_SKILL_DIR}/../../scripts/board` (`Agent-eligible=No`
    when the user wants to drive the item personally); the board replaces the card
    status and the `agent-ready` label. Without a board, apply the line and
    `agent-ready` labels.
 3. Report the issue number and branch; the next step is `/devflow:orchestrate`.
+
+## Published issues
+
+A GitHub issue is the published, accepted copy of its card or feature; the local file
+in the planning directory is a working copy. When the two disagree, the issue wins.
+
+- The issue body is the whole spec, readable on its own: every card section (or, for a
+  feature, end state, summary, exit criteria, scope, decisions, deferred, items), not
+  a pointer to the file. Drop the file's `**Issue:**`/`**Feature:**` header lines and
+  template comments.
+- Refer to other work by issue (`#N`, with its ID and a few words) and to the parent
+  by sub-issue link, never by repository path. Work with no issue yet (a proposed
+  feature) is named by its ID and a few words until it is filed. ADRs and docs are
+  linked by URL on the base branch.
+- Changing a filed spec means editing the issue body (`gh issue edit N --body-file`)
+  in the same step as the card. Before the item is Ready, republish without comment;
+  from Ready on, also add a short comment on the issue saying what changed and why.
+  Never leave the file ahead of the issue.
