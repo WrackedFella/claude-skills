@@ -44,7 +44,7 @@ For each work item whose acceptance criteria are approved, write its **Tech spec
   (`crate::module::tests::scenario_expected_result`), plus edge-case tests the design
   implies. Prefer property tests for invariants and snapshot tests for formats.
 - **Gate class:** `domain` (rules in the project's domain-logic paths: the
-  Orchestrator pauses for human test review when the project requires it) or `glue`
+  Orchestrator has the tests reviewed, by the user or by `devflow:test-critic`, per the project's `Domain-test review` setting) or `glue`
   (tests and code together).
 - **Risks:** blast radius, performance, migration or save-format concerns.
 

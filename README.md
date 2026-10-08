@@ -80,9 +80,11 @@ The plugin is project-agnostic. A project using it states in its `CLAUDE.md`:
     tech spec) before it is published. When `not required`, the Business Analyst and
     Tech Lead publish cards themselves and escalate only open questions. `/devflow:refine`
     also applies `agent-ready` to published cards the orchestrator can finish unattended.
-  - `Domain-test review`: the orchestrator pauses on `domain` items for the user to
-    review the failing tests. When `not required`, it continues and flags those tests
-    in the PR.
+  - `Domain-test review`: `required` (default), `agent` or `not required`. `required`:
+    the orchestrator pauses on `domain` items for the user to review the failing tests.
+    `agent`: no pause; `devflow:test-critic` attacks the tests in a fresh context
+    (at most 2 rounds) before implementation, and the PR carries its findings.
+    `not required`: it continues and flags those tests in the PR.
 
   Approving a feature and merging a PR are always the user's.
 - **Project board** (optional): the GitHub Project's owner and number. When set, its
