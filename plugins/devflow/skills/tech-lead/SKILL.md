@@ -92,6 +92,16 @@ labels and templates):
    mechanism only).
 3. Report the issue number and branch; the next step is `/devflow:orchestrate`.
 
+**When the board is unreachable.** Some environments (cloud project threads) can edit
+issues but cannot write board fields: `scripts/board` fails on GraphQL or Projects
+access. Test with `board get` on any filed issue, or `gh api graphql`, before the first
+publish. If it fails, don't file the issue and don't retry or work around the block: an
+issue without Status, Gate class and Agent-eligible is half-published. Keep the card as a
+local draft instead: `Status: Draft`, the intended `Gate class` and `Labels` in its
+header, spec complete, committed on the planning branch. Say in the report that the card
+awaits a full-access session to file it and set the board fields. Remote refinement
+(`/devflow:refine`) is exempt: it never touches the board.
+
 ## Published issues
 
 A GitHub issue is the published, accepted copy of its card or feature. The local file
