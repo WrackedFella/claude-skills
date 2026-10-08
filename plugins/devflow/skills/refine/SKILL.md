@@ -47,7 +47,10 @@ feature is too big: comment with a proposed split and stop. Write each card's
 acceptance criteria, then its tech spec with design, out of scope, test map and gate
 class, following the planning standards' card template.
 
-Verify load-bearing claims by reading the source, as the Tech Lead does. Don't build.
+Verify load-bearing claims by reading the source, as the Tech Lead does, including
+callers of code a card keeps and what a gate a card extends reads. Read-only commands
+that compile nothing (`cargo tree`, a script's dry run) are fine. Don't build. Keep the
+Tech Lead's Checked list as you go.
 
 **Escalate instead of guessing** when a direction-setting question is unanswered by the
 feature and the design depends on it, when criteria conflict with an ADR, or when a
@@ -90,4 +93,7 @@ why.
 ## 5. Report
 
 Comment once on the feature: the cards created (`#N`, ID and a few words), what was
-deferred, the open questions, and which cards are labeled. End with the same summary.
+deferred, the open questions, which cards are labeled, and a **Checked** section: each
+load-bearing claim, the card that relies on it, and the file or command that confirmed
+it, plus anything assumed but not checked. An escalation comment carries the same
+section. End with the same summary.
