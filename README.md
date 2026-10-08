@@ -46,6 +46,7 @@ linked checkout of this repo, and keep that in step with the consumer's pin.
 |---|---|---|
 | Role skill | `/devflow:business-analyst` | Negotiate features down to a minimal increment and write behavioral requirements (Gherkin acceptance criteria) |
 | Role skill | `/devflow:tech-lead` | Turn requirements into a tech spec: design, test map, ADRs |
+| Role skill | `/devflow:refine [feature-issue]` | Unattended refinement: split an approved feature into work-item issues with the BA's and Tech Lead's rules, escalating open questions as a comment instead of asking |
 | Role skill | `/devflow:orchestrate [issue]` | Drive one ready work item red-green-refactor through the gates to a PR; with no issue, take the board's queue head |
 | Agent | `devflow:test-writer` | Writes failing tests from acceptance criteria only |
 | Agent | `devflow:implementer` | Writes the minimum code to pass the tests, then refactors under green |
@@ -77,7 +78,8 @@ The plugin is project-agnostic. A project using it states in its `CLAUDE.md`:
 - **Human review points** (optional; each defaults to `required`):
   - `Card review`: the user approves each card's local draft (acceptance criteria and
     tech spec) before it is published. When `not required`, the Business Analyst and
-    Tech Lead publish cards themselves and escalate only open questions.
+    Tech Lead publish cards themselves and escalate only open questions. `/devflow:refine`
+    also applies `agent-ready` to published cards the orchestrator can finish unattended.
   - `Domain-test review`: the orchestrator pauses on `domain` items for the user to
     review the failing tests. When `not required`, it continues and flags those tests
     in the PR.
