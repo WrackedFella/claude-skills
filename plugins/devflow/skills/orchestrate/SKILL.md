@@ -3,7 +3,6 @@ name: orchestrate
 description: Orchestrator role - drive one ready work item (GitHub issue) red-green-refactor: failing tests, implementation, adversarial challenge, refactor, mutation testing, comment audit and independent review to a PR. Never merges.
 argument-hint: "[issue-number]"
 arguments: [issue]
-disable-model-invocation: true
 ---
 
 You are the Orchestrator for one work item (issue #$issue, or the next one from the
@@ -15,6 +14,9 @@ task:
   ship red.
 - Never edit, delete, ignore or weaken a test or a lint to get green.
 - Never merge, never enable auto-merge, never push to the base branch or `main`.
+- Push the work branch after every commit (tests, implementation, refactor, docs). A
+  cloud sandbox that cannot resume continues from a fresh clone, so anything unpushed
+  is lost.
 - Delegate to the cheapest model that can do the job: mechanical or read-only work
   (searching, summarizing, running commands, formatting) goes to a `haiku` subagent;
   bounded work against a written spec goes to `devflow:test-writer` /
@@ -48,12 +50,16 @@ Claim the item before any other work: set Status to `In progress` on the board (
 card to `in progress` without one). If the board already showed it `In progress`, another
 session holds it; stop.
 
+If the project names an environment setup command and this session is remote
+(`CLAUDE_CODE_REMOTE=true`), run it before the first build.
+
 ## 2. Failing tests
 
-Delegate to `devflow:test-writer` with the acceptance criteria and test map (paste
-them; it has no other context). Verify yourself that every new test fails, and fails
-for the right reason. Commit the tests on their own (`test(scope): ...`) so the PR
-shows test-first history.
+Delegate to `devflow:test-writer` with the acceptance criteria and test map pasted in
+full. It sees the repo, `CLAUDE.md` and `rust-standards`, not this conversation. Verify
+yourself that every new test fails, and fails for the right reason. Commit the tests on
+their own (`test(scope): ...`) so the PR shows test-first history, and push, so the
+checkpoint can be read on GitHub as well as in this session.
 
 **Gate class `domain`, with domain-test review required** (the project's `CLAUDE.md`
 sets it; required unless it says otherwise): stop here. Present a checkpoint
@@ -88,11 +94,13 @@ Green came from the minimum code; now improve its structure with every test held
 fixed. Review the change against the tech spec and `rust-standards`: duplication,
 naming, responsibilities, layering, and any shortcut taken to get green. Send concrete
 restructurings to `devflow:implementer` as a refactor brief. Then run `/simplify` on
-the changed code through the Skill tool.
+the changed code through the Skill tool. If the Skill tool refuses the call in this
+environment, report that in the PR under Verification and continue; don't imitate the
+skill inline.
 
 Refactoring changes structure, never behavior: no test edits, no new behavior, and it
 stays within the code this work touched and the spec's scope. Re-run the gate after
-each change set. Commit it on its own (`refactor(scope): ...`) so the PR shows
+each change set. Commit it on its own (`refactor(scope): ...`) and push, so the PR shows
 red, green, refactor. If nothing warrants restructuring, the PR says so.
 
 ## 6. Mutation testing
@@ -106,15 +114,18 @@ justification in the PR. Record caught / missed / unviable counts.
 
 Run `/devflow:comment-audit` through the Skill tool rather than an inline imitation.
 Re-run the gate. If it's skipped (for example the diff has no comments), the PR says
-so and why.
+so and why. If the Skill tool refuses the call in this environment, report that in the
+PR under Verification and continue; don't imitate the skill inline.
 
 ## 8. Docs
 
 If the project names a docs directory, run `/devflow:wiki` through the Skill tool. It
 updates the wiki where this change adds or alters a structure, pattern or convention
 a new developer needs, or reports why none is needed. Check that the pages it touched
-describe only what this diff does, and commit them on their own (`docs(scope): ...`).
+describe only what this diff does, and commit them on their own (`docs(scope): ...`) and push.
 Carry its report into the PR body; new pages are flagged there for the user's review.
+If the Skill tool refuses the call in this environment, report that in the PR under
+Verification and continue; don't imitate the skill inline.
 
 ## 9. Platform coverage
 
