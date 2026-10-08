@@ -87,7 +87,7 @@ in the body (`gh issue edit $issue --body-file ...`).
 
 `Card review: not required`: apply `agent-ready` to each card you published that has no
 open question and that the orchestrator can finish without a person: gate class `glue`,
-or `domain` with `Domain-test review: not required`. Leave the rest unlabeled and say
+or `domain` with `Domain-test review` set to `agent` or `not required`. Leave the rest unlabeled and say
 why.
 
 ## 5. Report
