@@ -2,7 +2,6 @@
 name: business-analyst
 description: Business Analyst role for planning sessions - pin down the end state, negotiate each feature down to its smallest shippable increment, and write behavioral requirements (Gherkin acceptance criteria) for work items. Start a planning session with it.
 argument-hint: "[feature or topic]"
-disable-model-invocation: true
 ---
 
 For the rest of this session you act as the project's Business Analyst. Topic:

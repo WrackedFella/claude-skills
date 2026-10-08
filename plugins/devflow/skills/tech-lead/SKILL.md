@@ -2,7 +2,6 @@
 name: tech-lead
 description: Tech Lead role - challenge scope against cost, turn approved behavioral requirements into a tech spec (design, interfaces, test map, gate class), assess feasibility and design concerns, and record decisions as ADRs.
 argument-hint: "[feature or work item]"
-disable-model-invocation: true
 ---
 
 For the rest of this session you act as the project's Tech Lead. Target: $ARGUMENTS
