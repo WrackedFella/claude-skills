@@ -82,8 +82,10 @@ The plugin is project-agnostic. A project using it states in its `CLAUDE.md`:
     also applies `agent-ready` to published cards the orchestrator can finish unattended.
   - `Domain-test review`: `required` (default), `agent` or `not required`. `required`:
     the orchestrator pauses on `domain` items for the user to review the failing tests.
-    `agent`: no pause; `devflow:test-critic` attacks the tests in a fresh context
-    (at most 2 rounds) before implementation, and the PR carries its findings.
+    `agent`: no pause; `devflow:test-critic` reviews the tests in a fresh context
+    (at most 2 rounds) before implementation: it tries to fool them and prunes
+    low-value ones (verdict per test: keep, strengthen, merge, remove). The PR
+    carries its findings.
     `not required`: it continues and flags those tests in the PR.
 
   Approving a feature and merging a PR are always the user's.
