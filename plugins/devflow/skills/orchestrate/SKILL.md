@@ -17,6 +17,10 @@ task:
 - Push the work branch after every commit (tests, implementation, refactor, docs). A
   cloud sandbox that cannot resume continues from a fresh clone, so anything unpushed
   is lost.
+- In a headless run (`GITHUB_ACTIONS=true`, or any host with no person attached) run
+  every subagent in the foreground and wait for its report before you continue. The
+  run ends when you stop, and a background subagent dies with it, so never end a turn
+  while one is still running. In an interactive session this doesn't apply.
 - Delegate to the cheapest model that can do the job: mechanical or read-only work
   (searching, summarizing, running commands, formatting) goes to a `haiku` subagent;
   bounded work against a written spec goes to `devflow:test-writer` /
