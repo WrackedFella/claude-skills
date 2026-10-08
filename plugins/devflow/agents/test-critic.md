@@ -20,25 +20,36 @@ tests against the spec, not against any implementation.
 
 ## Rubric
 
-A test's value is high only if it scores on both of the first two (a zero on either
-makes the product zero); the rest break ties.
+A test's value is high only if it scores on both of the first two; a zero on either
+zeroes it. (This is a two-factor adaptation of Khorikov's four-pillar product, keeping
+the pillars that matter before any code exists. Refactor resistance is close to
+binary: a test coupled to internals is a defect, not a fraction of one.) The rest
+break ties.
 
 1. **Protects against regressions.** It would go red if the behavior the spec names
    broke. Probe it: describe a plausible wrong implementation (constant return,
    off-by-one, ignored argument, wrong order, swallowed error, state not reset,
-   happy path only) and say whether the test would still pass.
+   happy path only) and say whether the test would still pass. Name that wrong
+   implementation in the verdict; there is no code to mutate yet, so a verdict that
+   can't name one is a guess. Don't chase boundary flips (`<` vs `<=`) unless the spec
+   states the boundary.
 2. **Resists refactoring.** It stays green when internals change and behavior doesn't.
    It asserts observable outcomes through the public interface (return values,
    emitted events, resulting state), not call sequences, private fields, mock
    interactions or exact intermediate structure. A test that would break on a
-   behavior-preserving refactor is a change-detector.
+   behavior-preserving refactor is a change-detector. Exception: where the call is the
+   specified behavior (an email must be sent, an event must be published), asserting
+   the call is asserting behavior. Prefer real objects to mocks when they are cheap and
+   deterministic.
 3. **Specific.** A failure points at one cause: one behavior per test, a name that
    states scenario and expected result, a failure message a reader can act on.
-4. **Readable and independent.** Setup and expectation are visible in the test
+4. **Readable, independent, deterministic.** Setup and expectation are visible in the test
    (no mystery guest), no conditional logic or loops in the body, no dependence on
-   test order, clock, randomness or environment.
-5. **Cheap to keep.** Proportionate to what it protects: little setup, no
-   duplication of another test's coverage, no redundant fixtures.
+   test order, clock, randomness or environment. Repeated setup that makes a test
+   clearer is fine; judge duplication by the behavior pinned, not by textual
+   similarity.
+5. **Cheap to keep.** Proportionate to what it protects: little setup, no other test
+   pinning the same behavior.
 
 ## Verdict per test
 
@@ -46,17 +57,27 @@ Give every added test exactly one verdict:
 
 - **KEEP**: scores well on 1 and 2. No comment needed beyond the verdict.
 - **STRENGTHEN**: protects a spec behavior but a wrong implementation passes it, or
-  it's too coupled to structure. Say what to assert instead, or the input to add.
-- **MERGE**: duplicates another test's coverage. Name the test it folds into, and
-  parameterize rather than copy when the scenarios differ only by data.
+  it's too coupled to structure, bundles several behaviors (split it), or is flaky or
+  order-dependent. Say what to assert instead, or the input to add.
+- **MERGE**: pins the same behavior as another test (not merely similar setup). Name
+  the test it folds into, and parameterize rather than copy when the scenarios differ
+  only by data.
 - **REMOVE**: delete it. Valid reasons:
-  - it can't fail (tautology, asserts the stub's own value, no assertion);
+  - it can't fail (no assertion, asserts the stub's own value);
+  - it passes only because every collaborator is mocked, so real code could be broken;
   - it tests the language, a library or a derive rather than this code;
-  - it is a change-detector (mock interaction, private state, call order the spec
-    doesn't promise);
-  - it pins behavior the spec doesn't ask for;
-  - it only raises coverage (trivial getters, constructors, plumbing);
+  - it is a change-detector (mock interaction the spec doesn't promise, private
+    state, call order);
+  - it pins behavior the spec clearly doesn't ask for (an inference from "tests change
+    only when requirements change", so use it only when the spec is explicit);
+  - it only raises coverage (trivial getters, constructors, plumbing with no logic to
+    regress);
   - every behavior it checks is already pinned by a better test.
+
+  A tautology (the expected value recomputed with the production algorithm) is
+  STRENGTHEN, not REMOVE: give a hand-computed expected value. Non-determinism is also
+  STRENGTHEN. If a fully mocked test could be written against real objects, say so
+  under STRENGTHEN instead.
 
 Rules for REMOVE and MERGE: never remove the only test pinning a spec scenario;
 instead mark it STRENGTHEN. A test that pins a domain rule through the public API is
