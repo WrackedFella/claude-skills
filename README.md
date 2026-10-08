@@ -17,9 +17,14 @@ claude plugin install devflow@claude-skills --scope project
 Commit the resulting `.claude/settings.json`. Pin the marketplace to a tag or
 commit so a standards change never silently changes agent behavior.
 
+A committed `enabledPlugins` entry turns the plugin on for collaborators but does not
+download it; each collaborator runs `claude plugin install devflow@claude-skills --scope project`
+once.
+
 ## Upgrading
 
-After the project's pinned ref changes (for example to a new tag), each machine must run:
+After the project's pinned ref changes, each machine that already has the plugin runs
+(a first-time machine uses Install instead):
 
 ```bash
 claude plugin marketplace add "<owner>/claude-skills#<tag>" --scope project
@@ -28,6 +33,12 @@ claude plugin update devflow@claude-skills --scope project
 
 Then restart the session. The first command may rewrite `.claude/settings.json` with
 only a key-order change; revert that rewrite.
+
+### Cloud threads
+
+Cloud sessions (Claude Code Projects) do not load plugins from a repository's
+`.claude/settings.json`. Give each Project the plugin through its own settings or a
+linked checkout of this repo, and keep that in step with the consumer's pin.
 
 ## What's in devflow
 
@@ -58,6 +69,10 @@ The plugin is project-agnostic. A project using it states in its `CLAUDE.md`:
 - **Docs directory** (optional): the wiki the orchestrator keeps current through
   `/devflow:wiki`. Its index page states sections and conventions. Without one, the
   docs step is skipped.
+- **Environment setup command** (optional): what a cloud thread runs before it builds or
+  tests when the environment image lacks the toolchain (for example
+  `bash scripts/cloud-tools.sh`). Threads that only edit text skip it. The orchestrator
+  reads it like the gate command.
 - **Domain-logic paths:** items whose rules live there get gate class `domain`.
 - **Human review points** (optional; each defaults to `required`):
   - `Card review`: the user approves each card's local draft (acceptance criteria and
@@ -86,6 +101,13 @@ Skills change fields only through `plugins/devflow/scripts/board`, which resolve
 to the API's IDs. `gh` needs the `project` scope (`gh auth refresh -s project`). The
 orchestrator's queue is open issues with Status Ready and Agent-eligible Yes and no open
 blocking issues, highest Priority first; it claims an item by moving it to In progress.
+
+## Releasing
+
+1. Bump `version` in `plugins/devflow/.claude-plugin/plugin.json`.
+2. PR into `main`; after merge, tag `v<version>` on `main`.
+3. In each consumer: update the marketplace `ref` in `.claude/settings.json`, run the
+   Upgrading commands, and update any Project that serves the plugin from a checkout.
 
 ## License
 

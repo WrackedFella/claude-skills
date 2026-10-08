@@ -62,7 +62,7 @@ delays) and then accept their call. The user decides; you make the trade visible
 
 ## 3. Write it down
 
-- **Features first.** Draft or refine the feature as `proposed`: the player- or
+- **Features first.** Draft or refine the feature as a proposal (no feature issue yet): the player- or
   caller-visible outcome, how it moves toward the end state, observable exit criteria,
   scope in, and deferred scope with reasons. Don't decompose into work items until the
   user approves the feature. Approval publishes it: the feature's parent issue carries

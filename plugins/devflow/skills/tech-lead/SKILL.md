@@ -62,7 +62,7 @@ refactor its current shape; compare against how the domain normally builds it.
 Push back on requirements that can't be tested or that conflict with an ADR; route
 them back to the Business Analyst.
 
-A card is `ready` when its acceptance criteria and tech spec are both approved. While
+A card is ready when its acceptance criteria and tech spec are both approved. While
 the project requires card review (its `CLAUDE.md`; required unless it says otherwise),
 the user approves the local draft. Without card review, the card is approved once
 you've verified the spec and no question is left that only the user can answer. Send
@@ -71,18 +71,19 @@ feature itself always needs the user's approval.
 
 ## Hand-off to the queue
 
-Once the card is `ready`, make the item pickable (the planning standards give names,
+Once the card is ready, make the item pickable (the planning standards give names,
 labels and templates):
 
-1. Create the item's work branch from the base branch, set the card to `ready`, update
+1. Create the item's work branch from the base branch, update
    the feature's item table, and commit the spec there (`docs(...)`); push the branch.
    The implementing PR then carries spec, tests and code together.
 2. Publish the card as the issue (see Published issues) and link it as a sub-issue of
    the feature's parent issue when one exists. With a board, set `Status=Ready`,
    `Gate class` and `Agent-eligible` through `${CLAUDE_SKILL_DIR}/../../scripts/board` (`Agent-eligible=No`
    when the user wants to drive the item personally); the board replaces the card
-   status and the `agent-ready` label. Without a board, apply the line and
-   `agent-ready` labels.
+   status and the `agent-ready` label. Without a board, the card's status line and the
+   line labels are the record; set them (the `agent-ready` label stays as the no-board
+   mechanism only).
 3. Report the issue number and branch; the next step is `/devflow:orchestrate`.
 
 ## Published issues

@@ -7,8 +7,9 @@ argument-hint: "[--checkpoint]"
 Ship the work on the current branch. With `--checkpoint`, produce only the summary
 (steps 1 and 5) for a review pause, without committing or pushing.
 
-1. Run the project's gate command from its `CLAUDE.md`. If it fails, stop and fix or
-   report; never ship red.
+1. If the project names an environment setup command and `CLAUDE_CODE_REMOTE` is
+   `true`, run it before the gate; otherwise skip it. Run the project's gate command
+   from its `CLAUDE.md`. If it fails, stop and fix or report; never ship red.
 2. If the project defines a pre-commit change check (for example GitNexus
    `detect_changes`), run it. Report a high risk rating with its reason; escalate only
    if signatures, public APIs or behavior changed unexpectedly.

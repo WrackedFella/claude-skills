@@ -6,7 +6,11 @@
 #   board get  <owner> <number> <issue-url>
 #   board next <owner> <number>
 #
-# `set` adds the issue to the board if it is not on it yet. `next` prints the URL of
+# Exit codes: 1 error, 3 empty queue (`next`), 4 issue not on the board (`get`).
+#
+# `set` adds the issue to the board if it is not on it yet; `get` is read-only and
+# never changes the board. `get` lists at most 1000 items (the `item-list` cap); boards
+# past that size need pagination. `next` prints the URL of
 # the highest-priority open issue with Status=Ready and Agent-eligible=Yes that has no
 # open blocking issues, or exits 3 if there is none.
 set -euo pipefail
@@ -30,6 +34,12 @@ project_json() {
 # Prints the item ID for an issue, adding it to the board when absent.
 item_id() {
   gh project item-add "$number" --owner "$owner" --url "$1" --format json -q .id
+}
+
+# Prints the item ID for an issue already on the board; read-only. Empty when absent.
+find_item_id() {
+  gh project item-list "$number" --owner "$owner" --format json -L 1000 |
+    jq -r --arg u "$1" 'first(.items[] | select(.content.url == $u) | .id) // empty'
 }
 
 field_values() {
@@ -61,7 +71,9 @@ case $cmd in
     ;;
   get)
     [[ $# -eq 1 ]] || die "usage: board get <owner> <number> <issue-url>"
-    field_values "$(item_id "$1")"
+    iid=$(find_item_id "$1")
+    [[ -n $iid ]] || { echo "board: $1 is not on board $owner/$number" >&2; exit 4; }
+    field_values "$iid"
     ;;
   next)
     # Pages through every item; a partial read could skip the true top of the queue.
