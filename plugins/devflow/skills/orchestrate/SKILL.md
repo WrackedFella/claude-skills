@@ -32,6 +32,12 @@ record of item state; read and change it only through
 `${CLAUDE_SKILL_DIR}/../../scripts/board` (`board set <owner> <number> <issue-url> Status=...`), which
 works by field and option names. Without a board, the card status is the record.
 
+Some environments move Status by events instead (for example a workflow that reacts to
+PRs and issue labels), and the `board` script cannot reach Projects there (GraphQL is
+blocked or the token lacks project scope). When `board` fails that way, don't retry or
+work around it: skip every board read and write in this task, carry on, and say in the
+PR body which Status changes were left to the environment.
+
 ## 1. Intake
 
 With no issue given and a board configured, take the queue head:
