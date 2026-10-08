@@ -50,8 +50,15 @@ For each work item whose acceptance criteria are approved, write its **Tech spec
 
 Verify load-bearing claims before asking for approval: a trait bound, an API's
 existence, a type's `Send`/`Sync`-ness or a dependency's behavior gets checked against
-the source or a quick compile, not assumed. An implementer discovering the spec is
-impossible costs a round trip and a deviation.
+the source or a quick compile, not assumed. So do two claims that are easy to assume:
+that code the card changes or keeps still has callers, and what a gate or script the
+card extends actually reads (for a dependency check, direct or transitive edges), checked
+by reading or running it. An implementer discovering the spec is impossible costs a
+round trip and a deviation.
+
+When you ask for approval, give a **Checked** list: each load-bearing claim and the
+file or command that confirmed it, and anything assumed but not checked. It goes in your
+report, not the card, where file references would rot.
 
 When a decision constrains future work, record it as an ADR in the project's ADR
 directory (decision and consequences, not the deliberation). When old code looks
