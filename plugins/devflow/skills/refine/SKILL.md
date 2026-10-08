@@ -68,7 +68,8 @@ Per card, in dependency order:
    header lines, no `_todo/` paths, other work as `#N`. The tech spec states the gate
    class.
 3. `gh issue create --title ... --body-file ... --label <the feature's line label>`.
-   Write the body to a temporary file first.
+   Write the body to a scratch file first: in the system temp directory, or if that is
+   denied, in the working tree, deleting it afterwards.
 4. Link it as a sub-issue of the feature:
    `gh api repos/{owner}/{repo}/issues/$issue/sub_issues -F sub_issue_id=<id>`, where
    `<id>` is the new issue's numeric id (`gh api repos/{owner}/{repo}/issues/<n> --jq .id`).
