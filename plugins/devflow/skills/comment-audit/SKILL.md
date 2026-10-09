@@ -18,7 +18,8 @@ Audit only the comments added or changed in this diff. Never change code.
    **Keep** it only if it carries information the code cannot:
    - why the code is shaped this way: a constraint, invariant, tradeoff, workaround
      or gotcha;
-   - rustdoc stating an item's contract for its callers (behavior, errors, panics,
+   - API doc comments in the project's language (e.g. rustdoc, XML doc, JSDoc)
+     stating an item's contract for its callers (behavior, errors, panics,
      invariants);
    - `// SAFETY:` on `unsafe` (always keep).
 

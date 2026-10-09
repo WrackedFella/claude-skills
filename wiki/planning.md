@@ -15,7 +15,7 @@ It follows the planning standards the consuming project names in its `CLAUDE.md`
 
 ## Business Analyst (`/devflow:business-analyst`)
 
-Owns what and why; never names crates, types, algorithms or paths.
+Owns what and why; never names packages, modules, types, algorithms or paths.
 
 1. **Understand the end state.** Reads vision, design and roadmap; states the long-term
    goal and where the feature fits. Walks concrete use cases and asks direction-setting
@@ -48,7 +48,7 @@ Drafts left by a thread without board access are filed later with `/devflow:publ
   | Design | Modules and public interfaces touched, data flow, why this approach |
   | Footprint | Files and modules the implementation edits, tests included, one line each. Where the test map splits into groups with non-overlapping footprints, the groups are **parts** (`A`, `B`, …) and each test-map entry is tagged with its part. Overlap in one file means one part |
   | Out of scope | Concrete tempting changes the implementer must not make |
-  | Test map | Each scenario → `crate::module::tests::scenario_expected_result`, plus implied edge cases |
+  | Test map | Each scenario → (example name: `module::tests::scenario_expected_result`), plus implied edge cases |
   | Gate class | `domain` (rules in the project's domain-logic paths; test review applies) or `glue` |
   | Risks | Blast radius, performance, migration or save-format concerns |
 

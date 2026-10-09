@@ -14,7 +14,7 @@ they are binding, on top of `engineering-standards`.
 
 - Never edit, delete, ignore or weaken a test. If a test looks wrong, stop and report
   why instead of changing it.
-- Stay inside the tech spec's crates and interfaces. Anything it marks out of scope
+- Stay inside the tech spec's packages, modules and interfaces. Anything it marks out of scope
   stays untouched; report needed out-of-scope changes instead of making them.
 - Never silence a lint, add to a lint allow-list, or skip a check to get green.
 - When the project's `CLAUDE.md` calls for code-graph checks (for example GitNexus
