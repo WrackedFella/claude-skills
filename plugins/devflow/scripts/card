@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+# File one work-item card as a GitHub issue, link it as a sub-issue of its feature
+# issue, and optionally set board fields, so skills never hand-write the sub-issue API calls.
+#
+#   card publish <feature-issue-number> <title> <body-file> [--label <name>]...
+#                [--board <owner> <number> <Field>=<Option>...]
+#
+# Prints exactly one line on success: `#<n> <url>`.
+# Exit codes: 1 error (including a filed-but-unlinked issue), 5 project board unreachable
+# (the issue is filed and linked; only the board fields were not set).
+set -euo pipefail
+
+die() { echo "card: $*" >&2; exit 1; }
+usage() { die "usage: card publish <feature-issue-number> <title> <body-file> [--label <name>]... [--board <owner> <number> <Field>=<Option>...]"; }
+
+[[ ${1:-} == publish ]] || usage
+shift
+[[ $# -ge 3 ]] || usage
+feature=$1 title=$2 body=$3
+shift 3
+[[ $feature =~ ^[0-9]+$ ]] || die "feature issue must be a number, got '$feature'"
+[[ -f $body ]] || die "body file not found: $body"
+
+labels=() board_args=()
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --label)
+      [[ $# -ge 2 ]] || usage
+      labels+=(--label "$2"); shift 2 ;;
+    --board)
+      [[ $# -ge 4 ]] || usage
+      board_args=("$2" "$3"); shift 3
+      while [[ $# -gt 0 && $1 != --* ]]; do board_args+=("$1"); shift; done
+      [[ ${#board_args[@]} -ge 3 ]] || usage
+      for pair in "${board_args[@]:2}"; do
+        [[ $pair == *=* ]] || die "expected Field=Option, got '$pair'"
+      done ;;
+    *) usage ;;
+  esac
+done
+
+repo=$(gh repo view --json nameWithOwner -q .nameWithOwner)
+url=$(gh issue create --title "$title" --body-file "$body" ${labels[@]+"${labels[@]}"})
+n=${url##*/}
+[[ $n =~ ^[0-9]+$ ]] || die "could not parse issue number from '$url'"
+id=$(gh api "repos/$repo/issues/$n" --jq .id)
+
+errf=$(mktemp)
+trap 'rm -f "$errf"' EXIT
+if ! gh api "repos/$repo/issues/$feature/sub_issues" -F sub_issue_id="$id" >/dev/null 2>"$errf"; then
+  echo "$url"
+  die "filed #$n but could not link it under #$feature: $(cat "$errf")"
+fi
+
+if [[ ${#board_args[@]} -gt 0 ]]; then
+  rc=0
+  "$(dirname "$0")/board" set "${board_args[0]}" "${board_args[1]}" "$url" "${board_args[@]:2}" >/dev/null || rc=$?
+  if [[ $rc -eq 5 ]]; then
+    echo "card: filed and linked #$n; board unreachable, fields not set" >&2
+    exit 5
+  fi
+  [[ $rc -eq 0 ]] || exit "$rc"
+fi
+
+echo "#$n $url"

@@ -40,77 +40,13 @@ Cloud sessions (Claude Code Projects) do not load plugins from a repository's
 `.claude/settings.json`. Give each Project the plugin through its own settings or a
 linked checkout of this repo, and keep that in step with the consumer's pin.
 
-## Documentation
-
-How devflow works (flow, agents, skills, project contract, board): [wiki](wiki/README.md).
-
 ## What's in devflow
 
-| Kind | Name | Use |
-|---|---|---|
-| Role skill | `/devflow:business-analyst` | Negotiate features down to a minimal increment and write behavioral requirements (Gherkin acceptance criteria) |
-| Role skill | `/devflow:tech-lead` | Turn requirements into a tech spec: design, file footprint (parts), test map, ADRs; size slices to disjoint footprints |
-| Role skill | `/devflow:refine [feature-issue]` | Unattended refinement: split an approved feature into work-item issues with the BA's and Tech Lead's rules, escalating open questions as a comment instead of asking; reports which cards can run in parallel |
-| Role skill | `/devflow:orchestrate [issue]` | Drive one ready work item red-green-refactor through the gates to a PR, implementing disjoint parts of a card in parallel; with no issue, take the board's queue head |
-| Agent | `devflow:test-writer` | Writes failing tests from acceptance criteria only |
-| Agent | `devflow:implementer` | Writes the minimum code to pass the tests (or one part of them, in its own worktree), then refactors under green |
-| Agent | `devflow:reviewer` | Fresh-context review of a diff against its spec |
-| Skill | `/devflow:comment-audit` | Removes comments that don't earn their place from a diff |
-| Skill | `/devflow:wiki` | Updates onboarding docs where a diff adds or alters a structure, pattern or convention; otherwise reports why none is needed |
-| Skill | `/devflow:ship` | Gate, commit, push and open a PR with evidence |
-| Skill | `/devflow:sitrep` | Short status report on a feature or issue, checking each exit criterion and record (draft) |
-| Knowledge | `devflow:rust-standards` | Engineering standards, loaded when writing or reviewing Rust |
+Role skills: `business-analyst` (feature negotiation and acceptance criteria), `tech-lead` (tech spec, test map, ADRs), `refine` (unattended feature splitting) and `orchestrate` (one ready item to a PR). Delivery skills: `ship`, `publish` (file approved draft cards as issues) and `respond` (address PR review feedback). Support skills: `comment-audit`, `wiki`, `sitrep` and `rust-standards`. Agents: `test-writer`, `implementer`, `test-critic` and `reviewer`. Details are in the [wiki](wiki/README.md), [skills](wiki/skills.md) and [agents](wiki/agents.md).
 
 ## Project contract
 
-The plugin is project-agnostic. A project using it states in its `CLAUDE.md`:
-
-- **Gate command** that must pass before any commit (for example `just check`).
-- **Mutation command** for changed code (for example `just mutants`).
-- **Full-platform CI command**, if PR CI covers fewer targets than release (for example
-  `gh workflow run CI --ref <branch>`).
-- **Planning index and standards** (where features and work items live, ID format).
-- **Base branch** that agent branches start from and PRs target.
-- **Docs directory** (optional): the wiki the orchestrator keeps current through
-  `/devflow:wiki`. Its index page states sections and conventions. Without one, the
-  docs step is skipped.
-- **Environment setup command** (optional): what a cloud thread runs before it builds or
-  tests when the environment image lacks the toolchain (for example
-  `bash scripts/cloud-tools.sh`). Threads that only edit text skip it. The orchestrator
-  reads it like the gate command.
-- **Domain-logic paths:** items whose rules live there get gate class `domain`.
-- **Human review points** (optional; each defaults to `required`):
-  - `Card review`: the user approves each card's local draft (acceptance criteria and
-    tech spec) before it is published. When `not required`, the Business Analyst and
-    Tech Lead publish cards themselves and escalate only open questions. `/devflow:refine`
-    also applies `agent-ready` to published cards the orchestrator can finish unattended.
-  - `Domain-test review`: `required` (default), `agent` or `not required`. `required`:
-    the orchestrator pauses on `domain` items for the user to review the failing tests.
-    `agent`: no pause; `devflow:test-critic` reviews the tests in a fresh context
-    (at most 2 rounds) before implementation: it tries to fool them and prunes
-    low-value ones (verdict per test: keep, strengthen, merge, remove). The PR
-    carries its findings.
-    `not required`: it continues and flags those tests in the PR.
-
-  Approving a feature and merging a PR are always the user's.
-- **Project board** (optional): the GitHub Project's owner and number. When set, its
-  Status field replaces card status as the record of item state.
-
-### Project board
-
-A board needs these single-select fields; names must match exactly:
-
-| Field | Options |
-|---|---|
-| Status | Backlog, Needs spec, Ready, In progress, In review, Done |
-| Priority | P0, P1, … (sorted by name; lower is more urgent) |
-| Gate class | domain, glue |
-| Agent-eligible | Yes, No |
-
-Skills change fields only through `plugins/devflow/scripts/board`, which resolves names
-to the API's IDs. `gh` needs the `project` scope (`gh auth refresh -s project`). The
-orchestrator's queue is open issues with Status Ready and Agent-eligible Yes and no open
-blocking issues, highest Priority first; it claims an item by moving it to In progress.
+The plugin is project-agnostic: a project states its gate, mutation and base-branch settings, planning standards and review points in its `CLAUDE.md`, as described in the [project contract](wiki/project-contract.md). The optional GitHub Project board is described in [board](wiki/board.md).
 
 ## Releasing
 

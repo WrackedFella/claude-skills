@@ -8,7 +8,7 @@ tooling exists, and whether the board is reachable.
 | Local terminal | Slash commands | The project's pinned `.claude/settings.json` | Reachable with `gh` `project` scope | Project hooks (formatting, gate on stop) apply |
 | Cloud thread | Slash commands in a Claude Code Project | Environment setup (user-scope install) or a linked checkout of this repo | Usually unreachable | Fresh clone and own branch per thread; project hooks and plugin pins do not load |
 | GitHub Actions run | Label `agent-ready` or manual dispatch | The runner's own install, typically the marketplace default branch | Unreachable with the default app token | Unattended; bounded by time and turn limits |
-| Comment-triggered run | A `@claude` comment by a repository owner, member or collaborator | As the Actions run | As the Actions run | Small jobs, such as resolving a PR's merge conflict |
+| Comment-triggered run | A `@claude` comment by a repository owner, member or collaborator | As the Actions run | As the Actions run | Small jobs, such as resolving a PR's merge conflict; an `@claude /devflow:respond` comment runs the respond skill |
 
 ## Cloud threads
 

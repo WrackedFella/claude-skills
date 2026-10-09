@@ -139,13 +139,3 @@ this way, a constraint, invariant, tradeoff, workaround or gotcha.
 - **Abstractions are faithfully named** with no hidden clauses; docs match behavior.
 - **Exception:** in `main`/engine init, fold multi-line wiring into a named helper even
   at one call site (`init_renderer(&cfg)?`), kept beside the setup code.
-
-## Workflow
-
-- In interactive sessions, don't commit unprompted. A skill or work item that includes
-  a commit or PR step is the authorization for that step.
-- Never merge PRs or enable auto-merge; a human merges.
-- Consider blast radius before destructive or hard-to-reverse actions; confirm first.
-- Out-of-scope findings become a tracked work item, not scope creep.
-- Never resolve a reviewer's thread; reply with what changed and leave status to them.
-- Shared artifacts (skills, templates, docs) state standards impersonally.

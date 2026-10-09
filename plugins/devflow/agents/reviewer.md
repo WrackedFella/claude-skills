@@ -4,6 +4,7 @@ description: Independent fresh-context review of a diff against its work item. U
 tools: Read, Grep, Glob, Bash, mcp__gitnexus__impact, mcp__gitnexus__context, mcp__gitnexus__detect_changes
 skills: rust-standards
 model: opus
+maxTurns: 40
 color: red
 ---
 

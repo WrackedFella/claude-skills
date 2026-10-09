@@ -4,6 +4,7 @@ description: Adversarial fresh-context review of freshly written failing tests a
 tools: Read, Grep, Glob, Bash
 skills: rust-standards
 model: opus
+maxTurns: 40
 color: orange
 ---
 

@@ -32,6 +32,7 @@ Owns what and why; never names crates, types, algorithms or paths.
 ## Tech Lead (`/devflow:tech-lead`)
 
 Owns how. Applies `CLAUDE.md`, `rust-standards`, existing ADRs and domain practice.
+Drafts left by a thread without board access are filed later with `/devflow:publish`.
 
 - **Scope check first.** Challenges size against cost; designs for the next increment,
   keeping deferred options open with a cheap seam rather than machinery; splits items
@@ -61,9 +62,10 @@ Owns how. Applies `CLAUDE.md`, `rust-standards`, existing ADRs and domain practi
 ### Hand-off to the queue
 
 1. Create the work branch from the base branch and commit the spec there.
-2. Publish the card as an issue and link it as a sub-issue of the feature.
-3. With a board: set `Status=Ready`, `Gate class`, `Agent-eligible` through
-   [`scripts/board`](board.md). Without one, the card's status line and labels are the record.
+2. Publish the card with [`scripts/card publish`](board.md#pluginsdevflowscriptscard): it files the issue,
+   links it as a sub-issue of the feature and, with a board, sets `Status=Ready`,
+   `Gate class` and `Agent-eligible`. Without a board, the card's status line and labels
+   are the record.
 4. Report the issue number and branch. Next step: `/devflow:orchestrate`.
 
 ## Published issues
@@ -89,8 +91,8 @@ the BA and Tech Lead skills and applies their rules, escalating where they would
 - **Escalates instead of guessing.** Unanswered direction-setting questions, criteria
   that conflict with an ADR, or untestable criteria produce one comment (questions,
   proposed defaults, costs) and a stop. Independent cards may still publish.
-- **Publishes** each card as `[<ID>] <title>`, labeled with the feature's line, linked as
-  a sub-issue, then adds them to the feature's item table.
+- **Publishes** each card with `scripts/card publish` as `[<ID>] <title>`, labeled with the
+  feature's line and linked as a sub-issue, then adds them to the feature's item table.
 - **Labels** follow `Card review`: `required` applies no label (the user approves by
   applying `agent-ready`); `not required` labels cards the orchestrator can finish
   unattended (gate class `glue`, or `domain` with `Domain-test review` not `required`).

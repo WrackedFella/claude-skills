@@ -91,9 +91,11 @@ line. Issue templates for a feature and a work item keep published issues unifor
    Status, Priority, Gate class, Agent-eligible.
 2. Authenticate `gh` with the project scope: `gh auth refresh -s project`.
 3. Put the owner and project number in `CLAUDE.md`.
-4. Verify: `plugins/devflow/scripts/board get <owner> <number> <issue-url>` on a filed issue.
+4. Verify: `plugins/devflow/scripts/board probe <owner> <number>` (exit 5 means the board is
+   unreachable from this environment).
 
-Agents cannot write the board from cloud threads or Actions. Moho moves Status with a
+Agents cannot write the board from cloud threads or Actions; drafts filed without it are
+later published with `/devflow:publish`. Moho moves Status with a
 workflow instead (`.github/workflows/board-sync.yml`): it reacts to PR and issue events
 and moves Status forward only, using a repository secret `BOARD_TOKEN` (a classic personal
 access token with the `repo` and `project` scopes). Ready and Agent-eligible stay human-set.
@@ -159,6 +161,8 @@ Claude Code Projects threads do not load plugins from `.claude/settings.json`
 | Specify its cards | `/devflow:tech-lead <feature or card>` |
 | Split an approved feature headlessly | label the feature issue `agent-ready`, or `/devflow:refine <issue>` |
 | Implement one ready card | `/devflow:orchestrate <issue>` |
+| Address PR review feedback | `/devflow:respond [pr]` |
+| File drafts a cloud thread left | `/devflow:publish [card-id ...]` |
 | Check where things stand | `/devflow:sitrep project` |
 
 Try the flow on one small `glue` card first and read the PR it produces before
