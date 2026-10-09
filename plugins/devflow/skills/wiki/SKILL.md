@@ -19,7 +19,7 @@ Bring the project's wiki in line with this diff. Never change code.
 3. **Decide whether the wiki needs a change.** The audience is a developer joining the
    project. A change qualifies when it adds or alters something they must know to work
    here:
-   - a structure: a crate, module boundary, data flow or lifecycle;
+   - a structure: a package or module boundary, data flow or lifecycle;
    - a pattern: an extension point, or the way a kind of thing is added;
    - a convention: naming, layout, error handling or a workflow rule;
    - a format or contract other code or people depend on (file formats, GPU layouts,
@@ -35,8 +35,8 @@ Bring the project's wiki in line with this diff. Never change code.
      or session references;
    - name types and modules and link the source path; don't paste code except what the
      source can't show (layouts, formats, invariants), and don't cite line numbers;
-   - link ADRs for rationale rather than re-arguing it, and don't repeat what rustdoc
-     or a crate README already says;
+   - link ADRs for rationale rather than re-arguing it, and don't repeat what API docs
+     (e.g. rustdoc, XML doc) or a package README already says;
    - terse and impersonal; a diagram only where it explains faster than prose, in a
      text format that diffs.
 

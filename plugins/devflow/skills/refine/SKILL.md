@@ -52,7 +52,7 @@ and gate class, following the planning standards' card template.
 
 Verify load-bearing claims by reading the source, as the Tech Lead does, including
 callers of code a card keeps and what a gate a card extends reads. Read-only commands
-that compile nothing (`cargo tree`, a script's dry run) are fine. Don't build. Keep the
+that compile nothing (e.g. a dependency-tree listing such as `cargo tree` or `dotnet list package`, a script's dry run) are fine. Don't build. Keep the
 Tech Lead's Checked list as you go.
 
 **Escalate instead of guessing** when a direction-setting question is unanswered by the
