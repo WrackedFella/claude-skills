@@ -20,7 +20,7 @@ release steps are in the [root README](../README.md).
 ## Conventions
 
 - Pages describe the current plugin; no history, changelogs or session references.
-- One page, one type (explanation or reference).
+- One page, one type (how-to, explanation or reference).
 - Skill and agent behavior is defined by the files under `plugins/devflow/`; when a
   page and a file disagree, the file wins and the page is a bug.
 - `/devflow:wiki` is the skill that keeps a *consuming project's* wiki current. This
