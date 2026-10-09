@@ -16,6 +16,7 @@ Definitions: `plugins/devflow/skills/<name>/SKILL.md`. Invoked as `/devflow:<nam
 | `sitrep` | Reporting | feature ID, item ID, `#issue` or `project` | Main session, read-only | Status report of at most ~15 lines |
 | `engineering-standards` | Knowledge | none | Preloaded into agents; not user-invocable | Language-neutral engineering standards |
 | `rust-standards` | Knowledge | none | Selected by the `Standards` setting; not user-invocable | Rust-only deltas on `engineering-standards` |
+| `dotnet-standards` | Knowledge | none | Selected by the `Standards` setting; not user-invocable | C#/.NET-only deltas on `engineering-standards` |
 
 "Forked" skills run in an isolated context and return only a report. Role skills are
 covered in [Planning](planning.md) and [Orchestration](orchestration.md).
@@ -130,3 +131,11 @@ Rust-only deltas, default second module of `Standards`; it defers to `engineerin
 for every other rule. Covers crate layout, `Result`/panic wording, `thiserror`/`anyhow`,
 `#[non_exhaustive]`, drop-based async cancellation, `tracing` macros, test naming and
 `#[cfg(test)]`/`#[ignore]`, rustdoc and `// SAFETY:`, ECS and hot-path items.
+
+## dotnet-standards
+
+C#/.NET-only deltas, selected through `Standards`; it defers to `engineering-standards`
+for every other rule. Covers solution layout (`ProjectReference`, `Directory.Build.props`,
+central package management), the compiler and analyzers as gate, records and value
+objects, exceptions versus result types, `CancellationToken`, DI and validated options,
+`ILogger` templates, xUnit and Stryker.NET, and XML doc comments.
