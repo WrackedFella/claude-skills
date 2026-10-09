@@ -9,6 +9,8 @@ release steps are in the [root README](../README.md).
 | [Overview](overview.md) | Explanation | Principles, roles, the end-to-end flow, where humans stay in the loop |
 | [Planning](planning.md) | Explanation | Business Analyst, Tech Lead, `refine`, cards, published issues |
 | [Orchestration](orchestration.md) | Explanation | The `orchestrate` pipeline step by step, delegation, headless behavior |
+| [Coordination](coordination.md) | Explanation | Lanes, one thread per card, shared-file ownership |
+| [Runtimes](runtimes.md) | Explanation | Local, cloud thread, Actions; plugin delivery; unattended triggers |
 | [Agents](agents.md) | Reference | The four worker agents: contract, model, tools |
 | [Skills](skills.md) | Reference | Every skill: kind, trigger, arguments, output |
 | [Project contract](project-contract.md) | Reference | What a consuming project's `CLAUDE.md` must state |
