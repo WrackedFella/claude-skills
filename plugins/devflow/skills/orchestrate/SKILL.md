@@ -22,6 +22,8 @@ task:
   every subagent in the foreground and wait for its report before you continue. The
   run ends when you stop, and a background subagent dies with it, so never end a turn
   while one is still running. In an interactive session this doesn't apply.
+- Only the orchestrator spawns subagents; they cannot spawn their own. Fan-out (step 3)
+  is therefore always driven from here.
 - Delegate to the cheapest model that can do the job: mechanical or read-only work
   (searching, summarizing, running commands, formatting) goes to a `haiku` subagent;
   bounded work against a written spec goes to `devflow:test-writer` /
@@ -113,6 +115,33 @@ starts, so they can be read on GitHub throughout.
 
 Delegate to `devflow:implementer` with the tech spec and the failing-test list. Check
 its report against the spec: scope respected, no tests or lints touched, gate green.
+
+### Parallel parts
+
+When the tech spec's footprint marks two or more parts, implement them in parallel;
+otherwise (no parts, one part, or a footprint overlap you find while reading the code)
+use the single call above.
+
+1. Confirm the footprints are disjoint by reading the spec and the code. Merge any
+   parts that share a file; if one part remains, stop here and use the single call.
+2. Pick the model per part: `sonnet` for bounded work against the spec; `opus` only for
+   a part whose design the spec leaves open or that is delicate (concurrency, unsafe,
+   numerics). Record the choice and why.
+3. In one message, issue one Agent call per part, each `devflow:implementer`,
+   `isolation: "worktree"`, foreground (`run_in_background: false`), with the tech
+   spec, the part's tests and footprint, and the instruction to commit on its own
+   branch. Calls issued in one message run concurrently when the host allows it; where
+   it runs them one at a time (headless runs force foreground), the parts still
+   complete, only slower, so correctness never depends on concurrency. Wait for every
+   report before continuing.
+4. Merge the part branches into the work branch one at a time (`git merge --no-ff`).
+   Disjoint footprints merge cleanly; a conflict means the footprints were not
+   disjoint: abort that merge, redo the conflicting parts as a single
+   `devflow:implementer` call, and note the footprint error in the PR.
+5. Run the gate on the merged result; a failure goes to a single `devflow:implementer`.
+   Remove the worktrees and part branches, then push the work branch.
+
+Every later step runs once, on the merged work.
 
 If the spec turns out to be wrong, the implementer does the minimal correct thing
 within scope; record the deviation and its reason in the card and the PR. If the fix
