@@ -45,11 +45,11 @@ linked checkout of this repo, and keep that in step with the consumer's pin.
 | Kind | Name | Use |
 |---|---|---|
 | Role skill | `/devflow:business-analyst` | Negotiate features down to a minimal increment and write behavioral requirements (Gherkin acceptance criteria) |
-| Role skill | `/devflow:tech-lead` | Turn requirements into a tech spec: design, test map, ADRs |
-| Role skill | `/devflow:refine [feature-issue]` | Unattended refinement: split an approved feature into work-item issues with the BA's and Tech Lead's rules, escalating open questions as a comment instead of asking |
-| Role skill | `/devflow:orchestrate [issue]` | Drive one ready work item red-green-refactor through the gates to a PR; with no issue, take the board's queue head |
+| Role skill | `/devflow:tech-lead` | Turn requirements into a tech spec: design, file footprint (parts), test map, ADRs; size slices to disjoint footprints |
+| Role skill | `/devflow:refine [feature-issue]` | Unattended refinement: split an approved feature into work-item issues with the BA's and Tech Lead's rules, escalating open questions as a comment instead of asking; reports which cards can run in parallel |
+| Role skill | `/devflow:orchestrate [issue]` | Drive one ready work item red-green-refactor through the gates to a PR, implementing disjoint parts of a card in parallel; with no issue, take the board's queue head |
 | Agent | `devflow:test-writer` | Writes failing tests from acceptance criteria only |
-| Agent | `devflow:implementer` | Writes the minimum code to pass the tests, then refactors under green |
+| Agent | `devflow:implementer` | Writes the minimum code to pass the tests (or one part of them, in its own worktree), then refactors under green |
 | Agent | `devflow:reviewer` | Fresh-context review of a diff against its spec |
 | Skill | `/devflow:comment-audit` | Removes comments that don't earn their place from a diff |
 | Skill | `/devflow:wiki` | Updates onboarding docs where a diff adds or alters a structure, pattern or convention; otherwise reports why none is needed |

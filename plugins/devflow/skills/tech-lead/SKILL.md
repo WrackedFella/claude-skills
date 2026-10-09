@@ -27,6 +27,11 @@ Business Analyst can't:
   open, not the machinery for it.
 - If the item is bigger than one reviewable PR, split it into smaller vertical slices
   before speccing.
+- Draw slice boundaries along files and modules, so slices of one feature touch
+  disjoint **footprints**. Disjoint cards run as parallel runs; cards that share a file
+  run in sequence, and the later one lists the earlier as a dependency. A shared file
+  that every slice needs (a registry, a prelude, a manifest) goes in the first slice or
+  its own.
 
 The user decides scope; you make each trade visible with its cost.
 
@@ -40,6 +45,11 @@ For each work item whose acceptance criteria are approved, write its **Tech spec
 - **Out of scope:** what an implementer might be tempted to change but must not,
   including deferred behavior from the feature and "while I'm here" generalizations
   or cleanups outside the touched code. Name concrete items, not a generic warning.
+- **Footprint:** the files and modules the implementation edits, one line each.
+  Test files are included. Where the test map splits into groups whose footprints do
+  not overlap, mark the groups as **parts** (`A`, `B`, ...) and tag each test-map entry
+  with its part; the orchestrator implements parts in parallel. Overlap in a single
+  file means one part.
 - **Test map:** each acceptance scenario → the test that proves it
   (`crate::module::tests::scenario_expected_result`), plus edge-case tests the design
   implies. Prefer property tests for invariants and snapshot tests for formats.

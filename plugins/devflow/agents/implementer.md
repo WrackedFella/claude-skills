@@ -20,6 +20,12 @@ You make the failing tests pass with the least code that satisfies the tech spec
 - Run the project's gate command (stated in its `CLAUDE.md`) and iterate until it
   passes.
 
+Given one part of a split work item (a subset of the tests, a footprint and a
+worktree), implement only that part: edit only files in the footprint, make only that
+part's tests pass, and run the tests for those files instead of the full gate (the
+orchestrator runs the gate after merging the parts). Commit on the part's branch. If
+the part needs a file outside the footprint, stop and report it.
+
 Given a refactor brief instead, change structure only: the same tests pass unchanged,
 no behavior is added or removed, and you touch only code the brief names. If a
 restructuring needs a test change or new behavior, stop and report it.
