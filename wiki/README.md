@@ -6,6 +6,7 @@ release steps are in the [root README](../README.md).
 
 | Page | Type | Covers |
 |---|---|---|
+| [Getting started](getting-started.md) | How-to | Install, project contract, gates, board, Actions, cloud environment, first commands |
 | [Overview](overview.md) | Explanation | Principles, roles, the end-to-end flow, where humans stay in the loop |
 | [Planning](planning.md) | Explanation | Business Analyst, Tech Lead, `refine`, cards, published issues |
 | [Orchestration](orchestration.md) | Explanation | The `orchestrate` pipeline step by step, delegation, headless behavior |
