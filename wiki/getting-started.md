@@ -63,7 +63,7 @@ Moho's `CLAUDE.md` section, abbreviated:
 A .NET project names its language module the same way and supplies its own commands:
 
 ```markdown
-- **Standards:** `engineering-standards, dotnet-standards`
+- **Standards:** `engineering-standards, dotnet-standards` (add `azure-standards` for Azure-hosted projects)
 - **Gate command:** `dotnet build -warnaserror && dotnet format --verify-no-changes && dotnet test`
 - **Mutation command:** `dotnet stryker --since:<base-branch>` (Stryker.NET diff mode; without `--since` it mutates the whole project; set `thresholds.break` in `stryker-config.json`, or pass `--break-at`, so a score below it fails)
 ```
