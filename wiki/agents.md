@@ -12,6 +12,9 @@ report. All load the `rust-standards` skill, see the repository and the project'
 | `devflow:test-critic` | opus | Read, Grep, Glob, Bash | nothing | Portfolio review of fresh tests |
 | `devflow:reviewer` | opus | Read, Grep, Glob, Bash, GitNexus `impact`/`context`/`detect_changes` | nothing | Diff review against the spec |
 
+No worker's tool list includes `Agent`, so workers cannot spawn subagents; that keeps
+fan-out at the orchestrator. `test-critic` and `reviewer` carry `maxTurns: 40`.
+
 GitNexus tools are used when available; when the project's `CLAUDE.md` calls for
 code-graph checks and the tools are missing, the agent says so in its report.
 

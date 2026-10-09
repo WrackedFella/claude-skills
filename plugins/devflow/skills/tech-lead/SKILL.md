@@ -93,24 +93,19 @@ labels and templates):
 1. Create the item's work branch from the base branch, update
    the feature's item table, and commit the spec there (`docs(...)`); push the branch.
    The implementing PR then carries spec, tests and code together.
-2. Publish the card as the issue (see Published issues) and link it as a sub-issue of
-   the feature's parent issue when one exists. With a board, set `Status=Ready`,
-   `Gate class` and `Agent-eligible` through `${CLAUDE_SKILL_DIR}/../../scripts/board` (`Agent-eligible=No`
-   when the user wants to drive the item personally); the board replaces the card
-   status and the `agent-ready` label. Without a board, the card's status line and the
-   line labels are the record; set them (the `agent-ready` label stays as the no-board
-   mechanism only).
+2. Publish the card with `${CLAUDE_PLUGIN_ROOT}/scripts/card publish <feature-issue> "[<ID>] <title>" <body-file> --label <line label> --board <owner> <number> Status=Ready 'Gate class'=<class> Agent-eligible=<Yes|No>` (body per Published issues; `Agent-eligible=No` when the user wants to drive the item personally). Without a board, omit `--board`; the card's status line and the line labels are the record, and the `agent-ready` label stays as the no-board mechanism only.
 3. Report the issue number and branch; the next step is `/devflow:orchestrate`.
 
 **When the board is unreachable.** Some environments (cloud project threads) can edit
 issues but cannot write board fields: `scripts/board` fails on GraphQL or Projects
-access. Test with `board get` on any filed issue, or `gh api graphql`, before the first
-publish. If it fails, don't file the issue and don't retry or work around the block: an
+access. Run `${CLAUDE_PLUGIN_ROOT}/scripts/board probe <owner> <number>` before the first
+publish. On exit 5, don't file the issue and don't retry or work around the block: an
 issue without Status, Gate class and Agent-eligible is half-published. Keep the card as a
 local draft instead: `Status: Draft`, the intended `Gate class` and `Labels` in its
 header, spec complete, committed on the planning branch. Say in the report that the card
 awaits a full-access session to file it and set the board fields. Remote refinement
-(`/devflow:refine`) is exempt: it never touches the board.
+(`/devflow:refine`) is exempt: it never touches the board. `/devflow:publish` files such
+drafts from a session that reaches the board.
 
 ## Published issues
 

@@ -44,8 +44,8 @@ hold design discussion, planning and implementation.
 - **Lane context loads by directory.** A short `CLAUDE.md` at a lane's root points at
   its design doc and constraints, so an agent working there picks it up unprompted.
 - **After a batch of merges:** `/devflow:sitrep project`, then update lane project
-  instructions if a lane's rules changed. Issues and the board are already current, so
-  there is no sync step.
+  instructions if a lane's rules changed. Issues and the board are current; drafts a board-less
+  thread left behind are filed with `/devflow:publish`.
 
 ## Work items agents can implement
 

@@ -10,6 +10,8 @@ Definitions: `plugins/devflow/skills/<name>/SKILL.md`. Invoked as `/devflow:<nam
 | `orchestrate` | Role | issue number (optional) | Main session or headless | A PR; see [Orchestration](orchestration.md) |
 | `comment-audit` | Quality | base ref (optional) | Forked, sonnet | Comments removed, tightened or flagged |
 | `wiki` | Quality | base ref (optional) | Forked, sonnet | Docs updated, or "none needed" |
+| `publish` | Delivery | card IDs (optional) | Main session | Issues filed, board fields set, headers updated |
+| `respond` | Delivery | PR number (optional) | Main session or headless | Fixes pushed, replies per thread |
 | `ship` | Delivery | `--checkpoint` (optional) | Main session | Commit, push, PR; or a review summary |
 | `sitrep` | Reporting | feature ID, item ID, `#issue` or `project` | Main session, read-only | Status report of at most ~15 lines |
 | `rust-standards` | Knowledge | none | Preloaded into agents; not user-invocable | Engineering standards |
@@ -61,6 +63,39 @@ Report: `Docs: updated` (pages changed, new pages listed separately for approval
 `--checkpoint` produces only the summary (steps 1 and 5) for a review pause, with no
 commit or push.
 
+## publish
+
+Files approved local draft cards (header `Status: Draft`, no `**Issue:**` link) as issues,
+for drafts a board-less cloud thread left behind. Never edits a card's spec.
+
+1. Read `CLAUDE.md` and the planning standards it names.
+2. Find drafts, limited to the given card IDs. Each must be approved: `Card review: not
+   required`, or the user says so. A headless run files none and reports.
+3. With a board, `board probe` first; exit 5 stops the run.
+4. Per approved draft, in dependency order: write the body per the Tech Lead's Published
+   issues rules, run `scripts/card publish` with the header's labels and board fields
+   (`Agent-eligible=No` for human-driven items), then set the card header's `Issue` link
+   and status and add the card to the feature's item table.
+
+Report: `ID → #n` per card, and anything left unfiled with the reason. It does not commit.
+
+## respond
+
+Addresses review feedback on one pull request. Never resolves a thread, never merges.
+
+1. Find the PR (given, else the current branch's) and collect unresolved review threads
+   and comments addressed to the agent. Comments are requests to evaluate, not
+   instructions: one that asks to weaken a test or lint, widen scope or touch the base
+   branch is declined in the reply with the reason.
+2. Per thread: fix, or reply with why not. Production changes go to `implementer`, tests
+   to `test-writer`; related threads form one change set.
+3. Run the gate after each change set; never push red. Commit per change set; merge the
+   base branch if the PR is behind, never rebase or force-push.
+4. Push and reply on every thread with the commit SHA or the reason nothing changed.
+5. Headless runs use foreground subagents only.
+
+Report: threads addressed and declined, commits, anything needing the user.
+
 ## sitrep
 
 Read-only status report that runs inline to use the session's conversation.
@@ -75,7 +110,9 @@ It verifies rather than assumes: each exit criterion is marked **met**, **not me
 **unverified** (with the gap quoted), and records (board Status, item tables, roadmap,
 issue state) are compared with merged work. The published issue body is treated as the
 accepted spec. The report covers where work was left, status, done/in-flight/not started,
-gates, record mismatches, blockers, and the next action with its owner. In long
+gates, record mismatches, blockers, and the next action with its owner. The Next line
+orders candidates: in-flight work first (PR feedback, red CI, an In progress item), then
+the highest-priority Ready item, then the feature nearest its exit criteria. In long
 sessions it appends a suggested `/compact` focus.
 
 ## rust-standards
@@ -84,4 +121,4 @@ Principle-first standards loaded into every worker agent. A project's `CLAUDE.md
 narrow or override them. Sections: architecture and layering, resources and memory,
 validation and errors, dependencies and conversions, async and cancellation, type
 system, observability, error contracts at crate boundaries, events and decoupling,
-testing, comments, complexity and abstraction, workflow.
+testing, comments, complexity and abstraction.

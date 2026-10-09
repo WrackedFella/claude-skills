@@ -18,12 +18,13 @@ task:
 - Push the work branch after every commit (tests, implementation, refactor, docs). A
   cloud sandbox that cannot resume continues from a fresh clone, so anything unpushed
   is lost.
-- In a headless run (`GITHUB_ACTIONS=true`, or any host with no person attached) run
-  every subagent in the foreground and wait for its report before you continue. The
-  run ends when you stop, and a background subagent dies with it, so never end a turn
-  while one is still running. In an interactive session this doesn't apply.
-- Only the orchestrator spawns subagents; they cannot spawn their own. Fan-out (step 3)
-  is therefore always driven from here.
+- In a headless run (`GITHUB_ACTIONS=true`, or no person attached) run every subagent
+  in the foreground and wait for its report; the run ends when you stop.
+- Only the orchestrator spawns subagents: the worker agents' tool lists omit `Agent`,
+  so fan-out is always driven from here.
+- Steps 5, 7 and 8 invoke skills through the Skill tool. If the Skill tool refuses a
+  call in this environment, report that in the PR under Verification and continue;
+  never imitate the skill inline.
 - Delegate to the cheapest model that can do the job: mechanical or read-only work
   (searching, summarizing, running commands, formatting) goes to a `haiku` subagent;
   bounded work against a written spec goes to `devflow:test-writer` /
@@ -36,14 +37,13 @@ task:
 
 If the project's `CLAUDE.md` names a GitHub Project board, its Status field is the
 record of item state; read and change it only through
-`${CLAUDE_SKILL_DIR}/../../scripts/board` (`board set <owner> <number> <issue-url> Status=...`), which
+`${CLAUDE_PLUGIN_ROOT}/scripts/board` (`board set <owner> <number> <issue-url> Status=...`), which
 works by field and option names. Without a board, the card status is the record.
 
-Some environments move Status by events instead (for example a workflow that reacts to
-PRs and issue labels), and the `board` script cannot reach Projects there (GraphQL is
-blocked or the token lacks project scope). When `board` fails that way, don't retry or
-work around it: skip every board read and write in this task, carry on, and say in the
-PR body which Status changes were left to the environment.
+`board` exits 5 when it cannot reach Projects (some environments move Status by events
+instead and give the agent no project access). On exit 5, don't retry or work around
+it: skip every board read and write in this task, carry on, and say in the PR body which
+Status changes were left to the environment.
 
 ## 1. Intake
 
@@ -84,32 +84,9 @@ says otherwise) to `domain` items. `glue` items skip this and continue.
 - `not required`: continue. The PR body lists the tests under a heading saying they
   were not reviewed before implementation, so the PR review covers them.
 
-### Test review (`agent`; at most 2 rounds)
+### Test review (`agent`)
 
-The tests are the only definition of done the implementer will see, so judge them
-before they steer an implementation. Delegate to `devflow:test-critic` with the issue
-number and the base branch. It sees the spec and the tests, not the test-writer's
-reasoning, and returns a verdict per test (KEEP, STRENGTHEN, MERGE, REMOVE) plus gaps.
-
-Triage its findings yourself. Accept one only if it names a concrete wrong behavior
-the tests let through, a spec scenario they don't pin, or a reason the test is not
-worth keeping that you can verify. Then:
-
-- STRENGTHEN and gaps: send to `devflow:test-writer`, which adds or tightens tests and
-  confirms they fail for the right reason.
-- MERGE and REMOVE: have the test-writer delete or fold the test. This is the one
-  place tests are removed, before implementation, to improve them; it is never a way
-  to get green. Refuse a removal that leaves a spec scenario without a pinning test.
-  Never loosen an assertion to answer a finding.
-
-Commit (`test(scope): ...`) and push, then re-run the critic only if a round changed
-tests materially.
-
-If a finding shows the acceptance criteria are ambiguous or untestable as written, that
-is a spec problem: comment on the issue and stop. The PR body gets a "Test review"
-section: the verdict counts, tests removed or merged with their reasons, and findings
-still open or rejected with reasons. The tests are pushed before implementation
-starts, so they can be read on GitHub throughout.
+Read `${CLAUDE_SKILL_DIR}/test-review.md` and follow it (at most 2 rounds). The PR body gets its Test review section.
 
 ## 3. Implementation
 
@@ -118,30 +95,7 @@ its report against the spec: scope respected, no tests or lints touched, gate gr
 
 ### Parallel parts
 
-When the tech spec's footprint marks two or more parts, implement them in parallel;
-otherwise (no parts, one part, or a footprint overlap you find while reading the code)
-use the single call above.
-
-1. Confirm the footprints are disjoint by reading the spec and the code. Merge any
-   parts that share a file; if one part remains, stop here and use the single call.
-2. Pick the model per part: `sonnet` for bounded work against the spec; `opus` only for
-   a part whose design the spec leaves open or that is delicate (concurrency, unsafe,
-   numerics). Record the choice and why.
-3. In one message, issue one Agent call per part, each `devflow:implementer`,
-   `isolation: "worktree"`, foreground (`run_in_background: false`), with the tech
-   spec, the part's tests and footprint, and the instruction to commit on its own
-   branch. Calls issued in one message run concurrently when the host allows it; where
-   it runs them one at a time (headless runs force foreground), the parts still
-   complete, only slower, so correctness never depends on concurrency. Wait for every
-   report before continuing.
-4. Merge the part branches into the work branch one at a time (`git merge --no-ff`).
-   Disjoint footprints merge cleanly; a conflict means the footprints were not
-   disjoint: abort that merge, redo the conflicting parts as a single
-   `devflow:implementer` call, and note the footprint error in the PR.
-5. Run the gate on the merged result; a failure goes to a single `devflow:implementer`.
-   Remove the worktrees and part branches, then push the work branch.
-
-Every later step runs once, on the merged work.
+When the tech spec's footprint marks two or more parts, read `${CLAUDE_SKILL_DIR}/parallel-parts.md` and follow it; otherwise use the single call above. Every later step runs once, on the merged work.
 
 If the spec turns out to be wrong, the implementer does the minimal correct thing
 within scope; record the deviation and its reason in the card and the PR. If the fix
@@ -163,9 +117,7 @@ Green came from the minimum code; now improve its structure with every test held
 fixed. Review the change against the tech spec and `rust-standards`: duplication,
 naming, responsibilities, layering, and any shortcut taken to get green. Send concrete
 restructurings to `devflow:implementer` as a refactor brief. Then run `/simplify` on
-the changed code through the Skill tool. If the Skill tool refuses the call in this
-environment, report that in the PR under Verification and continue; don't imitate the
-skill inline.
+the changed code through the Skill tool.
 
 Refactoring changes structure, never behavior: no test edits, no new behavior, and it
 stays within the code this work touched and the spec's scope. Re-run the gate after
@@ -183,8 +135,7 @@ justification in the PR. Record caught / missed / unviable counts.
 
 Run `/devflow:comment-audit` through the Skill tool rather than an inline imitation.
 Re-run the gate. If it's skipped (for example the diff has no comments), the PR says
-so and why. If the Skill tool refuses the call in this environment, report that in the
-PR under Verification and continue; don't imitate the skill inline.
+so and why.
 
 ## 8. Docs
 
@@ -193,8 +144,6 @@ updates the wiki where this change adds or alters a structure, pattern or conven
 a new developer needs, or reports why none is needed. Check that the pages it touched
 describe only what this diff does, and commit them on their own (`docs(scope): ...`) and push.
 Carry its report into the PR body; new pages are flagged there for the user's review.
-If the Skill tool refuses the call in this environment, report that in the PR under
-Verification and continue; don't imitate the skill inline.
 
 ## 9. Platform coverage
 

@@ -31,19 +31,31 @@ Requires `gh` with the `project` scope (`gh auth refresh -s project`).
 | `board set <owner> <number> <issue-url> Field=Option …` | Sets fields; adds the issue to the board if absent |
 | `board get <owner> <number> <issue-url>` | Read-only; reads at most 1000 items |
 | `board next <owner> <number>` | Prints the URL of the queue head |
+| `board probe <owner> <number>` | Read-only reachability check |
 
-Exit codes: `1` error, `3` empty queue (`next`), `4` issue not on the board (`get`).
-Owners may be users or organizations.
+Exit codes: `1` error, `3` empty queue (`next`), `4` issue not on the board (`get`),
+`5` board unreachable (any subcommand). Owners may be users or organizations.
+
+## `plugins/devflow/scripts/card`
+
+```
+card publish <feature-issue-number> <title> <body-file> [--label <name>]... [--board <owner> <number> <Field>=<Option>...]
+```
+
+Creates the issue, links it as a sub-issue of the feature, optionally sets board fields,
+and prints `#<n> <url>`. Exit `5` means the board part was unreachable: the issue is
+still filed and linked, and only its board fields are missing.
 
 ## Unreachable board
 
 Some environments (cloud threads, runners with a default app token) cannot use GraphQL
-or Projects. When `board` fails that way:
+or Projects. Skills detect it by `board` exit 5 (`board probe` checks before the first
+publish). When it happens:
 
 - The orchestrator skips every board read and write and states in the PR body which
   Status changes were left to the environment (for example an Action reacting to PR
   and label events).
 - The Tech Lead does not file an issue, since one without Status, Gate class and
   Agent-eligible is half-published. The card stays a local draft (`Status: Draft`,
-  intended gate class and labels, full spec) for a full-access session to file.
+  intended gate class and labels, full spec) for a full-access session to file with `/devflow:publish`.
 - `refine` is unaffected: it never touches the board.

@@ -3,7 +3,6 @@ name: sitrep
 description: Succinct situation report on where the current session's work stands, for re-orienting after a long session or time away. Also reports on a specific feature, item or issue, or the whole project. Read-only.
 argument-hint: "[feature-id | item-id | #issue | project]"
 arguments: [target]
-background: false
 ---
 
 Report status for `$target`. Read-only: never edit, commit or comment.
@@ -26,7 +25,7 @@ point is to recover where *this session* stands. Do not delegate it to a subagen
   verify, not as ground truth.
 - From the repo: the feature or item file(s) (status, exit or acceptance criteria),
   linked issue and PR state (`gh issue view`, `gh pr list --search`, `gh pr checks`),
-  board fields when the project has a board (`${CLAUDE_SKILL_DIR}/../../scripts/board` `get`), and branch
+  board fields when the project has a board (`${CLAUDE_PLUGIN_ROOT}/scripts/board` `get`), and branch
   state (commits ahead of the base branch, uncommitted changes, last gate
   run if visible).
 - Where the conversation and the repo disagree (e.g. a card says ready but we planned a
@@ -66,6 +65,12 @@ removed"), never a bare ID. Use lists for groups of items.
 - **Blockers / decisions needed:** only real ones, each one line, including decisions
   made in conversation but not yet recorded in a card or ADR.
 - **Next:** the single most useful next action and who owns it (human or agent).
+  Finishing something in flight (open PR feedback, red CI, an In progress item) beats
+  starting new work; then the highest-priority Ready item (`board next`); then the
+  feature closest to its exit criteria; respect pauses noted in the planning index. Say
+  what it needs: Ready means `/devflow:orchestrate <issue>`; missing acceptance criteria
+  or tech spec means `/devflow:business-analyst` or `/devflow:tech-lead`; a decision
+  means naming it and its options in one line.
 
 No narration, no restating the spec.
 

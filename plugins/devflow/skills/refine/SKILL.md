@@ -72,12 +72,10 @@ Per card, in dependency order:
 2. Body per the planning standards' issue rules: every card section, standing alone, no
    header lines, no `_todo/` paths, other work as `#N`. The tech spec states the gate
    class.
-3. `gh issue create --title ... --body-file ... --label <the feature's line label>`.
+3. `${CLAUDE_PLUGIN_ROOT}/scripts/card publish $issue "[<ID>] <title>" <body-file> --label <the feature's line label>`.
    Write the body to a scratch file first: in the system temp directory, or if that is
-   denied, in the working tree, deleting it afterwards.
-4. Link it as a sub-issue of the feature:
-   `gh api repos/{owner}/{repo}/issues/$issue/sub_issues -F sub_issue_id=<id>`, where
-   `<id>` is the new issue's numeric id (`gh api repos/{owner}/{repo}/issues/<n> --jq .id`).
+   denied, in the working tree, deleting it afterwards. The script files the issue and
+   links it as a sub-issue of the feature.
 
 Afterwards add the new cards to the feature body's Items table, and change nothing else
 in the body (`gh issue edit $issue --body-file ...`).
