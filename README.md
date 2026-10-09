@@ -40,6 +40,10 @@ Cloud sessions (Claude Code Projects) do not load plugins from a repository's
 `.claude/settings.json`. Give each Project the plugin through its own settings or a
 linked checkout of this repo, and keep that in step with the consumer's pin.
 
+## Documentation
+
+How devflow works (flow, agents, skills, project contract, board): [wiki](wiki/README.md).
+
 ## What's in devflow
 
 | Kind | Name | Use |
