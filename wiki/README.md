@@ -2,7 +2,7 @@
 
 How the **devflow** plugin (`plugins/devflow/`) works. Audience: developers who know
 agentic workflows and want the mechanics, contracts and reasons. Installation and
-release steps are in the [root README](../README.md).
+release steps are in the [root README](../README.md). Describes devflow 0.17.0.
 
 | Page | Type | Covers |
 |---|---|---|

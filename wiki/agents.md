@@ -37,6 +37,10 @@ code-graph checks and the tools are missing, the agent says so in its report.
 - Iterates on the gate until green.
 - Given a **refactor brief**: structure only, same tests unchanged, no added or removed
   behavior, only code the brief names; stops if a test change would be needed.
+- Given a **part** (a subset of the tests, a footprint and a worktree): edits only
+  footprint files, makes only that part's tests pass, runs the tests for those files
+  instead of the full gate (the orchestrator gates after merging), commits on the part's
+  branch, and reports any needed file outside the footprint instead of editing it.
 - Report: files and public items changed, gate result, doubts.
 
 ## test-critic

@@ -36,11 +36,16 @@ Owns how. Applies `CLAUDE.md`, `rust-standards`, existing ADRs and domain practi
 - **Scope check first.** Challenges size against cost; designs for the next increment,
   keeping deferred options open with a cheap seam rather than machinery; splits items
   larger than one PR; routes cuts back to the BA with the cost stated.
+- **Slicing by footprint.** Slice boundaries follow files and modules so slices of one
+  feature have disjoint footprints. Disjoint cards run as parallel runs; cards that share
+  a file run in sequence, the later one listing the earlier as a dependency. A file every
+  slice needs (registry, prelude, manifest) goes in the first slice or its own.
 - **Tech spec** per card:
 
   | Section | Content |
   |---|---|
   | Design | Modules and public interfaces touched, data flow, why this approach |
+  | Footprint | Files and modules the implementation edits, tests included, one line each. Where the test map splits into groups with non-overlapping footprints, the groups are **parts** (`A`, `B`, …) and each test-map entry is tagged with its part. Overlap in one file means one part |
   | Out of scope | Concrete tempting changes the implementer must not make |
   | Test map | Each scenario → `crate::module::tests::scenario_expected_result`, plus implied edge cases |
   | Gate class | `domain` (rules in the project's domain-logic paths; test review applies) or `glue` |
@@ -77,7 +82,8 @@ One approved `feature` issue in, published card issues out, with no conversation
 the BA and Tech Lead skills and applies their rules, escalating where they would ask.
 
 - **Writes only issues.** No branches, files, ADRs or PRs; never touches the board.
-- **Decomposes the uncovered.** Existing sub-issues are treated as done or in flight
+- **Decomposes the uncovered.** Slice boundaries follow files and modules, so cards have
+  disjoint footprints where the behavior allows; cards that must share a file are ordered by dependency. Existing sub-issues are treated as done or in flight
   and are never edited; only uncovered exit criteria are cut. More than eight new cards
   means the feature is too big: it comments a proposed split and stops.
 - **Escalates instead of guessing.** Unanswered direction-setting questions, criteria
@@ -88,7 +94,7 @@ the BA and Tech Lead skills and applies their rules, escalating where they would
 - **Labels** follow `Card review`: `required` applies no label (the user approves by
   applying `agent-ready`); `not required` labels cards the orchestrator can finish
   unattended (gate class `glue`, or `domain` with `Domain-test review` not `required`).
-- **Reports** once on the feature: cards created, deferrals, open questions, labels, and
+- **Reports** once on the feature: cards created, which can run in parallel (disjoint footprints) and which wait on another, deferrals, open questions, labels, and
   a **Checked** section.
 
 ## Trigger convention

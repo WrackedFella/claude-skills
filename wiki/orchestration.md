@@ -20,7 +20,7 @@ Challenges, triage and decisions are its own judgment work.
 |---|---|---|
 | Searching, summarizing, running commands, formatting | ad hoc subagent | haiku |
 | Failing tests, challenge tests, mutant-killing tests | `devflow:test-writer` | sonnet |
-| Production code, refactor briefs | `devflow:implementer` | sonnet |
+| Production code, refactor briefs, one part of a split item | `devflow:implementer` | sonnet (opus for a delicate or open-design part) |
 | Test review | `devflow:test-critic` | opus |
 | Final review | `devflow:reviewer` | opus |
 | Challenges, triage, scope decisions | orchestrator | session model |
@@ -31,7 +31,7 @@ Challenges, triage and decisions are its own judgment work.
 |---|---|---|---|
 | 1 | Intake | Take the issue (or `board next`); proceed only if acceptance criteria, tech spec, test map and gate class exist; otherwise comment what is missing and stop. Use the Tech Lead's work branch if present. Claim by moving Status to `In progress`; if already so, stop. Run the environment setup command in remote sessions. | Claimed item, branch |
 | 2 | Failing tests | `test-writer` gets the criteria and test map; the orchestrator verifies each test fails for the right reason. Commit `test(scope)` and push. Then apply `Domain-test review` (below). | Test commit |
-| 3 | Implementation | `implementer` gets the spec and failing tests; the orchestrator checks scope, untouched tests and lints, green gate. A wrong spec is handled minimally and recorded; a scope or public-contract change stops for the user. | Implementation commit |
+| 3 | Implementation | One `implementer` call, or one per part when the spec's footprint marks disjoint parts ([below](#parallel-parts)). `implementer` gets the spec and failing tests; the orchestrator checks scope, untouched tests and lints, green gate. A wrong spec is handled minimally and recorded; a scope or public-contract change stops for the user. | Implementation commit |
 | 4 | Adversarial challenge | Orchestrator attacks the code with concrete inputs or sequences (edge cases, invalid input, ordering, error paths, hot-path traps). `test-writer` turns each into a test; failures go to `implementer`. At most 2 rounds, ending early on a round with no failing test. | New tests and fixes |
 | 5 | Refactor | Structure improves with tests fixed: duplication, naming, responsibilities, layering, shortcuts taken to reach green. `implementer` executes a refactor brief; then `/simplify`. Commit `refactor(scope)`. | Refactor commit, or a statement that none was warranted |
 | 6 | Mutation testing | Run the mutation command on changed code. Survivors become stronger tests, never weaker code; equivalent mutants get a one-line justification. | Caught / missed / unviable counts |
@@ -44,6 +44,29 @@ Challenges, triage and decisions are its own judgment work.
 Skills invoked in steps 5, 7 and 8 go through the Skill tool. If the environment
 refuses the call, the PR records that under Verification; the orchestrator does not
 imitate the skill inline.
+
+### Parallel parts
+
+When the tech spec's footprint marks two or more parts, step 3 fans out; otherwise (no
+parts, one part, or an overlap found in the code) it is a single call.
+
+1. Confirm the footprints are disjoint by reading spec and code; merge parts that share
+   a file. One remaining part means the single call.
+2. Pick a model per part: `sonnet` by default; `opus` only for a part whose design the
+   spec leaves open or that is delicate (concurrency, unsafe, numerics). The choice and
+   reason are recorded.
+3. Issue one `devflow:implementer` call per part in one message, each with
+   `isolation: "worktree"`, in the foreground, committing on its own branch. Wait for
+   every report.
+4. Merge the part branches into the work branch one at a time. A conflict means the
+   footprints were not disjoint: abort that merge, redo the conflicting parts as a single
+   call, and note the error in the PR.
+5. Run the gate on the merged result (a failure goes to a single `implementer` call),
+   remove the worktrees and part branches, push.
+
+Every later step (challenge, refactor, mutation testing, comment audit, docs, review,
+ship) runs once, sequentially, on the merged work. Only the orchestrator spawns
+subagents.
 
 ### Domain-test review (step 2)
 

@@ -36,6 +36,7 @@ A runner (for example `claude-code-action`) reacts to a label and invokes a skil
 | `agent-ready` on a `feature` issue | `/devflow:refine <issue>` |
 | `agent-ready` on any other issue | `/devflow:orchestrate <issue>` |
 
+- Headless runs force foreground subagents. Parallel implementer calls issued in one message run concurrently where the host allows and serially otherwise; correctness does not depend on concurrency, only wall-clock does.
 - Only the default app token is available; no board access.
 - One run per issue at a time; refine needs a shorter budget than orchestrate.
 - Run output lives in the runner's logs or step summary, not in the issue.

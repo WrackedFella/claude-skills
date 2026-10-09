@@ -24,7 +24,7 @@ project-specific lives in the consumer's `CLAUDE.md` ([project contract](project
 | Tech Lead | `/devflow:tech-lead` | How: tech spec, test map, gate class, ADRs |
 | Refiner | `/devflow:refine` | Both of the above, headless, for one approved feature |
 | Orchestrator | `/devflow:orchestrate` | Driving one ready work item to a PR |
-| Workers | `devflow:*` agents | Bounded tasks delegated by the orchestrator |
+| Workers | `devflow:*` agents | Bounded tasks delegated by the orchestrator; implementation may fan out to one `implementer` per disjoint part |
 
 Role skills run in the main session and change its behavior for the rest of it. Worker
 agents run in their own context and return a report.
@@ -46,7 +46,7 @@ published issue  [Ready, Agent-eligible]  ◄── card review (switch)
 Orchestrator
    1 intake and claim
    2 failing tests ──► domain-test review (switch: human | test-critic | none)
-   3 implementation
+   3 implementation (one implementer, or one per disjoint part, then merge + gate)
    4 adversarial challenges as tests (≤2 rounds)
    5 refactor under green + /simplify
    6 mutation testing
