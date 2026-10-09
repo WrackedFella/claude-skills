@@ -11,7 +11,7 @@ the single `devflow:implementer` call of step 3.
    numerics). Record the choice and why.
 3. In one message, issue one Agent call per part, each `devflow:implementer`,
    `isolation: "worktree"`, foreground (`run_in_background: false`), with the tech
-   spec, the part's tests and footprint, and the instruction to commit on its own
+   spec, the `Standards:` line, the part's tests and footprint, and the instruction to commit on its own
    branch. Calls issued in one message run concurrently when the host allows it; where
    it runs them one at a time (headless runs force foreground), the parts still
    complete, only slower, so correctness never depends on concurrency. Wait for every

@@ -1,7 +1,8 @@
 # Agents
 
 Worker agents are launched by the orchestrator, run in their own context, and return a
-report. All load the `rust-standards` skill, see the repository and the project's
+report. All preload `engineering-standards`, apply the further standards named in their brief
+(the orchestrator resolves the project's `Standards` setting to skill file paths), see the repository and the project's
 `CLAUDE.md`, and do not see the orchestrator's conversation. Definitions:
 `plugins/devflow/agents/`.
 
@@ -85,8 +86,7 @@ Reports only:
 - correctness bugs, with the triggering input or sequence;
 - acceptance criteria unmet, or met only by a test that does not assert them;
 - missing or weak tests for new behavior;
-- unsound `unsafe`, API misuse, swallowed errors, panics in library code;
-- frame-budget regressions in hot paths;
+- API misuse, swallowed errors, and violations of the Standards listed in the brief (for example unsound low-level/unsafe code, hot-path regressions where the standards name them);
 - scope creep beyond the spec;
 - docs drift, when the project names a docs directory.
 

@@ -18,7 +18,9 @@ enable auto-merge.
 2. For each thread decide: fix, or reply with why not (spec conflict, out of scope,
    already handled). Fixes that change production code go to `devflow:implementer` (or
    are made directly for one-line changes); new or strengthened tests go to
-   `devflow:test-writer`. Group related threads into one change set.
+   `devflow:test-writer`. Group related threads into one change set. Resolve the
+   `Standards:` line exactly as in `devflow:orchestrate`'s `## Standards` section (including
+   its stop-and-comment rule for an unknown standard) and put it in every worker brief.
 3. Run the project's gate after each change set; never push red. Commit per change set
    (`fix(scope): ...` or the fitting type), referencing nothing ephemeral in code
    comments. Merge the base branch into the PR branch if it is behind; never rebase or
