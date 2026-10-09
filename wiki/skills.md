@@ -17,6 +17,7 @@ Definitions: `plugins/devflow/skills/<name>/SKILL.md`. Invoked as `/devflow:<nam
 | `engineering-standards` | Knowledge | none | Preloaded into agents; not user-invocable | Language-neutral engineering standards |
 | `rust-standards` | Knowledge | none | Selected by the `Standards` setting; not user-invocable | Rust-only deltas on `engineering-standards` |
 | `dotnet-standards` | Knowledge | none | Selected by the `Standards` setting; not user-invocable | C#/.NET-only deltas on `engineering-standards` |
+| `azure-standards` | Knowledge | none | Selected by the `Standards` setting; not user-invocable | Host-agnostic Azure principles on top of `engineering-standards` and `dotnet-standards` |
 
 "Forked" skills run in an isolated context and return only a report. Role skills are
 covered in [Planning](planning.md) and [Orchestration](orchestration.md).
@@ -139,3 +140,13 @@ for every other rule. Covers solution layout (`ProjectReference`, `Directory.Bui
 central package management), the compiler and analyzers as gate, records and value
 objects, exceptions versus result types, `CancellationToken`, DI and validated options,
 `ILogger` templates, xUnit and Stryker.NET, and XML doc comments.
+
+## azure-standards
+
+Host-agnostic principles for Azure-hosted .NET workloads, selected through `Standards`;
+it defers to `engineering-standards` and `dotnet-standards` and names no service as the
+required choice. Covers managed identity and `DefaultAzureCredential`, environment-driven
+config promoted as one image, idempotent restartable jobs with explicit exit codes and
+SIGTERM handling, stateless services with health and graceful shutdown, OpenTelemetry to
+Azure Monitor, and container image hygiene. Service choice, naming, networking, IaC and
+corporate policy are left to the project `CLAUDE.md`.
