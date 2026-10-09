@@ -2,7 +2,7 @@
 
 The tests are the only definition of done the implementer will see, so judge them
 before they steer an implementation. Delegate to `devflow:test-critic` with the issue
-number and the base branch. It sees the spec and the tests, not the test-writer's
+number, the base branch and the `Standards:` line. It sees the spec and the tests, not the test-writer's
 reasoning, and returns a verdict per test (KEEP, STRENGTHEN, MERGE, REMOVE) plus gaps.
 
 Triage its findings yourself. Accept one only if it names a concrete wrong behavior

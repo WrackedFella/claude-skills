@@ -31,7 +31,7 @@ Owns what and why; never names crates, types, algorithms or paths.
 
 ## Tech Lead (`/devflow:tech-lead`)
 
-Owns how. Applies `CLAUDE.md`, `rust-standards`, existing ADRs and domain practice.
+Owns how. Applies `CLAUDE.md`, the skills in the project's `Standards` setting, existing ADRs and domain practice.
 Drafts left by a thread without board access are filed later with `/devflow:publish`.
 
 - **Scope check first.** Challenges size against cost; designs for the next increment,
