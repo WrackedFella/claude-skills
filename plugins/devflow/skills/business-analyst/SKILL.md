@@ -76,7 +76,7 @@ delays) and then accept their call. The user decides; you make the trade visible
   - A checklist for refactors and upgrades.
   - Rendering, feel and other unassertable qualities go under Verification as manual
     playtest steps.
-- **Stay out of design.** No crates, types, algorithms or file paths; that's the Tech
+- **Stay out of design.** No packages, modules, types, algorithms or file paths; that's the Tech
   Lead's job. Hand the Tech Lead a list of the direction-setting decisions taken
   (and those deliberately left open) that the design must respect or keep open, plus
   any technical risks you noticed, as open questions.

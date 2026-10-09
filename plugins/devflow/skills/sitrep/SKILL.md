@@ -37,7 +37,7 @@ point is to recover where *this session* stands. Do not delegate it to a subagen
 ## Verify
 
 - **Exit criteria (features and gates):** go through every criterion on its own. Run its
-  check command when it is cheap and read-only (`cargo tree`, the project's deny or
+  check command when it is cheap and read-only (e.g. a dependency-tree listing such as `cargo tree` or `dotnet list package`, the project's deny or
   licence command, `gh`); otherwise cite the evidence found (file, PR, ADR status). Mark
   each **met**, **not met** or **unverified**. If the wording is not literally met, quote
   the gap. Never write "appear met". A gate is met only when every criterion is met.

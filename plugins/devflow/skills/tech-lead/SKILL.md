@@ -41,7 +41,7 @@ The user decides scope; you make each trade visible with its cost.
 
 For each work item whose acceptance criteria are approved, write its **Tech spec**:
 
-- **Design:** crates/modules and public interfaces touched; data flow; why this
+- **Design:** packages/modules and public interfaces touched; data flow; why this
   approach over the obvious alternative in one line. Respect layering: domain code
   never names infrastructure types.
 - **Out of scope:** what an implementer might be tempted to change but must not,
@@ -53,7 +53,7 @@ For each work item whose acceptance criteria are approved, write its **Tech spec
   with its part; the orchestrator implements parts in parallel. Overlap in a single
   file means one part.
 - **Test map:** each acceptance scenario → the test that proves it
-  (`crate::module::tests::scenario_expected_result`), plus edge-case tests the design
+  (example name: `module::tests::scenario_expected_result`), plus edge-case tests the design
   implies. Prefer property tests for invariants and snapshot tests for formats.
 - **Gate class:** `domain` (rules in the project's domain-logic paths: the
   Orchestrator has the tests reviewed, by the user or by `devflow:test-critic`, per the project's `Domain-test review` setting) or `glue`
