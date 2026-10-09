@@ -96,7 +96,7 @@ line. Issue templates for a feature and a work item keep published issues unifor
 Agents cannot write the board from cloud threads or Actions. Moho moves Status with a
 workflow instead (`.github/workflows/board-sync.yml`): it reacts to PR and issue events
 and moves Status forward only, using a repository secret `BOARD_TOKEN` (a classic personal
-access token with the `project` scope). Ready and Agent-eligible stay human-set.
+access token with the `repo` and `project` scopes). Ready and Agent-eligible stay human-set.
 
 ## 6. Add GitHub Actions workflows (optional)
 

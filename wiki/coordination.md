@@ -29,7 +29,8 @@ hold design discussion, planning and implementation.
   short; human review is the bottleneck, not agents.
 - **Approval precedes implementation.** Planning threads leave cards as drafts for
   review (unless `Card review` is `not required`); on approval the thread files the
-  issue and deletes the draft. An implementation thread starts only for a published card.
+  issue with `gh` and deletes the draft. Where a thread must also set board fields it
+  cannot reach, the Tech Lead skill keeps the draft instead ([Board](board.md#unreachable-board)). An implementation thread starts only for a published card.
 - **Cross-lane needs go through a request,** not a shared edit. The requesting lane
   files an issue; the owning lane designs the answer. Dependency direction is enforced
   by a layering check in the gate, not by convention.
