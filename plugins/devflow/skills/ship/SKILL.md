@@ -23,7 +23,7 @@ Ship the work on the current branch. With `--checkpoint`, produce only the summa
      code (caught / missed / unviable), anything checked by hand.
    - **Risk:** blast radius, anything that needs a human check (for example an in-game
      playtest), known follow-ups and where they are tracked.
-6. Open the PR into the project's base branch with `gh pr create`. Never merge and
+6. Open the PR into the project's base branch with `${CLAUDE_PLUGIN_ROOT}/operations.md`'s *Open PR* operation. Never merge and
    never enable auto-merge.
 
 Report the PR link and anything the reviewer must look at first.

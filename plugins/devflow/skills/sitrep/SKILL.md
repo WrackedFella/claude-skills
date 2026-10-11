@@ -26,7 +26,7 @@ point is to recover where *this session* stands. Do not delegate it to a subagen
   questions left open, anything promised but not yet done. Treat this as a claim to
   verify, not as ground truth.
 - From the repo: the feature or item file(s) (status, exit or acceptance criteria),
-  linked issue and PR state (`gh issue view`, `gh pr list --search`, `gh pr checks`),
+  linked issue and PR state (`${CLAUDE_PLUGIN_ROOT}/operations.md`'s *Read work item* and *Read PR* operations),
   board fields when the project has a board (`${CLAUDE_PLUGIN_ROOT}/scripts/board` `get`), and branch
   state (commits ahead of the base branch, uncommitted changes, last gate
   run if visible).
@@ -38,7 +38,7 @@ point is to recover where *this session* stands. Do not delegate it to a subagen
 
 - **Exit criteria (features and gates):** go through every criterion on its own. Run its
   check command when it is cheap and read-only (e.g. a dependency-tree listing such as `cargo tree` or `dotnet list package`, the project's deny or
-  licence command, `gh`); otherwise cite the evidence found (file, PR, ADR status). Mark
+  licence command, the read-only operations); otherwise cite the evidence found (file, PR, ADR status). Mark
   each **met**, **not met** or **unverified**. If the wording is not literally met, quote
   the gap. Never write "appear met". A gate is met only when every criterion is met.
 - **Records vs. merged work:** compare board Status (or card statuses without a board), the feature's item table, the
