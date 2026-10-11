@@ -27,7 +27,7 @@ ref, including uncommitted work); never changes code, then formats.
 
 | Action | Applies to |
 |---|---|
-| Keep | Why the code is shaped this way (constraint, invariant, tradeoff, workaround); rustdoc stating a caller-facing contract; `// SAFETY:` |
+| Keep | Why the code is shaped this way (constraint, invariant, tradeoff, workaround); API doc comments in the project's language (e.g. rustdoc, XML doc) stating a caller-facing contract; `// SAFETY:` |
 | Delete | Narration, restated names, history, settled decisions and alternatives, work-item or PR references, duplicated docs |
 | Tighten | Surviving comments, to the fewest words that keep the why |
 | Flag | `TODO`, `FIXME`, `HACK`, `XXX`, and anything uncertain |

@@ -10,6 +10,7 @@
     "workflow",
     "tdd",
     "rust",
+    "dotnet",
     "agents"
   ]
 }
