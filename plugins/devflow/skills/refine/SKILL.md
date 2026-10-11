@@ -31,8 +31,9 @@ labeled `feature`, and its body has exit criteria and a scope. Otherwise comment
 issue with what is missing and stop.
 
 Read the project's `CLAUDE.md` (review settings, planning standards, domain-logic paths,
-base branch), the planning standards it names, the ADRs and the roadmap the feature
-links, and the code the feature touches.
+base branch, `Standards`), the planning standards it names, the ADRs and the roadmap the feature
+links, and the code the feature touches. Load the skills listed in `Standards` with the Skill tool
+(unset means `engineering-standards, rust-standards`).
 
 List the cards that already exist: `gh api repos/{owner}/{repo}/issues/$issue/sub_issues`.
 They are work already done or in flight. Never edit, close or relabel them. Decompose

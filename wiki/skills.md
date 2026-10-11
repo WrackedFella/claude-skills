@@ -14,8 +14,8 @@ Definitions: `plugins/devflow/skills/<name>/SKILL.md`. Invoked as `/devflow:<nam
 | `respond` | Delivery | PR number (optional) | Main session or headless | Fixes pushed, replies per thread |
 | `ship` | Delivery | `--checkpoint` (optional) | Main session | Commit, push, PR; or a review summary |
 | `sitrep` | Reporting | feature ID, item ID, `#issue` or `project` | Main session, read-only | Status report of at most ~15 lines |
-| `engineering-standards` | Knowledge | none | Not user-invocable | Language-neutral engineering standards |
-| `rust-standards` | Knowledge | none | Preloaded into agents; not user-invocable | Rust-only deltas on `engineering-standards` |
+| `engineering-standards` | Knowledge | none | Preloaded into agents; not user-invocable | Language-neutral engineering standards |
+| `rust-standards` | Knowledge | none | Selected by the `Standards` setting; not user-invocable | Rust-only deltas on `engineering-standards` |
 
 "Forked" skills run in an isolated context and return only a report. Role skills are
 covered in [Planning](planning.md) and [Orchestration](orchestration.md).
@@ -126,7 +126,7 @@ comments, complexity and abstraction.
 
 ## rust-standards
 
-Rust-only deltas, loaded into every worker agent; it defers to `engineering-standards`
+Rust-only deltas, default second module of `Standards`; it defers to `engineering-standards`
 for every other rule. Covers crate layout, `Result`/panic wording, `thiserror`/`anyhow`,
 `#[non_exhaustive]`, drop-based async cancellation, `tracing` macros, test naming and
 `#[cfg(test)]`/`#[ignore]`, rustdoc and `// SAFETY:`, ECS and hot-path items.
