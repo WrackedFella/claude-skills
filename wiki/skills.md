@@ -14,7 +14,8 @@ Definitions: `plugins/devflow/skills/<name>/SKILL.md`. Invoked as `/devflow:<nam
 | `respond` | Delivery | PR number (optional) | Main session or headless | Fixes pushed, replies per thread |
 | `ship` | Delivery | `--checkpoint` (optional) | Main session | Commit, push, PR; or a review summary |
 | `sitrep` | Reporting | feature ID, item ID, `#issue` or `project` | Main session, read-only | Status report of at most ~15 lines |
-| `rust-standards` | Knowledge | none | Preloaded into agents; not user-invocable | Engineering standards |
+| `engineering-standards` | Knowledge | none | Not user-invocable | Language-neutral engineering standards |
+| `rust-standards` | Knowledge | none | Preloaded into agents; not user-invocable | Rust-only deltas on `engineering-standards` |
 
 "Forked" skills run in an isolated context and return only a report. Role skills are
 covered in [Planning](planning.md) and [Orchestration](orchestration.md).
@@ -115,10 +116,17 @@ orders candidates: in-flight work first (PR feedback, red CI, an In progress ite
 the highest-priority Ready item, then the feature nearest its exit criteria. In long
 sessions it appends a suggested `/compact` focus.
 
+## engineering-standards
+
+Language-neutral, principle-first standards. A project's `CLAUDE.md` may narrow or
+override them. Sections: architecture and layering, resources and memory, validation and
+errors, dependencies and conversions, async and cancellation, type system,
+observability, error contracts at library/package boundaries, events and decoupling, testing,
+comments, complexity and abstraction.
+
 ## rust-standards
 
-Principle-first standards loaded into every worker agent. A project's `CLAUDE.md` may
-narrow or override them. Sections: architecture and layering, resources and memory,
-validation and errors, dependencies and conversions, async and cancellation, type
-system, observability, error contracts at crate boundaries, events and decoupling,
-testing, comments, complexity and abstraction.
+Rust-only deltas, loaded into every worker agent; it defers to `engineering-standards`
+for every other rule. Covers crate layout, `Result`/panic wording, `thiserror`/`anyhow`,
+`#[non_exhaustive]`, drop-based async cancellation, `tracing` macros, test naming and
+`#[cfg(test)]`/`#[ignore]`, rustdoc and `// SAFETY:`, ECS and hot-path items.
