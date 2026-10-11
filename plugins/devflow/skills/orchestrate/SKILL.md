@@ -51,6 +51,7 @@ Tracker and PR operations come from `${CLAUDE_PLUGIN_ROOT}/operations.md`, in th
 project's `Tracker` setting (unset means `github`). Agents cannot resolve the plugin
 path, so put the resolved *Read work item* command, filled in with the issue, on a
 `Read work item:` line in every `devflow:reviewer` and `devflow:test-critic` brief.
+If the `Tracker` has no column in the table, stop and comment on the issue naming the unknown tracker.
 
 ## Project board
 

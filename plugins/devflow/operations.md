@@ -1,7 +1,7 @@
 # Operations
 
 Skills and agents name an operation, never a command. Each runs as the command in the
-column of the project's `Tracker` setting in `CLAUDE.md` (unset means `github`).
+column of the project's `Tracker` setting in `CLAUDE.md` (unset means `github`; a tracker with no column stops the run).
 `scripts/board` and `scripts/card` stay GitHub-only.
 
 | Operation | GitHub |
@@ -14,7 +14,7 @@ column of the project's `Tracker` setting in `CLAUDE.md` (unset means `github`).
 | Open PR | `gh pr create` |
 | Read PR | `gh pr view --json number,url,headRefName,baseRefName`; related PRs `gh pr list --search`; checks `gh pr checks` |
 | Read review threads | `gh api graphql` (`isResolved`), or `gh api repos/{owner}/{repo}/pulls/<n>/comments` plus `gh pr view --comments` |
-| Reply to thread | `gh api repos/{owner}/{repo}/pulls/<n>/comments/<id>/replies -f body=<text>` |
+| Reply to thread | inline review comment: `gh api repos/{owner}/{repo}/pulls/<n>/comments/<id>/replies -f body=<text>` (`<id>` is the numeric REST id, the GraphQL `databaseId`); PR-level comment: `gh pr comment <n> --body <text>` |
 
 - The GitHub column keeps the `--json` fields skills read; changing one is a breaking
   change to every skill.
