@@ -50,3 +50,5 @@ A runner (for example `claude-code-action`) reacts to a label and invokes a skil
 With no board access from agents, a workflow (for example Moho's Board sync action) reacts to events and moves Status forward
 only: label on a work item or draft PR → In progress; PR ready for review → In review;
 merged PR or closed issue → Done. Humans set Ready and Agent-eligible.
+
+Runtimes that use `Tracker: azure-devops` need the `az` CLI with the `azure-devops` extension and credentials for the organization; the GitHub Actions rows apply only to GitHub projects. Commands are in [operations](../plugins/devflow/operations.md) and are Unverified.

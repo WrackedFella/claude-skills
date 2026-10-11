@@ -1,5 +1,7 @@
 # Board
 
+This page covers the GitHub Project board. With `Tracker: azure-devops` no board is declared: Status is the work item's `System.State` ([operations](../plugins/devflow/operations.md)).
+
 A GitHub Project (v2) board is optional. When the project's `CLAUDE.md` names one, its
 **Status** field is the record of item state and replaces card status and the
 `agent-ready` label as the pickup mechanism.
