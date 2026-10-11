@@ -31,8 +31,9 @@ labeled `feature`, and its body has exit criteria and a scope. Otherwise comment
 issue with what is missing and stop.
 
 Read the project's `CLAUDE.md` (review settings, planning standards, domain-logic paths,
-base branch), the planning standards it names, the ADRs and the roadmap the feature
-links, and the code the feature touches.
+base branch, `Standards`), the planning standards it names, the ADRs and the roadmap the feature
+links, and the code the feature touches. Load the skills listed in `Standards` with the Skill tool
+(unset means `engineering-standards, rust-standards`).
 
 List the cards that already exist: `gh api repos/{owner}/{repo}/issues/$issue/sub_issues`.
 They are work already done or in flight. Never edit, close or relabel them. Decompose
@@ -51,7 +52,7 @@ and gate class, following the planning standards' card template.
 
 Verify load-bearing claims by reading the source, as the Tech Lead does, including
 callers of code a card keeps and what a gate a card extends reads. Read-only commands
-that compile nothing (`cargo tree`, a script's dry run) are fine. Don't build. Keep the
+that compile nothing (e.g. a dependency-tree listing such as `cargo tree` or `dotnet list package`, a script's dry run) are fine. Don't build. Keep the
 Tech Lead's Checked list as you go.
 
 **Escalate instead of guessing** when a direction-setting question is unanswered by the

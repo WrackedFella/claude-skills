@@ -16,6 +16,7 @@ and the planning standards it names. Unset optional items disable the step that 
 | Project board | no | board script, orchestrate, tech-lead | owner and project number |
 | `Card review` | no | BA, Tech Lead, refine | `required` (default) or `not required` |
 | `Domain-test review` | no | orchestrate | `required` (default), `agent` or `not required` |
+| `Standards` | no | orchestrate, respond, tech-lead, refine, BA, sitrep | ordered devflow skill names, e.g. `engineering-standards, dotnet-standards, azure-standards`; each resolves to `${CLAUDE_PLUGIN_ROOT}/skills/<name>/SKILL.md` (devflow skills only), and workers receive only the paths in their brief; unset = `engineering-standards, rust-standards` |
 | Pre-commit change check | no | ship, agents | GitNexus `detect_changes` |
 
 Review-point semantics are in [Overview](overview.md#human-review-points).

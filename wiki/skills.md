@@ -14,8 +14,10 @@ Definitions: `plugins/devflow/skills/<name>/SKILL.md`. Invoked as `/devflow:<nam
 | `respond` | Delivery | PR number (optional) | Main session or headless | Fixes pushed, replies per thread |
 | `ship` | Delivery | `--checkpoint` (optional) | Main session | Commit, push, PR; or a review summary |
 | `sitrep` | Reporting | feature ID, item ID, `#issue` or `project` | Main session, read-only | Status report of at most ~15 lines |
-| `engineering-standards` | Knowledge | none | Not user-invocable | Language-neutral engineering standards |
-| `rust-standards` | Knowledge | none | Preloaded into agents; not user-invocable | Rust-only deltas on `engineering-standards` |
+| `engineering-standards` | Knowledge | none | Preloaded into agents; not user-invocable | Language-neutral engineering standards |
+| `rust-standards` | Knowledge | none | Selected by the `Standards` setting; not user-invocable | Rust-only deltas on `engineering-standards` |
+| `dotnet-standards` | Knowledge | none | Selected by the `Standards` setting; not user-invocable | C#/.NET-only deltas on `engineering-standards` |
+| `azure-standards` | Knowledge | none | Selected by the `Standards` setting; not user-invocable | Host-agnostic Azure principles on top of `engineering-standards` and `dotnet-standards` |
 
 "Forked" skills run in an isolated context and return only a report. Role skills are
 covered in [Planning](planning.md) and [Orchestration](orchestration.md).
@@ -27,7 +29,7 @@ ref, including uncommitted work); never changes code, then formats.
 
 | Action | Applies to |
 |---|---|
-| Keep | Why the code is shaped this way (constraint, invariant, tradeoff, workaround); rustdoc stating a caller-facing contract; `// SAFETY:` |
+| Keep | Why the code is shaped this way (constraint, invariant, tradeoff, workaround); API doc comments in the project's language (e.g. rustdoc, XML doc) stating a caller-facing contract; `// SAFETY:` |
 | Delete | Narration, restated names, history, settled decisions and alternatives, work-item or PR references, duplicated docs |
 | Tighten | Surviving comments, to the fewest words that keep the why |
 | Flag | `TODO`, `FIXME`, `HACK`, `XXX`, and anything uncertain |
@@ -126,7 +128,25 @@ comments, complexity and abstraction.
 
 ## rust-standards
 
-Rust-only deltas, loaded into every worker agent; it defers to `engineering-standards`
+Rust-only deltas, default second module of `Standards`; it defers to `engineering-standards`
 for every other rule. Covers crate layout, `Result`/panic wording, `thiserror`/`anyhow`,
 `#[non_exhaustive]`, drop-based async cancellation, `tracing` macros, test naming and
 `#[cfg(test)]`/`#[ignore]`, rustdoc and `// SAFETY:`, ECS and hot-path items.
+
+## dotnet-standards
+
+C#/.NET-only deltas, selected through `Standards`; it defers to `engineering-standards`
+for every other rule. Covers solution layout (`ProjectReference`, `Directory.Build.props`,
+central package management), the compiler and analyzers as gate, records and value
+objects, exceptions versus result types, `CancellationToken`, DI and validated options,
+`ILogger` templates, xUnit and Stryker.NET, and XML doc comments.
+
+## azure-standards
+
+Host-agnostic principles for Azure-hosted .NET workloads, selected through `Standards`;
+it defers to `engineering-standards` and `dotnet-standards` and names no service as the
+required choice. Covers managed identity and `DefaultAzureCredential`, environment-driven
+config promoted as one image, idempotent restartable jobs with explicit exit codes and
+SIGTERM handling, stateless services with health and graceful shutdown, OpenTelemetry to
+Azure Monitor, and container image hygiene. Service choice, naming, networking, IaC and
+corporate policy are left to the project `CLAUDE.md`.
