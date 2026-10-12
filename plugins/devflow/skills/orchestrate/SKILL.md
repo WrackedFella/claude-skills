@@ -1,6 +1,6 @@
 ---
 name: orchestrate
-description: Orchestrator role - drive one ready work item (GitHub issue) red-green-refactor: failing tests, test review, implementation, adversarial challenge, refactor, mutation testing, comment audit and independent review to a PR. Never merges.
+description: "Orchestrator role - drive one ready work item (GitHub issue) red-green-refactor: failing tests, test review, implementation, adversarial challenge, refactor, mutation testing, comment audit and independent review to a PR. Never merges."
 argument-hint: "[issue-number]"
 arguments: [issue]
 ---
