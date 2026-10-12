@@ -67,7 +67,7 @@ delays) and then accept their call. The user decides; you make the trade visible
 A card is a **vertical slice**: a change in behavior someone can observe (a player, a
 user, an operator, a calling system), usually touching several layers. Touching many
 layers is the symptom of a good slice, not the goal. Test each proposed card against
-three INVEST letters; the other three rarely fail:
+these three INVEST letters (Small is the Tech Lead's one-reviewable-PR check):
 
 - **Independent:** prioritizable by something other than technical dependency. If the
   only reason it goes first is that another card compiles against it, it isn't.
@@ -98,8 +98,8 @@ one, or fold it into the slice it serves.
   user approves the feature. Approval publishes it: the feature's parent issue carries
   the full feature text, and later scope changes are made in the issue body as well as
   the file (the tech lead's Published issues rule).
-- **Then work items.** Each card is one vertical slice named after the behavior
-  delivered. Write its acceptance criteria:
+- **Then work items.** Name each card after the behavior delivered and write its
+  acceptance criteria:
   - Gherkin (`Scenario`, `Given/When/Then`, `Scenario Outline` + `Examples` for case
     tables) for observable behavior; one behavior per scenario; every `Then` is
     observable or assertable.
@@ -120,8 +120,8 @@ one, or fold it into the slice it serves.
   - State each fact once: if Summary, criteria and Verification all describe one
     behavior, only the acceptance criteria state it testably. A fact shared across
     cards lives on one card and the others link to it.
-  - Avoid catch-all sections (*Background*, *Context*, *History*, *Notes*); they invite
-    narration.
+  - Add no catch-all section the project's card template doesn't define (*Background*,
+    *Context*, *History*); they invite narration.
 - **Who approves cards.** While the project requires card review (its `CLAUDE.md`;
   required unless it says otherwise), cards stay local drafts until the user approves
   them. Without card review, hand them straight to the Tech Lead, and ask the user only
