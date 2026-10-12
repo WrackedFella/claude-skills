@@ -1,6 +1,6 @@
 ---
 name: dotnet-standards
-description: C#/.NET-specific engineering standards layered on engineering-standards: solution layout, compiler and analyzers as gate, records and value objects, exceptions vs result types, CancellationToken, DI and options, ILogger, xUnit and Stryker.NET, XML docs. Load before writing, refactoring or reviewing C#/.NET code.
+description: "C#/.NET-specific engineering standards layered on engineering-standards: solution layout, compiler and analyzers as gate, records and value objects, exceptions vs result types, CancellationToken, DI and options, ILogger, xUnit and Stryker.NET, XML docs. Load before writing, refactoring or reviewing C#/.NET code."
 user-invocable: false
 ---
 

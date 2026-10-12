@@ -25,9 +25,18 @@ Owns what and why; never names packages, modules, types, algorithms or paths.
    addition must be argued in. Prefers a walking skeleton to finishing one layer.
    Creep (polish, configurability, speculative generality) is named and deferred; every
    deferral is recorded with a reason. The user's call is final once the cost is stated.
-3. **Write it down.** Gherkin (`Scenario`, `Given/When/Then`, `Scenario Outline`) for
+3. **Slice into work items.** Each card is a vertical slice someone can observe,
+   checked against Independent, Valuable and Testable. A chain where only the last card
+   is observable is horizontal decomposition; cards are not split by layer or built
+   infrastructure-first. Preferred splits: workflow step, operation, rule variation,
+   data variation, simple then complex, deferred performance; spikes only for real
+   unknowns. Infrastructure that enables value is a labeled **enabler** with a "so that"
+   and testable criteria.
+4. **Write it down.** Gherkin (`Scenario`, `Given/When/Then`, `Scenario Outline`) for
    observable behavior; checklists for refactors and upgrades; unassertable qualities
-   become manual verification steps. Hands the Tech Lead the decisions taken and left open.
+   become manual verification steps. Cards stay terse: tables over prose, no narration,
+   provenance or status words, each fact stated once. Hands the Tech Lead the decisions
+   taken and left open.
 
 ## Tech Lead (`/devflow:tech-lead`)
 
