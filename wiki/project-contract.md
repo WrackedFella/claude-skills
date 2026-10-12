@@ -24,8 +24,8 @@ Review-point semantics are in [Overview](overview.md#human-review-points).
 
 ## Operations
 
-The operations skills perform on work items and PRs (read work item, edit body, create
-child work item, list children, set state, open PR, read PR, read review threads, reply
+The operations skills perform on work items and PRs (read work item, edit body, comment on
+work item, add label, create child work item, list children, set state, open PR, read PR, read review threads, reply
 to thread) are defined once, per tracker, in
 [`plugins/devflow/operations.md`](../plugins/devflow/operations.md). Skills name the
 operation; the `Tracker` column supplies the command. `scripts/board` and `scripts/card`
