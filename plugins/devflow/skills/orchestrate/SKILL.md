@@ -43,15 +43,15 @@ reviewer, including those in `parallel-parts.md` and `test-review.md`). The stan
 are binding on the worker, and the reviewer checks the diff against them. Agent
 definitions preload only `engineering-standards`; the paths are how the rest reach them.
 Names resolve to devflow skills only. Check each mapped file exists; if one does not,
-stop and comment on the issue naming the unknown standard instead of continuing.
+stop and comment on the issue (the *Comment on work item* operation) naming the unknown standard instead of continuing.
 
 ## Operations
 
-Tracker and PR operations come from `${CLAUDE_PLUGIN_ROOT}/operations.md`, in the column of the
+Tracker and PR operations (comments and labels included) come from `${CLAUDE_PLUGIN_ROOT}/operations.md`, in the column of the
 project's `Tracker` setting (unset means `github`). Agents cannot resolve the plugin
 path, so put the resolved *Read work item* command, filled in with the issue, on a
 `Read work item:` line in every `devflow:reviewer` and `devflow:test-critic` brief.
-If the `Tracker` has no column in the table, stop and comment on the issue naming the unknown tracker.
+If the `Tracker` has no column in the table, stop and tell the user in the run output that the tracker is unknown; with no column, there is no comment command to run.
 
 ## Project board
 
@@ -74,7 +74,7 @@ and no board, ask which issue to take.
 
 Read the issue (`${CLAUDE_PLUGIN_ROOT}/operations.md`'s *Read work item* operation); its body is the spec. Proceed only if it is `ready`:
 acceptance criteria and tech spec present, test map filled, gate class set. Otherwise
-comment on the issue with what's missing and stop. If the local card disagrees with the
+comment on the issue (*Comment on work item*) with what's missing and stop. If the local card disagrees with the
 issue, work from the issue and report the drift; don't republish either one to match.
 
 Use the item's work branch if the Tech Lead already pushed one (it carries the spec
