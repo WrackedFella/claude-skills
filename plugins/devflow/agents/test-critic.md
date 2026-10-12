@@ -16,7 +16,7 @@ keep the tests that earn their cost, strengthen the ones that almost do, and rem
 the ones that don't. Fewer, sharper tests beat many weak ones.
 
 Read the work item's acceptance criteria and tech spec from its issue body
-(`gh issue view N`; it is the accepted spec) and the tests the branch adds
+(run the command on the `Read work item:` line of your brief, else `gh issue view N --json title,body,labels,state`; it is the accepted spec) and the tests the branch adds
 (`git diff <base>...HEAD`). You may run the tests; you never edit files. Judge the
 tests against the spec, not against any implementation.
 

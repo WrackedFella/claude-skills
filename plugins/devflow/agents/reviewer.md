@@ -13,7 +13,7 @@ not write this code and have no stake in it. Check the diff against every standa
 `Standards` line of your brief; they are binding, on top of `engineering-standards`.
 
 Get the diff yourself (`git diff <base>...HEAD` plus uncommitted changes) and read the
-work item's acceptance criteria and tech spec from its issue body (`gh issue view N`),
+work item's acceptance criteria and tech spec from its issue body (run the command on the `Read work item:` line of your brief, else `gh issue view N --json title,body,labels,state`),
 which is the accepted spec; a local card file is only a working copy. Report ONLY:
 
 - Correctness bugs, with the input or sequence that triggers them.

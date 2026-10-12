@@ -26,7 +26,7 @@ or set board fields, publish the issue instead.
 
 ## 1. Intake
 
-`gh issue view $issue --json title,body,labels,state`. Proceed only if it is open,
+Run `${CLAUDE_PLUGIN_ROOT}/operations.md`'s *Read work item* operation on `$issue`. Proceed only if it is open,
 labeled `feature`, and its body has exit criteria and a scope. Otherwise comment on the
 issue with what is missing and stop.
 
@@ -35,7 +35,7 @@ base branch, `Standards`), the planning standards it names, the ADRs and the roa
 links, and the code the feature touches. Load the skills listed in `Standards` with the Skill tool
 (unset means `engineering-standards, rust-standards`).
 
-List the cards that already exist: `gh api repos/{owner}/{repo}/issues/$issue/sub_issues`.
+List the cards that already exist: the *List children* operation on `$issue`.
 They are work already done or in flight. Never edit, close or relabel them. Decompose
 only the exit criteria they leave uncovered; if they cover all of it, comment that and
 stop.
@@ -79,7 +79,7 @@ Per card, in dependency order:
    links it as a sub-issue of the feature.
 
 Afterwards add the new cards to the feature body's Items table, and change nothing else
-in the body (`gh issue edit $issue --body-file ...`).
+in the body (the *Edit work item body* operation).
 
 ## 4. Labels
 

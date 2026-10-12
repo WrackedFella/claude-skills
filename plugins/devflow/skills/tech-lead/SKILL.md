@@ -124,7 +124,7 @@ files of finished items are removed.
   by sub-issue link, never by repository path. Work with no issue yet (a proposed
   feature) is named by its ID and a few words until it is filed. ADRs and docs are
   linked by URL on the base branch.
-- Changing a filed spec means editing the issue body (`gh issue edit N --body-file`)
+- Changing a filed spec means editing the issue body (`${CLAUDE_PLUGIN_ROOT}/operations.md`'s *Edit work item body* operation)
   in the same step as the card. Before the item is Ready, republish without comment;
   from Ready on, also add a short comment on the issue saying what changed and why.
   Never leave the file ahead of the issue.

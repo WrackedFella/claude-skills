@@ -13,13 +13,23 @@ and the planning standards it names. Unset optional items disable the step that 
 | Full-platform CI command | no | orchestrate step 9 | `gh workflow run CI --ref <branch>` |
 | Docs directory | no | `wiki`, `reviewer` | `wiki/`; without it the docs step is skipped |
 | Environment setup command | no | orchestrate, ship | `bash scripts/cloud-tools.sh`; run only when `CLAUDE_CODE_REMOTE=true` |
-| Project board | no | board script, orchestrate, tech-lead | owner and project number |
+| `Tracker` | no | every skill and agent that touches work items or PRs | `github` (default); selects the column of the [operations table](#operations) |
+| Project board | no | board script, orchestrate, tech-lead | owner and project number; none declared = no board, and every board step is skipped |
 | `Card review` | no | BA, Tech Lead, refine | `required` (default) or `not required` |
 | `Domain-test review` | no | orchestrate | `required` (default), `agent` or `not required` |
 | `Standards` | no | orchestrate, respond, tech-lead, refine, BA, sitrep | ordered devflow skill names, e.g. `engineering-standards, dotnet-standards, azure-standards`; each resolves to `${CLAUDE_PLUGIN_ROOT}/skills/<name>/SKILL.md` (devflow skills only), and workers receive only the paths in their brief; unset = `engineering-standards, rust-standards` |
 | Pre-commit change check | no | ship, agents | GitNexus `detect_changes` |
 
 Review-point semantics are in [Overview](overview.md#human-review-points).
+
+## Operations
+
+The operations skills perform on work items and PRs (read work item, edit body, create
+child work item, list children, set state, open PR, read PR, read review threads, reply
+to thread) are defined once, per tracker, in
+[`plugins/devflow/operations.md`](../plugins/devflow/operations.md). Skills name the
+operation; the `Tracker` column supplies the command. `scripts/board` and `scripts/card`
+stay GitHub-only. A project that declares no board skips every board step.
 
 ## Planning standards the plugin assumes
 

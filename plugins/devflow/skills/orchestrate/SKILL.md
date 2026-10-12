@@ -45,12 +45,20 @@ definitions preload only `engineering-standards`; the paths are how the rest rea
 Names resolve to devflow skills only. Check each mapped file exists; if one does not,
 stop and comment on the issue naming the unknown standard instead of continuing.
 
+## Operations
+
+Tracker and PR operations come from `${CLAUDE_PLUGIN_ROOT}/operations.md`, in the column of the
+project's `Tracker` setting (unset means `github`). Agents cannot resolve the plugin
+path, so put the resolved *Read work item* command, filled in with the issue, on a
+`Read work item:` line in every `devflow:reviewer` and `devflow:test-critic` brief.
+If the `Tracker` has no column in the table, stop and comment on the issue naming the unknown tracker.
+
 ## Project board
 
 If the project's `CLAUDE.md` names a GitHub Project board, its Status field is the
 record of item state; read and change it only through
 `${CLAUDE_PLUGIN_ROOT}/scripts/board` (`board set <owner> <number> <issue-url> Status=...`), which
-works by field and option names. Without a board, the card status is the record.
+works by field and option names. Without a board, the card status is the record, and a project that declares no board skips every board step as an unreachable board does, with no `board` call.
 
 `board` exits 5 when it cannot reach Projects (some environments move Status by events
 instead and give the agent no project access). On exit 5, don't retry or work around
@@ -64,7 +72,7 @@ With no issue given and a board configured, take the queue head:
 Priority). Exit status 3 means the queue is empty: report that and stop. With no issue
 and no board, ask which issue to take.
 
-`gh issue view` the issue; its body is the spec. Proceed only if it is `ready`:
+Read the issue (`${CLAUDE_PLUGIN_ROOT}/operations.md`'s *Read work item* operation); its body is the spec. Proceed only if it is `ready`:
 acceptance criteria and tech spec present, test map filled, gate class set. Otherwise
 comment on the issue with what's missing and stop. If the local card disagrees with the
 issue, work from the issue and report the drift; don't republish either one to match.
@@ -167,7 +175,7 @@ in its `CLAUDE.md`) and report the result in the PR. Don't ship on reasoning alo
 
 ## 10. Independent review (at most 2 rounds)
 
-Delegate to `devflow:reviewer` with the issue number (its body is the spec), the base branch and the `Standards:` line.
+Delegate to `devflow:reviewer` with the issue number (its body is the spec), the base branch, and the `Standards:` and `Read work item:` lines.
 Fix material findings via the implementer, or turn them into tests via the
 test-writer. Re-review only if a fix was non-trivial.
 
