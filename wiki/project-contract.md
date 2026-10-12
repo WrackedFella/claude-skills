@@ -13,7 +13,7 @@ and the planning standards it names. Unset optional items disable the step that 
 | Full-platform CI command | no | orchestrate step 9 | `gh workflow run CI --ref <branch>` |
 | Docs directory | no | `wiki`, `reviewer` | `wiki/`; without it the docs step is skipped |
 | Environment setup command | no | orchestrate, ship | `bash scripts/cloud-tools.sh`; run only when `CLAUDE_CODE_REMOTE=true` |
-| `Tracker` | no | every skill and agent that touches work items or PRs | `github` (default); selects the column of the [operations table](#operations) |
+| `Tracker` | no | every skill and agent that touches work items or PRs | `github` (default) or `azure-devops`; selects the column of the [operations table](#operations) |
 | Project board | no | board script, orchestrate, tech-lead | owner and project number; none declared = no board, and every board step is skipped |
 | `Card review` | no | BA, Tech Lead, refine | `required` (default) or `not required` |
 | `Domain-test review` | no | orchestrate | `required` (default), `agent` or `not required` |
@@ -29,7 +29,7 @@ child work item, list children, set state, open PR, read PR, read review threads
 to thread) are defined once, per tracker, in
 [`plugins/devflow/operations.md`](../plugins/devflow/operations.md). Skills name the
 operation; the `Tracker` column supplies the command. `scripts/board` and `scripts/card`
-stay GitHub-only. A project that declares no board skips every board step.
+stay GitHub-only. A project that declares no board skips every board step. `Tracker` is `github` or `azure-devops`; the Azure DevOps column is Unverified.
 
 ## Planning standards the plugin assumes
 
