@@ -8,6 +8,8 @@ column of the project's `Tracker` setting in `CLAUDE.md` (unset means `github`; 
 |---|---|---|
 | Read work item (title, body, labels, state) | `gh issue view <n> --json title,body,labels,state` | `az boards work-item show --id <n> --output json` (`System.Title`, `System.Description`, `System.Tags`, `System.State`) |
 | Edit work item body | `gh issue edit <n> --body-file <file>` | `az boards work-item update --id <n> --description <html>` |
+| Comment on work item | `gh issue comment <n> --body-file <file>` | `az boards work-item update --id <n> --discussion <html>` (appends to the Discussion; HTML like the description) |
+| Add label | `gh issue edit <n> --add-label <name>` | read `System.Tags` (*Read work item*), then `az boards work-item update --id <n> --fields "System.Tags=<existing>; <name>"`; the write replaces the whole list, so keep the existing tags (omit `<existing>; ` when there are none) |
 | Create child work item | `${CLAUDE_PLUGIN_ROOT}/scripts/card publish <parent> "[<ID>] <title>" <body-file> --label <name>` (files the issue and links it as a sub-issue) | `az boards work-item create --type <type> --title "[<ID>] <title>" --description <html> --fields System.Tags=<tags>` (tags on create derived, not from the proposal), then `az boards work-item relation add --id <child> --relation-type parent --target-id <parent>` |
 | List children | `gh api repos/{owner}/{repo}/issues/<n>/sub_issues` | `az boards work-item show --id <n> --expand relations`, keeping `System.LinkTypes.Hierarchy-Forward`; or `az boards query --wiql <query>` |
 | Set state | `${CLAUDE_PLUGIN_ROOT}/scripts/board set <owner> <number> <issue-url> Status=<option>`; without a board, the card status | `az boards work-item update --id <n> --state <state>`; Gate class and Agent-eligible are custom fields set with `--fields` |
@@ -18,6 +20,8 @@ column of the project's `Tracker` setting in `CLAUDE.md` (unset means `github`; 
 
 - The GitHub column keeps the `--json` fields skills read; changing one is a breaking
   change to every skill.
+- Skills comment and label only through *Comment on work item* and *Add label*; neither is
+  ever a raw `gh` or `az` call in a skill or agent.
 - Linking a PR to its work item is part of *Open PR*: `Closes #N` in the PR body on GitHub.
 - A project that declares no board skips every board step as if the board were
   unreachable: no reads, no writes, and the PR body says which Status changes were skipped.

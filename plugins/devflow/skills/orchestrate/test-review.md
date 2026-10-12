@@ -20,7 +20,7 @@ Commit (`test(scope): ...`) and push, then re-run the critic only if a round cha
 tests materially.
 
 If a finding shows the acceptance criteria are ambiguous or untestable as written, that
-is a spec problem: comment on the issue and stop. The PR body gets a "Test review"
+is a spec problem: comment on the issue (the *Comment on work item* operation in `${CLAUDE_PLUGIN_ROOT}/operations.md`) and stop. The PR body gets a "Test review"
 section: the verdict counts, tests removed or merged with their reasons, and findings
 still open or rejected with reasons. The tests are pushed before implementation
 starts, so they can be read on GitHub throughout.
