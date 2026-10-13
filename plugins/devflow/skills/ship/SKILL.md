@@ -17,8 +17,12 @@ Ship the work on the current branch. With `--checkpoint`, produce only the summa
    why). Never commit on the base branch or `main`; create a branch first.
 4. Push with upstream tracking.
 5. Write the PR description:
-   - **Summary:** what changed and why, one line per meaningful change; link the work
-     item and issue (`Closes #N` when it completes the item).
+   - **Summary:** three short paragraphs, each led by its label, then the links. Link the
+     work item and issue (`Closes #N` when it completes the item).
+     - **Before:** the behavior or gap, as a reader of the change would have seen it.
+     - **After:** what a reader sees now, in observable terms (API, behavior), not a diff recap.
+     - **How:** the mechanism and the choices that are not obvious from the diff.
+     Deviations from the spec go after these, as one short paragraph.
    - **Verification:** the gate result with counts, mutation-testing result for changed
      code (caught / missed / unviable), anything checked by hand.
    - **Risk:** blast radius, anything that needs a human check (for example an in-game
