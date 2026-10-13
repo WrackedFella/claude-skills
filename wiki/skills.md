@@ -59,7 +59,7 @@ Report: `Docs: updated` (pages changed, new pages listed separately for approval
 2. Run the project's pre-commit change check (for example GitNexus `detect_changes`).
 3. Conventional Commit (`type(scope): summary`), never on the base branch or `main`.
 4. Push with upstream tracking.
-5. PR description: Summary (links the issue, `Closes #N` when complete), Verification
+5. PR description: Summary (Before / After / How paragraphs; links the issue, `Closes #N` when complete), Verification
    (gate counts, mutation result, manual checks), Risk (blast radius, human checks, follow-ups).
 6. Open the PR into the base branch; never merge or enable auto-merge.
 
