@@ -16,8 +16,10 @@ and the planning standards it names. Unset optional items disable the step that 
 | `Tracker` | no | every skill and agent that touches work items or PRs | `github` (default) or `azure-devops`; selects the column of the [operations table](#operations) |
 | Project board | no | board script, orchestrate, tech-lead | owner and project number; none declared = no board, and every board step is skipped |
 | `Card review` | no | BA, Tech Lead, refine | `required` (default) or `not required` |
-| `Domain-test review` | no | orchestrate | `required` (default), `agent` or `not required` |
-| `Standards` | no | orchestrate, respond, tech-lead, refine, BA, sitrep | ordered devflow skill names, e.g. `engineering-standards, dotnet-standards, azure-standards`; each resolves to `${CLAUDE_PLUGIN_ROOT}/skills/<name>/SKILL.md` (devflow skills only), and workers receive only the paths in their brief; unset = `engineering-standards, rust-standards` |
+| `Domain-test review` | no | orchestrate, pr-review | `required` (default), `agent` or `not required` |
+| `PR approval` | no | pr-review | `off` (default) or `agent`: `agent` lets a verdict of `approve` be submitted as a forge approval; `off` posts it as a comment |
+| `Human-only paths` | no | pr-review | globs whose changes always get verdict `human`, on top of the built-in triggers |
+| `Standards` | no | orchestrate, respond, pr-review, tech-lead, refine, BA, sitrep | ordered devflow skill names, e.g. `engineering-standards, dotnet-standards, azure-standards`; each resolves to `${CLAUDE_PLUGIN_ROOT}/skills/<name>/SKILL.md` (devflow skills only), and workers receive only the paths in their brief; unset = `engineering-standards, rust-standards` |
 | Pre-commit change check | no | ship, agents | GitNexus `detect_changes` |
 
 Review-point semantics are in [Overview](overview.md#human-review-points).
@@ -26,7 +28,7 @@ Review-point semantics are in [Overview](overview.md#human-review-points).
 
 The operations skills perform on work items and PRs (read work item, edit body, comment on
 work item, add label, create child work item, list children, set state, open PR, read PR, read review threads, reply
-to thread) are defined once, per tracker, in
+to thread, read PR review context, submit review) are defined once, per tracker, in
 [`plugins/devflow/operations.md`](../plugins/devflow/operations.md). Skills name the
 operation; the `Tracker` column supplies the command. `scripts/board` and `scripts/card`
 stay GitHub-only. A project that declares no board skips every board step. `Tracker` is `github` or `azure-devops`; the Azure DevOps column is Unverified.

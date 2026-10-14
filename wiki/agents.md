@@ -80,7 +80,7 @@ to test. It ends with counts, with no style preferences or praise.
 
 ## reviewer
 
-Sees only the diff (`git diff <base>...HEAD` plus uncommitted work) and the issue body.
+Sees only the diff (`git diff <base>...HEAD` plus uncommitted work) and the issue body. Called by `orchestrate` before the PR and by `pr-review` on a checked-out PR head.
 Reports only:
 
 - correctness bugs, with the triggering input or sequence;

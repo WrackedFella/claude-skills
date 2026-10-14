@@ -43,7 +43,7 @@ Challenges, triage and decisions are its own judgment work.
 | 8 | Docs | If the project names a docs directory, `/devflow:wiki`; commit `docs(scope)`. New pages are flagged for review. | Docs report |
 | 9 | Platform coverage | If behavior may differ per platform and PR CI does not cover every target, trigger the full-platform CI command and report. | CI result |
 | 10 | Independent review | `reviewer` against the issue and base branch; fix material findings via `implementer` or tests. At most 2 rounds. | Findings and resolutions |
-| 11 | Ship | Update the card and issue body for deviations; `/devflow:ship`; set Status `In review`. | PR and final report |
+| 11 | Ship | Update the card and issue body for deviations; `/devflow:ship`; set Status `In review`. A later `/devflow:pr-review` reviews the open PR. | PR and final report |
 
 The parallel-parts and agent test-review procedures live in `parallel-parts.md` and
 `test-review.md` beside the skill and load only when triggered.

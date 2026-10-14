@@ -169,6 +169,7 @@ Claude Code Projects threads do not load plugins from `.claude/settings.json`
 | Specify its cards | `/devflow:tech-lead <feature or card>` |
 | Split an approved feature headlessly | label the feature issue `agent-ready`, or `/devflow:refine <issue>` |
 | Implement one ready card | `/devflow:orchestrate <issue>` |
+| Review an open PR | `/devflow:pr-review [pr]` (a verdict; approvals stay off until `PR approval: agent`) |
 | Address PR review feedback | `/devflow:respond [pr]` |
 | File drafts a cloud thread left | `/devflow:publish [card-id ...]` |
 | Check where things stand | `/devflow:sitrep project` |
