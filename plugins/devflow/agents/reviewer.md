@@ -1,6 +1,6 @@
 ---
 name: reviewer
-description: Independent fresh-context review of a diff against its work item. Use before opening a PR, after implementation and quality passes are done.
+description: Independent fresh-context review of a diff against its work item. Use before opening a PR, after implementation and quality passes are done, and from pr-review on a PR's head.
 tools: Read, Grep, Glob, Bash, mcp__gitnexus__impact, mcp__gitnexus__context, mcp__gitnexus__detect_changes
 skills: engineering-standards
 model: opus
