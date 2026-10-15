@@ -53,6 +53,10 @@ path, so put the resolved *Read work item* command, filled in with the issue, on
 `Read work item:` line in every `devflow:reviewer` and `devflow:test-critic` brief.
 If the `Tracker` has no column in the table, stop and tell the user in the run output that the tracker is unknown; with no column, there is no comment command to run.
 
+## Bash commands
+
+In a headless run, issue one command per Bash call: no `&&`, `;`, pipes, `cd` or `$(...)`. The allow-list matches each command by prefix, so a compound is denied unless every part is allowed, and a denial costs a turn. Put this rule in every worker brief.
+
 ## Project board
 
 If the project's `CLAUDE.md` names a GitHub Project board, its Status field is the

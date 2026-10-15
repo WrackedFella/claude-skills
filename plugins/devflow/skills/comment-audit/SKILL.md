@@ -11,8 +11,8 @@ background: false
 Audit only the comments added or changed in this diff. Never change code.
 
 1. Find the base: use `$base` if given, else the project's base branch from its
-   `CLAUDE.md`, else `origin/main`. Diff with
-   `git diff "$(git merge-base <base> HEAD)"` so uncommitted work is included.
+   `CLAUDE.md`, else `origin/main`. Find the fork point with
+   `git merge-base <base> HEAD`, then diff with `git diff <fork-point>` so uncommitted work is included.
 2. For each added or modified comment line (including `///` and `//!` docs):
 
    **Keep** it only if it carries information the code cannot:

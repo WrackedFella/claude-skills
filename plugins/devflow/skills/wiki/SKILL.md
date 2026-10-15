@@ -14,8 +14,8 @@ Bring the project's wiki in line with this diff. Never change code.
    Without one, stop and report "no wiki configured". Read the wiki's index page and
    follow its sections and conventions; they override the defaults below.
 2. **Find the base:** `$base` if given, else the project's base branch from its
-   `CLAUDE.md`, else `origin/main`. Diff with `git diff "$(git merge-base <base> HEAD)"`
-   so uncommitted work is included.
+   `CLAUDE.md`, else `origin/main`. Find the fork point with `git merge-base <base> HEAD`, then diff with
+   `git diff <fork-point>` so uncommitted work is included.
 3. **Decide whether the wiki needs a change.** The audience is a developer joining the
    project. A change qualifies when it adds or alters something they must know to work
    here:
