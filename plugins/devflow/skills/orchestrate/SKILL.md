@@ -81,6 +81,12 @@ acceptance criteria and tech spec present, test map filled, gate class set. Othe
 comment on the issue (*Comment on work item*) with what's missing and stop. If the local card disagrees with the
 issue, work from the issue and report the drift; don't republish either one to match.
 
+Look for earlier work on the item before creating anything: remote branches named for
+its ID (including `claude/issue-<N>-*` and test branches from an earlier run) and open
+PRs that close it. An open PR: comment with its link and stop. Exactly one branch:
+resume from it, reusing its tests rather than rewriting them. Several branches: comment
+asking which to use and stop. Never start a second work branch for an item that has one.
+
 Use the item's work branch if the Tech Lead already pushed one (it carries the spec
 commit); otherwise create it from the project's base branch, named per its standards.
 Claim the item before any other work: set Status to `In progress` on the board (or the
