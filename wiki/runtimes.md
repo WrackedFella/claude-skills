@@ -36,6 +36,7 @@ A runner (for example `claude-code-action`) reacts to a label and invokes a skil
 | `agent-ready` on a `feature` issue | `/devflow:refine <issue>` |
 | `agent-ready` on any other issue | `/devflow:orchestrate <issue>` |
 
+- Headless runs match Bash commands against the allow-list by prefix, so `orchestrate` and `respond` issue one command per call; a compound is denied unless every part is allowed, and each denial costs a turn.
 - Headless runs force foreground subagents. Parallel implementer calls issued in one message run concurrently where the host allows and serially otherwise; correctness does not depend on concurrency, only wall-clock does.
 - Only the default app token is available; no board access.
 - One run per issue at a time; refine needs a shorter budget than orchestrate.

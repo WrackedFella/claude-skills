@@ -96,7 +96,7 @@ Addresses review feedback on one pull request. Never resolves a thread, never me
 3. Run the gate after each change set; never push red. Commit per change set; merge the
    base branch if the PR is behind, never rebase or force-push.
 4. Push and reply on every thread with the commit SHA or the reason nothing changed.
-5. Headless runs use foreground subagents only.
+5. Headless runs use foreground subagents only and issue one command per Bash call (no `&&`, `;`, pipes, `cd` or `$(...)`), since the allow-list denies compounds.
 
 Report: threads addressed and declined, commits, anything needing the user.
 
