@@ -27,6 +27,6 @@ enable auto-merge.
    force-push.
 4. Push. Reply on every thread (the *Reply to thread* operation) with what changed (commit SHA) or why nothing did. Never
    resolve a thread; the commenter does.
-5. In a headless run, run every subagent in the foreground and wait for its report.
+5. In a headless run, run every subagent in the foreground and wait for its report, and issue one command per Bash call: no `&&`, `;`, pipes, `cd` or `$(...)`. The allow-list matches by prefix, so a compound is denied unless every part is allowed.
 
 Report: threads addressed and declined, commits, and anything that needs the user.
