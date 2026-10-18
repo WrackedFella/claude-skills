@@ -6,16 +6,19 @@ agents implement.
 
 ## Install
 
-Per project (recommended, so every collaborator and CI run gets the same pinned
-version), from the project root:
+Per project (recommended, so every collaborator gets the same plugin), from the
+project root:
 
 ```bash
 claude plugin marketplace add WrackedFella/claude-skills --scope project
 claude plugin install devflow@claude-skills --scope project
 ```
 
-Commit the resulting `.claude/settings.json`. Pin the marketplace to a tag or
-commit so a standards change never silently changes agent behavior.
+Commit the resulting `.claude/settings.json`. The marketplace tracks the default
+branch and the plugin has no `version` field, so Claude Code versions it by commit and
+every merge to `main` is an update. Set `"autoUpdate": true` on the marketplace entry to
+pick updates up without running the commands below. To freeze a project, set `ref` on the
+marketplace source to a commit.
 
 A committed `enabledPlugins` entry turns the plugin on for collaborators but does not
 download it; each collaborator runs `claude plugin install devflow@claude-skills --scope project`
@@ -23,22 +26,20 @@ once.
 
 ## Upgrading
 
-After the project's pinned ref changes, each machine that already has the plugin runs
-(a first-time machine uses Install instead):
+A machine without `autoUpdate` pulls the latest `main` with:
 
 ```bash
-claude plugin marketplace add "<owner>/claude-skills#<tag>" --scope project
+claude plugin marketplace update claude-skills
 claude plugin update devflow@claude-skills --scope project
 ```
 
-Then restart the session. The first command may rewrite `.claude/settings.json` with
-only a key-order change; revert that rewrite.
+Then restart the session.
 
 ### Cloud threads
 
 Cloud sessions (Claude Code Projects) do not load plugins from a repository's
 `.claude/settings.json`. Give each Project the plugin through its own settings or a
-linked checkout of this repo, and keep that in step with the consumer's pin.
+linked checkout of this repo, and refresh it from `main`.
 
 ## What's in devflow
 
@@ -50,10 +51,9 @@ The plugin is project-agnostic: a project states its gate, mutation and base-bra
 
 ## Releasing
 
-1. Bump `version` in `plugins/devflow/.claude-plugin/plugin.json`.
-2. PR into `main`; after merge, tag `v<version>` on `main`.
-3. In each consumer: update the marketplace `ref` in `.claude/settings.json`, run the
-   Upgrading commands, and update any Project that serves the plugin from a checkout.
+A merged PR into `main` is the release. Do not add a `version` to `plugin.json` or the
+marketplace entry: a set `version` pins every consumer to the cached copy until the string
+changes, so commits stop reaching them.
 
 ## License
 
