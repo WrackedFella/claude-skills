@@ -160,7 +160,7 @@ red, green, refactor. If nothing warrants restructuring, the PR says so.
 Run the project's mutation command on changed code. For each surviving mutant in
 code this work changed, have `devflow:test-writer` strengthen the tests, never weaken
 the code. A mutant you judge equivalent (no observable behavior change) gets a one-line
-justification in the PR. Record caught / missed / unviable counts.
+justification in the PR. A mutant that cannot be tested gets the same, plus the exact exclusion line for the mutation config; never edit the config's exclusions yourself, a human adds them. Record caught / missed / unviable counts.
 
 ## 7. Comment audit
 
