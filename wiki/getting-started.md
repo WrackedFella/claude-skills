@@ -6,7 +6,7 @@ working interactive flow; 5 to 7 are optional.
 
 | # | Step | Needed for |
 |---|---|---|
-| 1 | Install the plugin and pin a tag | everything |
+| 1 | Install the plugin | everything |
 | 2 | Write the project contract in `CLAUDE.md` | everything |
 | 3 | Provide the gate and mutation commands | `orchestrate`, `ship` |
 | 4 | Add planning standards and issue templates | planning, `refine` |
@@ -23,14 +23,17 @@ claude plugin marketplace add WrackedFella/claude-skills --scope project
 claude plugin install devflow@claude-skills --scope project
 ```
 
-Pin the marketplace to a release tag in `.claude/settings.json` so a standards change
-never silently changes agent behavior, and commit the file:
+Commit `.claude/settings.json`. The marketplace tracks the default branch and the
+plugin carries no `version`, so Claude Code versions it by commit and each merge to `main`
+is an update; `autoUpdate` fetches it in the background. To freeze a project, set `ref`
+on the source to a commit:
 
 ```json
 {
   "extraKnownMarketplaces": {
     "claude-skills": {
-      "source": { "source": "github", "repo": "WrackedFella/claude-skills", "ref": "v<version>" }
+      "source": { "source": "github", "repo": "WrackedFella/claude-skills" },
+      "autoUpdate": true
     }
   },
   "enabledPlugins": { "devflow@claude-skills": true }
@@ -133,7 +136,7 @@ For unattended runs ([Runtimes](runtimes.md#unattended-runs)). Moho's examples:
   cache read-only.
 - **Concurrency:** one run per issue.
 - **Plugin version:** the action rejects a ref on `plugin_marketplaces`, so the runner
-  follows the marketplace's default branch, not the repo pin.
+  follows the marketplace's default branch.
 - **Chained runs:** labels applied with the default token start no workflow, so the refine
   job dispatches an orchestrate run per card it labeled.
 
@@ -144,22 +147,23 @@ Workflow file edits need a human merge.
 Claude Code Projects threads do not load plugins from `.claude/settings.json`
 ([Runtimes](runtimes.md#cloud-threads)).
 
-1. In the environment's setup script, install devflow at user scope, pinned to the same
-   tag as step 1, and skip when already installed:
+1. In the environment's setup script, install devflow at user scope and refresh it from
+   the default branch:
 
    ```bash
-   DEVFLOW_REF="v<version>"   # equal to the ref in .claude/settings.json
-   claude plugin list 2>/dev/null | grep -q 'devflow@claude-skills' && exit 0
-   claude plugin marketplace add "WrackedFella/claude-skills#${DEVFLOW_REF}" --scope user
-   claude plugin install devflow@claude-skills --scope user
+   if ! claude plugin list 2>/dev/null | grep -q 'devflow@claude-skills'; then
+     claude plugin marketplace add WrackedFella/claude-skills --scope user
+     claude plugin install devflow@claude-skills --scope user
+   fi
+   claude plugin marketplace update claude-skills || echo "devflow: marketplace refresh failed" >&2
+   claude plugin update devflow@claude-skills --scope user || echo "devflow: update failed" >&2
    ```
 
 2. Keep the toolchain out of the boot script; name an on-demand installer as the
    environment setup command in `CLAUDE.md` (Moho: `bash scripts/cloud-tools.sh`), so
    text-only threads start fast.
-3. Link the repositories to the Project. Because the script skips when devflow is
-   present and the environment is a cached snapshot, a new tag reaches threads only after
-   the script changes or the snapshot expires; bump `DEVFLOW_REF` with every re-pin.
+3. Link the repositories to the Project. The environment is a cached snapshot, so a merge
+   to `main` reaches threads only after the script changes or the snapshot expires.
 
 ## First commands
 

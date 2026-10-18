@@ -5,18 +5,17 @@ tooling exists, and whether the board is reachable.
 
 | Runtime | Start | devflow comes from | Board | Notes |
 |---|---|---|---|---|
-| Local terminal | Slash commands | The project's pinned `.claude/settings.json` | Reachable with `gh` `project` scope | Project hooks (formatting, gate on stop) apply |
-| Cloud thread | Slash commands in a Claude Code Project | Environment setup (user-scope install) or a linked checkout of this repo | Usually unreachable | Fresh clone and own branch per thread; project hooks and plugin pins do not load |
+| Local terminal | Slash commands | The project's `.claude/settings.json` | Reachable with `gh` `project` scope | Project hooks (formatting, gate on stop) apply |
+| Cloud thread | Slash commands in a Claude Code Project | Environment setup (user-scope install) or a linked checkout of this repo | Usually unreachable | Fresh clone and own branch per thread; project hooks and plugin settings do not load |
 | GitHub Actions run | Label `agent-ready` or manual dispatch | The runner's own install, typically the marketplace default branch | Unreachable with the default app token | Unattended; bounded by time and turn limits |
 | Comment-triggered run | A `@claude` comment by a repository owner, member or collaborator | As the Actions run | As the Actions run | Small jobs, such as resolving a PR's merge conflict; an `@claude /devflow:respond` comment runs the respond skill, `@claude /devflow:pr-review` the review skill |
 
 ## Cloud threads
 
 - **Plugin delivery.** Plugins enabled in a repository's `.claude/settings.json` are not
-  loaded. The environment's setup script installs devflow at user scope, pinned to a tag,
-  or the Project links this repository. The environment is a snapshot rebuilt when the
-  script changes or after a few days, so a new tag reaches threads only then. Keep the
-  script's ref in step with the consumer's pin.
+  loaded. The environment's setup script installs devflow at user scope from the default
+  branch, or the Project links this repository. The environment is a snapshot rebuilt when
+  the script changes or after a few days, so a merge to `main` reaches threads only then.
 - **Toolchain on demand.** The environment setup command from the
   [project contract](project-contract.md) installs the build toolchain. Threads that only
   edit text skip it and start faster.

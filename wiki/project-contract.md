@@ -56,5 +56,5 @@ stay GitHub-only. A project that declares no board skips every board step. `Trac
 
 Cloud threads do not load plugins from a repository's `.claude/settings.json`. The
 plugin must be provided through the environment's own plugin settings or a linked
-checkout of this repository, kept at the same version as the consumer's pin.
+checkout of this repository, kept current with `main`.
 Threads that only edit text skip the environment setup command.
