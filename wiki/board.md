@@ -48,6 +48,10 @@ Creates the issue, links it as a sub-issue of the feature, optionally sets board
 and prints `#<n> <url>`. Exit `5` means the board part was unreachable: the issue is
 still filed and linked, and only its board fields are missing.
 
+## Board header
+
+With `Board header: yes` in the project's `CLAUDE.md`, an issue body may start with `<!-- board: gate=domain; eligible=yes; priority=P2 -->`. The project's automation (for moho, the Board sync `Fields` job) applies Gate class, Agent-eligible and Priority from it when the issue is opened or its body edited, and sets Status to Backlog if the item has none. Values match option names ignoring case; unknown keys or values fail the run. Ready is never set from the header. This lets a cloud thread, which cannot use GraphQL, file a fully described card; the automation spends 2 to 3 requests per card against one token instead of a per-field script.
+
 ## Unreachable board
 
 Some environments (cloud threads, runners with a default app token) cannot use GraphQL
@@ -57,7 +61,7 @@ publish). When it happens:
 - The orchestrator skips every board read and write and states in the PR body which
   Status changes were left to the environment (for example an Action reacting to PR
   and label events).
-- The Tech Lead does not file an issue, since one without Status, Gate class and
+- With `Board header: yes` the Tech Lead files the issue with the header and the automation sets the fields. Otherwise it does not file an issue, since one without Status, Gate class and
   Agent-eligible is half-published. The card stays a local draft (`Status: Draft`,
   intended gate class and labels, full spec) for a full-access session to file with `/devflow:publish`.
 - `refine` is unaffected: it never touches the board.

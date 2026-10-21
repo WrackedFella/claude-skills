@@ -98,6 +98,8 @@ labels and templates):
 2. Publish the card with `${CLAUDE_PLUGIN_ROOT}/scripts/card publish <feature-issue> "[<ID>] <title>" <body-file> --label <line label> --board <owner> <number> Status=Ready 'Gate class'=<class> Agent-eligible=<Yes|No>` (body per Published issues; `Agent-eligible=No` when the user wants to drive the item personally). Without a board, omit `--board`; the card's status line and the line labels are the record, and the `agent-ready` label stays as the no-board mechanism only.
 3. Report the issue number and branch; the next step is `/devflow:orchestrate`.
 
+**Board header.** When the project declares `Board header: yes`, the first line of the published body is `<!-- board: gate=<class>; eligible=<yes|no>; priority=<P?> -->` (`eligible=no` when the user drives the item personally; `priority` only when the card, its feature or the roadmap names one). The project's automation applies it to the board when the issue is opened or its body is edited, so an unreachable board does not block filing: file the card with `card publish` without `--board`, and skip the local-draft path below.
+
 **When the board is unreachable.** Some environments (cloud project threads) can edit
 issues but cannot write board fields: `scripts/board` fails on GraphQL or Projects
 access. Run `${CLAUDE_PLUGIN_ROOT}/scripts/board probe <owner> <number>` before the first
@@ -120,6 +122,7 @@ files of finished items are removed.
   feature, end state, summary, exit criteria, scope, decisions, deferred, items), not
   a pointer to the file. Drop the file's `**Issue:**`/`**Feature:**` header lines and
   template comments.
+- With `Board header: yes`, start the body with the board header (see Hand-off); it is the one comment kept in a published body.
 - Refer to other work by issue (`#N`, with its ID and a few words) and to the parent
   by sub-issue link, never by repository path. Work with no issue yet (a proposed
   feature) is named by its ID and a few words until it is filed. ADRs and docs are

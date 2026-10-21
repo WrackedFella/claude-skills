@@ -20,6 +20,9 @@ card's spec.
 4. Per approved draft, in dependency order:
    - Write the body per the Tech Lead's Published issues rules: the whole spec, no
      header lines, no template comments, other work as `#N`.
+   - With `Board header: yes`, make sure the body starts with the board header for the
+     card's gate class and `Agent-eligible` (same rule as below); the project's automation
+     then applies it, and `--board` only needs `Status=Ready` for an approved card.
    - Run `${CLAUDE_PLUGIN_ROOT}/scripts/card publish <feature-issue> "[<ID>] <title>"
      <body-file> --label <labels from the header> --board <owner> <number> Status=Ready
      'Gate class'=<header value> Agent-eligible=Yes`. Use `Agent-eligible=No` if the
