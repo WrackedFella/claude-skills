@@ -22,7 +22,7 @@ and stop. Every comment is `${CLAUDE_PLUGIN_ROOT}/operations.md`'s *Comment on w
 Read `${CLAUDE_SKILL_DIR}/../business-analyst/SKILL.md` and `${CLAUDE_SKILL_DIR}/../tech-lead/SKILL.md`
 and apply their rules for scope, acceptance criteria, tech spec, test map and gate class.
 Where they say to ask the user, escalate instead. Where they say to write a local draft
-or set board fields, publish the issue instead.
+or set board fields, publish the issue instead; with `Board header: yes`, start each work item's body with the board header and set no other board field.
 
 ## 1. Intake
 
