@@ -103,12 +103,24 @@ the BA and Tech Lead skills and applies their rules, escalating where they would
 - **Publishes** each card with `scripts/card publish` as `[<ID>] <title>`, labeled with the
   feature's line and linked as a sub-issue, then adds them to the feature's item table.
 - **Labels** follow `Card review`: `required` applies no label (the user approves by
-  applying `agent-ready`); `not required` labels cards the orchestrator can finish
-  unattended (gate class `glue`, or `domain` with `Domain-test review` not `required`).
+  applying `agent-ready`); `not required` promotes cards that pass the Tech Lead's
+  promotion checks (see [Promotion](#6-promotion)).
 - **Reports** once on the feature: cards created, which can run in parallel (disjoint footprints) and which wait on another, deferrals, open questions, labels, and
   a **Checked** section.
 
-## 6 Trigger convention
+## 6 Promotion
+
+`agent-ready` starts an unattended run, so the Tech Lead, `refine` and `publish` apply it only under `Card review: not required` and only when every check passes:
+
+- Gherkin acceptance criteria cover the exit criteria the card serves.
+- The tech spec has a test map; the gate class is `glue`, or `domain` with `Domain-test review` `agent` or `not required`.
+- The file footprint is listed and does not collide with an unmerged card unless they are ordered.
+- No open question or unpublished/unmerged dependency remains.
+- The card is not human-driven (`Agent-eligible=No`).
+
+A card that fails stays unlabeled and the report names the failed check. Under `required`, skills only report "ready to promote"; the user applies the label.
+
+## 7 Trigger convention
 
 `agent-ready` is the single label that starts unattended work; a runner routes a
 `feature` issue to `refine` and anything else to `orchestrate`. The runner is the

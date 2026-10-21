@@ -67,7 +67,7 @@ Planning detail: [Planning](planning.md). Pipeline detail: [Orchestration](orche
 | Point | Setting | Values | Effect when relaxed |
 |---|---|---|---|
 | Feature approval | none | always human | n/a |
-| Card review | `Card review` | `required` (default), `not required` | BA and Tech Lead publish cards themselves; `refine` labels eligible cards `agent-ready` |
+| Card review | `Card review` | `required` (default), `not required` | BA and Tech Lead publish cards themselves; the Tech Lead, `refine` and `publish` label cards that pass the [promotion checks](planning.md#6-promotion) `agent-ready` |
 | Domain-test review | `Domain-test review` | `required` (default), `agent`, `not required` | `agent`: `test-critic` reviews tests, no pause. `not required`: continue and flag the tests in the PR |
 | PR approval | `PR approval` | `off` (default), `agent` | `agent`: a `pr-review` verdict of `approve` is submitted as a forge approval; the human merges on it instead of reading the diff. Needs branch protection that dismisses stale approvals. Human-only triggers and `changes` verdicts still go to a person |
 | PR merge | none | always human | n/a |

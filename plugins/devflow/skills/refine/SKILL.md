@@ -86,10 +86,7 @@ in the body (the *Edit work item body* operation).
 `Card review: required` (or unset): apply no label. The user reads the cards and applies
 `agent-ready` to each one to approve it.
 
-`Card review: not required`: add `agent-ready` (the *Add label* operation) to each card you published that has no
-open question and that the orchestrator can finish without a person: gate class `glue`,
-or `domain` with `Domain-test review` set to `agent` or `not required`. Leave the rest unlabeled and say
-why.
+`Card review: not required`: apply the tech-lead's **Promotion** checks to each card you published and add `agent-ready` (the *Add label* operation) to those that pass. Leave the rest unlabeled and say which check failed.
 
 ## 5. Report
 
