@@ -4,7 +4,7 @@ Planning turns an approved feature into published, agent-ready work items (cards
 It follows the planning standards the consuming project names in its `CLAUDE.md`
 (file locations, ID format, card template, statuses).
 
-## Features and cards
+## 1 Features and cards
 
 - A **feature** is the smallest deliverable that moves toward the end state and works
   end to end. It carries the end state, exit criteria, scope, decisions, deferred scope
@@ -13,7 +13,7 @@ It follows the planning standards the consuming project names in its `CLAUDE.md`
   reviewable PR. Its body holds acceptance criteria and a tech spec.
 - Features come first: cards are not cut until the feature is approved.
 
-## Business Analyst (`/devflow:business-analyst`)
+## 2 Business Analyst (`/devflow:business-analyst`)
 
 Owns what and why; never names packages, modules, types, algorithms or paths.
 
@@ -38,7 +38,7 @@ Owns what and why; never names packages, modules, types, algorithms or paths.
    provenance or status words, each fact stated once. Hands the Tech Lead the decisions
    taken and left open.
 
-## Tech Lead (`/devflow:tech-lead`)
+## 3 Tech Lead (`/devflow:tech-lead`)
 
 Owns how. Applies `CLAUDE.md`, the skills in the project's `Standards` setting, existing ADRs and domain practice.
 Drafts left by a thread without board access are filed later with `/devflow:publish`.
@@ -68,7 +68,7 @@ Drafts left by a thread without board access are filed later with `/devflow:publ
 - **ADRs** record decisions that constrain future work: decision and consequences, not
   deliberation.
 
-### Hand-off to the queue
+### 3.1 Hand-off to the queue
 
 1. Create the work branch from the base branch and commit the spec there.
 2. Publish the card with [`scripts/card publish`](board.md#pluginsdevflowscriptscard): it files the issue,
@@ -77,7 +77,7 @@ Drafts left by a thread without board access are filed later with `/devflow:publ
    are the record.
 4. Report the issue number and branch. Next step: `/devflow:orchestrate`.
 
-## Published issues
+## 4 Published issues
 
 The issue is the accepted spec; local files are drafts until published and working
 copies afterward.
@@ -87,7 +87,7 @@ copies afterward.
 - Editing a filed spec means editing the issue body in the same step as the card. From
   `Ready` on, also comment what changed and why.
 
-## Headless refinement (`/devflow:refine`)
+## 5 Headless refinement (`/devflow:refine`)
 
 One approved `feature` issue in, published card issues out, with no conversation. Reads
 the BA and Tech Lead skills and applies their rules, escalating where they would ask.
@@ -108,7 +108,7 @@ the BA and Tech Lead skills and applies their rules, escalating where they would
 - **Reports** once on the feature: cards created, which can run in parallel (disjoint footprints) and which wait on another, deferrals, open questions, labels, and
   a **Checked** section.
 
-## Trigger convention
+## 6 Trigger convention
 
 `agent-ready` is the single label that starts unattended work; a runner routes a
 `feature` issue to `refine` and anything else to `orchestrate`. The runner is the

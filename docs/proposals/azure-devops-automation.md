@@ -8,7 +8,7 @@ devflow would have to change.
 Evidence labels: **Documented** (a Microsoft or Anthropic page states it, linked),
 **Unverified** (plausible, but no page was read that states it; test before relying on it).
 
-## 1. What runs today on GitHub
+## 1 What runs today on GitHub
 
 | Step | Mechanism |
 |---|---|
@@ -22,7 +22,7 @@ Evidence labels: **Documented** (a Microsoft or Anthropic page states it, linked
 The skills reach GitHub through `gh` (issues, PRs, sub-issues, labels) and
 `plugins/devflow/scripts/board` (Projects v2 GraphQL). Nothing else is host-specific.
 
-## 2. Concept mapping
+## 2 Concept mapping
 
 | GitHub | Azure DevOps | Note |
 |---|---|---|
@@ -35,7 +35,7 @@ The skills reach GitHub through `gh` (issues, PRs, sub-issues, labels) and
 | PR into `dev` | Azure Repos pull request | `Closes #N` becomes a work-item link |
 | Workflow concurrency group | Tag-based claim (3.4) | ADO has no direct equivalent that was verified |
 
-## 3. Triggers
+## 3 Triggers
 
 ### 3.1 Options
 
@@ -95,7 +95,7 @@ anything else → `orchestrate`, as on GitHub. The pipeline YAML holds two jobs 
 ([parameters](https://learn.microsoft.com/en-us/azure/devops/pipelines/process/template-parameters?view=azure-devops)).
 Template parameters resolve at parse time, so they must be declared in the YAML.
 
-## 4. Running Claude Code headless in Azure Pipelines
+## 4 Running Claude Code headless in Azure Pipelines
 
 - **Command shape.** `claude -p "<prompt>"` runs non-interactively; `--allowedTools` uses
   permission-rule syntax such as `Bash(git diff *)`; `--max-turns` bounds iterations
@@ -155,7 +155,7 @@ steps:
       AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
 ```
 
-## 5. Replacements for `gh` steps
+## 5 Replacements for `gh` steps
 
 Azure DevOps CLI is the `azure-devops` extension of `az`; commands need
 `--org`/`--project` or `az devops configure`. The CLI is not supported for Azure DevOps
@@ -178,7 +178,7 @@ Server (per the `az repos pr` pages); on-premises needs REST.
 
 Skills never resolve review threads (ground rule), so only thread read and reply are needed.
 
-## 6. Authentication and secrets
+## 6 Authentication and secrets
 
 | Need | Option | Evidence |
 |---|---|---|
@@ -199,7 +199,7 @@ Notes:
 - With Foundry plus Entra ID, no model API key is stored at all, at the cost of a service
   connection with the right role.
 
-## 7. Gaps in devflow
+## 7 Gaps in devflow
 
 Everything below is a change to devflow (skills, scripts, contract), listed as work to
 size, not as a design.
@@ -232,7 +232,7 @@ size, not as a design.
 11. **Rust specifics** in `rust-standards` and the gate command are project contract items
     and are unaffected; the .NET flavour is planned elsewhere.
 
-## 8. Order of work
+## 8 Order of work
 
 1. Spike: one pipeline, one work item, `claude -p` with a trivial prompt, devflow
    installed from a pinned tag. Confirms sections 4 and the marketplace install.
@@ -243,7 +243,7 @@ size, not as a design.
 5. Process fields and state mapping (gap 6, 7) with the ADO process owner.
 6. Wiki: runtimes, board and contract pages.
 
-## 9. Open questions
+## 9 Open questions
 
 - Which ADO process model (inherited or XML) hosts the custom fields?
 - Is the hook-to-pipeline route acceptable with an extra hop (Function or Logic App), or is

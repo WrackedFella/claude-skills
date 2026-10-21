@@ -14,7 +14,7 @@ working interactive flow; 5 to 7 are optional.
 | 6 | Add the GitHub Actions workflows | unattended runs |
 | 7 | Set up the cloud environment | Claude Code Projects threads |
 
-## 1. Install the plugin
+## 1 Install the plugin
 
 From the project root:
 
@@ -44,7 +44,7 @@ on the source to a commit:
 collaborator runs the `install` command once. Upgrading and releasing are in the
 [root README](../README.md#upgrading).
 
-## 2. Write the project contract
+## 2 Write the project contract
 
 Add the settings from the [project contract](project-contract.md) to `CLAUDE.md`. The
 required ones are the gate command, the mutation command, the base branch, the planning
@@ -71,7 +71,7 @@ A .NET project names its language module the same way and supplies its own comma
 - **Mutation command:** `dotnet stryker --since:<base-branch>` (Stryker.NET diff mode; without `--since` it mutates the whole project; set `thresholds.break` in `stryker-config.json`, or pass `--break-at`, so a score below it fails)
 ```
 
-## 3. Provide the gates
+## 3 Provide the gates
 
 devflow runs whatever commands `CLAUDE.md` names; they must exit non-zero on failure.
 
@@ -85,7 +85,7 @@ Optional enforcement outside the skills, as hooks in `.claude/settings.json`: a 
 hook that runs the gate, and a `PostToolUse` hook that formats edited files. A rule that
 must always hold belongs in a hook or gate script, not in prose.
 
-## 4. Add planning standards and issue templates
+## 4 Add planning standards and issue templates
 
 The planning standards named in `CLAUDE.md` define what the plugin leaves open: where
 features and cards live, the ID format (`<LINE>-F<n>-<NN>`), the card template
@@ -96,7 +96,7 @@ Create the labels the skills use: `feature`, `agent-ready`, and one label per pr
 line. Issue templates for a feature and a work item keep published issues uniform
 (`.github/ISSUE_TEMPLATE/` in Moho).
 
-## 5. Set up the board (optional)
+## 5 Set up the board (optional)
 
 1. Create a GitHub Project with the single-select fields in [Board](board.md#fields):
    Status, Priority, Gate class, Agent-eligible.
@@ -111,7 +111,7 @@ workflow instead (`.github/workflows/board-sync.yml`): it reacts to PR and issue
 and moves Status forward only, using a repository secret `BOARD_TOKEN` (a classic personal
 access token with the `repo` and `project` scopes). Ready and Agent-eligible stay human-set.
 
-## 6. Add GitHub Actions workflows (optional)
+## 6 Add GitHub Actions workflows (optional)
 
 For unattended runs ([Runtimes](runtimes.md#unattended-runs)). Moho's examples:
 
@@ -142,7 +142,7 @@ For unattended runs ([Runtimes](runtimes.md#unattended-runs)). Moho's examples:
 
 Workflow file edits need a human merge.
 
-## 7. Set up the cloud environment (optional)
+## 7 Set up the cloud environment (optional)
 
 Claude Code Projects threads do not load plugins from `.claude/settings.json`
 ([Runtimes](runtimes.md#cloud-threads)).
@@ -165,7 +165,7 @@ Claude Code Projects threads do not load plugins from `.claude/settings.json`
 3. Link the repositories to the Project. The environment is a cached snapshot, so a merge
    to `main` reaches threads only after the script changes or the snapshot expires.
 
-## First commands
+## 8 First commands
 
 | Goal | Command |
 |---|---|

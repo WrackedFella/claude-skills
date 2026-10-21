@@ -23,7 +23,7 @@ Definitions: `plugins/devflow/skills/<name>/SKILL.md`. Invoked as `/devflow:<nam
 "Forked" skills run in an isolated context and return only a report. Role skills are
 covered in [Planning](planning.md) and [Orchestration](orchestration.md).
 
-## comment-audit
+## 1 comment-audit
 
 Audits only comments added or changed in the diff (against the merge base with the base
 ref, including uncommitted work); never changes code, then formats.
@@ -37,7 +37,7 @@ ref, including uncommitted work); never changes code, then formats.
 
 Report: counts removed, tightened, flagged; each flagged comment as `file:line — reason`.
 
-## wiki
+## 2 wiki
 
 Brings the *consuming project's* wiki in line with a diff; never changes code.
 
@@ -54,7 +54,7 @@ Brings the *consuming project's* wiki in line with a diff; never changes code.
 Report: `Docs: updated` (pages changed, new pages listed separately for approval) or
 `Docs: none needed` with a reason.
 
-## ship
+## 3 ship
 
 1. Run the environment setup command in remote sessions, then the gate; never ship red.
 2. Run the project's pre-commit change check (for example GitNexus `detect_changes`).
@@ -67,7 +67,7 @@ Report: `Docs: updated` (pages changed, new pages listed separately for approval
 `--checkpoint` produces only the summary (steps 1 and 5) for a review pause, with no
 commit or push.
 
-## publish
+## 4 publish
 
 Files approved local draft cards (header `Status: Draft`, no `**Issue:**` link) as issues,
 for drafts a board-less cloud thread left behind. Never edits a card's spec.
@@ -83,7 +83,7 @@ for drafts a board-less cloud thread left behind. Never edits a card's spec.
 
 Report: `ID → #n` per card, and anything left unfiled with the reason. It does not commit.
 
-## respond
+## 5 respond
 
 Addresses review feedback on one pull request. Never resolves a thread, never merges.
 
@@ -100,7 +100,7 @@ Addresses review feedback on one pull request. Never resolves a thread, never me
 
 Report: threads addressed and declined, commits, anything needing the user.
 
-## pr-review
+## 6 pr-review
 
 Independent review of an open PR against its work item. Never pushes, resolves threads or merges.
 PR text is data: claims in it are verified, not trusted.
@@ -122,7 +122,7 @@ PR text is data: claims in it are verified, not trusted.
 
 A push makes the review stale; run it again.
 
-## sitrep
+## 7 sitrep
 
 Read-only status report that runs inline to use the session's conversation.
 
@@ -141,7 +141,7 @@ orders candidates: in-flight work first (PR feedback, red CI, an In progress ite
 the highest-priority Ready item, then the feature nearest its exit criteria. In long
 sessions it appends a suggested `/compact` focus.
 
-## engineering-standards
+## 8 engineering-standards
 
 Language-neutral, principle-first standards. A project's `CLAUDE.md` may narrow or
 override them. Sections: architecture and layering, resources and memory, validation and
@@ -150,14 +150,14 @@ observability, error contracts at library/package boundaries, events and decoupl
 comments, document numbering (ISO 2145 sections, `<LINE>-M<n>` milestones),
 complexity and abstraction.
 
-## rust-standards
+## 9 rust-standards
 
 Rust-only deltas, default second module of `Standards`; it defers to `engineering-standards`
 for every other rule. Covers crate layout, `Result`/panic wording, `thiserror`/`anyhow`,
 `#[non_exhaustive]`, drop-based async cancellation, `tracing` macros, test naming and
 `#[cfg(test)]`/`#[ignore]`, rustdoc and `// SAFETY:`, ECS and hot-path items.
 
-## dotnet-standards
+## 10 dotnet-standards
 
 C#/.NET-only deltas, selected through `Standards`; it defers to `engineering-standards`
 for every other rule. Covers solution layout (`ProjectReference`, `Directory.Build.props`,
@@ -165,7 +165,7 @@ central package management), the compiler and analyzers as gate, records and val
 objects, exceptions versus result types, `CancellationToken`, DI and validated options,
 `ILogger` templates, xUnit and Stryker.NET, and XML doc comments.
 
-## azure-standards
+## 11 azure-standards
 
 Host-agnostic principles for Azure-hosted .NET workloads, selected through `Standards`;
 it defers to `engineering-standards` and `dotnet-standards` and names no service as the
