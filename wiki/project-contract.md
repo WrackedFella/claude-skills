@@ -36,7 +36,8 @@ stay GitHub-only. A project that declares no board skips every board step. `Trac
 ## Planning standards the plugin assumes
 
 - Features are planned before cards; cards have stable IDs of the form
-  `<LINE>-F<n>-<NN>`.
+  `<LINE>-F<n>-<NN>`. Milestones are `<LINE>-M<n>` and document sections follow the
+  numbering rules in `engineering-standards`.
 - A card has acceptance criteria and a tech spec (design, out of scope, test map, gate
   class, risks). Issue titles are `[<ID>] <title>`.
 - A published issue's body is the complete spec. Finished items' local files are

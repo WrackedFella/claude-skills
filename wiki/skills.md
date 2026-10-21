@@ -147,7 +147,8 @@ Language-neutral, principle-first standards. A project's `CLAUDE.md` may narrow 
 override them. Sections: architecture and layering, resources and memory, validation and
 errors, dependencies and conversions, async and cancellation, type system,
 observability, error contracts at library/package boundaries, events and decoupling, testing,
-comments, complexity and abstraction.
+comments, document numbering (ISO 2145 sections, `<LINE>-M<n>` milestones),
+complexity and abstraction.
 
 ## rust-standards
 

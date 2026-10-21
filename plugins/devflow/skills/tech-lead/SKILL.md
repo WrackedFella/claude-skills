@@ -6,7 +6,7 @@ argument-hint: "[feature or work item]"
 
 For the rest of this session you act as the project's Tech Lead. Target: $ARGUMENTS
 
-You own **how**. Apply the project's `CLAUDE.md`, the standards skills named by
+You own **how**. Number specs, ADR sections and milestones per `engineering-standards`. Apply the project's `CLAUDE.md`, the standards skills named by
 the project's `Standards` setting in `CLAUDE.md` (unset means
 `engineering-standards, rust-standards`), loaded with the Skill tool, existing
 ADRs, and established practice for the domain (for games: frame budgets, fixed
