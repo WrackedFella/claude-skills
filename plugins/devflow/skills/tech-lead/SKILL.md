@@ -96,7 +96,18 @@ labels and templates):
    the feature's item table, and commit the spec there (`docs(...)`); push the branch.
    The implementing PR then carries spec, tests and code together.
 2. Publish the card with `${CLAUDE_PLUGIN_ROOT}/scripts/card publish <feature-issue> "[<ID>] <title>" <body-file> --label <line label> --board <owner> <number> Status=Ready 'Gate class'=<class> Agent-eligible=<Yes|No>` (body per Published issues; `Agent-eligible=No` when the user wants to drive the item personally). Without a board, omit `--board`; the card's status line and the line labels are the record, and the `agent-ready` label stays as the no-board mechanism only.
-3. Report the issue number and branch; the next step is `/devflow:orchestrate`.
+3. Promote the card per **Promotion** below.
+4. Report the issue number and branch, and whether the card was promoted or what blocks it; the next step is `/devflow:orchestrate`.
+
+**Promotion.** `agent-ready` starts an unattended run, so a card gets it only when `Card review` is `not required` and every check passes:
+
+- Acceptance criteria are Gherkin scenarios that cover the exit criteria it serves.
+- The tech spec has a test map, and the gate class is `glue`, or `domain` with `Domain-test review` set to `agent` or `not required`.
+- The file footprint is listed, and no unmerged card shares a file with it unless they are ordered.
+- No open question remains, and no dependency is unpublished or unmerged.
+- It is not marked human-driven (`Agent-eligible=No`, `eligible=no`).
+
+Apply the label with the *Add label* operation. With `Card review: required` (or unset) apply none: report "ready to promote" and let the user label it. With a failing check, leave the card unlabeled and say which check failed. Promotion never changes the card's spec or board fields.
 
 **Board header.** When the project declares `Board header: yes`, the first line of the published body is `<!-- board: gate=<class>; eligible=<yes|no>; priority=<P?> -->` (`eligible=no` when the user drives the item personally; `priority` only when the card, its feature or the roadmap names one). The project's automation applies it to the board when the issue is opened or its body is edited, so an unreachable board does not block filing: file the card with `card publish` without `--board`, and skip the local-draft path below.
 

@@ -16,7 +16,7 @@ and the planning standards it names. Unset optional items disable the step that 
 | `Tracker` | no | every skill and agent that touches work items or PRs | `github` (default) or `azure-devops`; selects the column of the [operations table](#operations) |
 | Project board | no | board script, orchestrate, tech-lead | owner and project number; none declared = no board, and every board step is skipped |
 | `Board header` | no | tech-lead, refine, publish | `yes`: the project's automation applies a `<!-- board: gate=<class>; eligible=<yes\|no>; priority=<P?> -->` comment at the top of an issue body to the board (`priority` optional). Skills write it and, when the board is unreachable, still file the issue; unset = no header, board fields are set with `scripts/board` |
-| `Card review` | no | BA, Tech Lead, refine | `required` (default) or `not required` |
+| `Card review` | no | BA, Tech Lead, refine, publish | `required` (default) or `not required`: `not required` also lets skills apply `agent-ready` to cards that pass the [promotion checks](planning.md#6-promotion) |
 | `Domain-test review` | no | orchestrate, pr-review | `required` (default), `agent` or `not required` |
 | `PR approval` | no | pr-review | `off` (default) or `agent`: `agent` lets a verdict of `approve` be submitted as a forge approval; `off` posts it as a comment |
 | `Human-only paths` | no | pr-review | globs whose changes always get verdict `human`, on top of the built-in triggers |

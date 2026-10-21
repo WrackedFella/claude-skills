@@ -42,7 +42,7 @@ A runner (for example `claude-code-action`) reacts to a label and invokes a skil
 - Run output lives in the runner's logs or step summary, not in the issue.
 - Workflow file edits need a human merge.
 - Under `Card review: required`, a human applies `agent-ready` to each card; under
-  `not required`, `refine` applies it to cards that need no person and the runner
+  `not required`, the Tech Lead, `refine` and `publish` apply it to cards that pass the promotion checks and the runner
   dispatches a run per card.
 
 ## Status automation
