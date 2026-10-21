@@ -120,6 +120,26 @@ this way, a constraint, invariant, tradeoff, workaround or gotcha.
 - **Flag, don't change:** bare `TODO`, `FIXME`, `HACK`, `XXX`.
 - When unsure whether a comment is "why" or "what", keep it and flag it.
 
+## Document numbering (ISO 2145)
+
+Applies to sections, sub-sections and milestones in every document and project.
+
+- **Format:** Arabic numerals, one dot between levels, no trailing dot: `4`, `4.1`,
+  `4.11`. Never `4.`, `IV` or `A`.
+- **Start at 1.** Each level counts 1, 2, 3 within its parent.
+- **Headings:** `## 4 Systems`, `### 4.1 Items and loadout`. Number to the depth the
+  document needs, typically three levels, never beyond four.
+- **Cross-references:** `§4.11` or "section 4.11".
+- **Insertion:** a new item between two existing ones takes a sub-number (`1.1` between
+  `1` and `2`) so nothing else is renumbered. Otherwise append at the end.
+- **Milestones:** `<LINE>-M<n>`, e.g. `FPS-M2`, with `M<n>` equal to the roadmap phase it
+  delivers where there is one. The line prefix keeps the series distinct from other
+  milestone series (an engine's bare `M0`, `M1`); it parallels `<LINE>-F<n>` for features.
+- **Out of scope:** feature and card IDs (`<LINE>-F<n>`, `<LINE>-F<n>-<NN>`) and ADR
+  numbers (`NNNN`) keep their own schemes.
+- **Why:** one hierarchical scheme gives every item a stable, sortable address, and
+  inserting a bridge item never forces a renumber of references elsewhere.
+
 ## Complexity and abstraction
 
 - **Weigh changes by parts and depth** (types, interfaces, modules, library/package

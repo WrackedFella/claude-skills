@@ -37,6 +37,7 @@ Bring the project's wiki in line with this diff. Never change code.
      source can't show (layouts, formats, invariants), and don't cite line numbers;
    - link ADRs for rationale rather than re-arguing it, and don't repeat what API docs
      (e.g. rustdoc, XML doc) or a package README already says;
+   - number sections and cross-references per `engineering-standards` (Document numbering);
    - terse and impersonal; a diagram only where it explains faster than prose, in a
      text format that diffs.
 
