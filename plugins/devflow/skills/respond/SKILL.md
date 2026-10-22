@@ -33,4 +33,8 @@ enable auto-merge.
    the exact exclusion line and why, and leave the config unchanged for a human.
 6. In a headless run, run every subagent in the foreground and wait for its report, and issue one command per Bash call: no `&&`, `;`, pipes, `cd` or `$(...)`. The allow-list matches by prefix, so a compound is denied unless every part is allowed.
 
+A headless run that needs a person (a declined request, an untestable mutant, an unknown
+standard) says so in a PR-level reply, never only in the run output. A person resumes it
+with an `@claude` comment on the PR.
+
 Report: threads addressed and declined, commits, and anything that needs the user.

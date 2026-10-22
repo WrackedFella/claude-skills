@@ -98,8 +98,9 @@ the BA and Tech Lead skills and applies their rules, escalating where they would
   and are never edited; only uncovered exit criteria are cut. More than eight new cards
   means the feature is too big: it comments a proposed split and stops.
 - **Escalates instead of guessing.** Unanswered direction-setting questions, criteria
-  that conflict with an ADR, or untestable criteria produce one comment (questions,
-  proposed defaults, costs) and a stop. Independent cards may still publish.
+  that conflict with an ADR, or untestable criteria pause the run: one comment (questions,
+  proposed defaults, costs), the `agent-paused` label, a stop. A reply resumes it.
+  Independent cards may still publish.
 - **Publishes** each card with `scripts/card publish` as `[<ID>] <title>`, labeled with the
   feature's line and linked as a sub-issue, then adds them to the feature's item table.
 - **Labels** follow `Card review`: `required` applies no label (the user approves by
