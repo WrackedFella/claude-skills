@@ -90,7 +90,7 @@ The `agent` loop, at most 2 rounds:
 3. STRENGTHEN and gaps go to `test-writer`; MERGE and REMOVE are applied by it. A
    removal that leaves a spec scenario unpinned is refused; assertions are never loosened.
 4. Commit and push; re-run the critic only if the round changed tests materially.
-5. Ambiguous or untestable criteria are a spec problem: comment on the issue and stop.
+5. Ambiguous or untestable criteria are a spec problem: pause on the issue.
 
 The PR gets a **Test review** section: verdict counts, tests removed or merged with
 reasons, findings still open or rejected.
@@ -103,11 +103,16 @@ verification still required.
 
 ## 5 Failure and stop conditions
 
+A **pause** comments the questions on the issue (with proposed defaults), labels it
+`agent-paused` and stops; a person's reply restarts the run, which resumes from the
+pushed branch. See [Unattended runs](runtimes.md#unattended-runs).
+
 | Condition | Action |
 |---|---|
-| Issue not ready | Comment what is missing; stop |
+| Issue not ready | Pause, listing what is missing |
 | Board already shows `In progress` | Another session holds it; stop |
 | Board queue empty (`board next` exit 3) | Report; stop |
-| Ambiguous or untestable criteria | Comment on the issue; stop |
-| Fix would change scope or a public contract | Ask the user |
+| Ambiguous or untestable criteria | Pause |
+| Fix would change scope or a public contract | Pause (interactive: ask the user) |
+| `Domain-test review: required` | Pause at the checkpoint after the failing tests |
 | Board unreachable (`board` exit 5) | Skip all board steps; PR body lists the Status changes left to the environment |

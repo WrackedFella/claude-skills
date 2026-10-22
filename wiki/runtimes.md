@@ -39,7 +39,12 @@ A runner (for example `claude-code-action`) reacts to a label and invokes a skil
 - Headless runs force foreground subagents. Parallel implementer calls issued in one message run concurrently where the host allows and serially otherwise; correctness does not depend on concurrency, only wall-clock does.
 - Only the default app token is available; no board access.
 - One run per issue at a time; refine needs a shorter budget than orchestrate.
-- Run output lives in the runner's logs or step summary, not in the issue.
+- Run output lives in the runner's logs or step summary, not in the issue, except a pause.
+- **Pause and resume.** A run that needs a person's answer comments its questions on the
+  issue, labels it `agent-paused` and stops. A reply from an owner, member or collaborator
+  makes the runner start the same skill again; intake removes the label, reads the replies and continues from the pushed
+  branch or published cards. PR-side runs (`respond`, `pr-review`) reply on the PR, and an `@claude`
+  comment resumes them. The runner must start on issue comments for this to work.
 - Workflow file edits need a human merge.
 - Under `Card review: required`, a human applies `agent-ready` to each card; under
   `not required`, the Tech Lead, `refine` and `publish` apply it to cards that pass the promotion checks and the runner
