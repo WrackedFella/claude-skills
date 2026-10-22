@@ -20,6 +20,10 @@ task:
   is lost.
 - In a headless run (`GITHUB_ACTIONS=true`, or no person attached) run every subagent
   in the foreground and wait for its report; the run ends when you stop.
+- A reply with no tool call ends a headless run, and the job reports success. After any
+  skill or subagent returns (`/simplify`, `/devflow:wiki`, `/devflow:comment-audit`),
+  its report is input, not your answer: record it and start the next step in the same
+  turn. End only with the final report after the PR is open, or with a pause.
 - Only the orchestrator spawns subagents: the worker agents' tool lists omit `Agent`,
   so fan-out is always driven from here.
 - Steps 5, 7 and 8 invoke skills through the Skill tool. If the Skill tool refuses a
@@ -59,7 +63,7 @@ If the `Tracker` has no column in the table, stop and tell the user in the run o
 
 ## Bash commands
 
-In a headless run, issue one command per Bash call: no `&&`, `;`, pipes, `cd` or `$(...)`. The allow-list matches each command by prefix, so a compound is denied unless every part is allowed, and a denial costs a turn. Put this rule in every worker brief.
+In a headless run, issue one command per Bash call: no `&&`, `;`, pipes, `cd` or `$(...)`. The allow-list matches each command by prefix, so a compound is denied unless every part is allowed, and a denial costs a turn. Search with the Grep, Glob and Read tools and edit with Edit or Write; never use `python`, `sed`, `printenv` or `env` in a Bash call. Put these rules in every worker brief.
 
 ## Project board
 
@@ -90,7 +94,9 @@ issue, work from the issue and report the drift; don't republish either one to m
 Look for earlier work on the item before creating anything: remote branches named for
 its ID (including `claude/issue-<N>-*` and test branches from an earlier run) and open
 PRs that close it. An open PR: comment with its link and stop. Exactly one branch:
-resume from it, reusing its tests rather than rewriting them. Several branches: pause,
+resume from it, reusing its tests rather than rewriting them: read its commit history
+to see which steps are done (test, feat, refactor and docs commits), re-run the gate,
+and continue at the first step the history does not show. Several branches: pause,
 asking which to use. Never start a second work branch for an item that has one.
 
 Use the item's work branch if the Tech Lead already pushed one (it carries the spec
@@ -159,7 +165,8 @@ the changed code through the Skill tool.
 Refactoring changes structure, never behavior: no test edits, no new behavior, and it
 stays within the code this work touched and the spec's scope. Re-run the gate after
 each change set. Commit it on its own (`refactor(scope): ...`) and push, so the PR shows
-red, green, refactor. If nothing warrants restructuring, the PR says so.
+red, green, refactor. If nothing warrants restructuring, the PR says so. Then go
+straight to step 6.
 
 ## 6. Mutation testing
 
