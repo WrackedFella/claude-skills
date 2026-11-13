@@ -110,9 +110,16 @@ expected fix; an ambiguity is a question with both readings and a proposed defau
   weakened gate (B3). Reruns the gate and mutation command when the toolchain is present.
   Defects in unchanged code are follow-ups.
 - **design-critic.** Cites a written rule or a named item for every finding: C1 to C4
-  from `engineering-standards` Changeability, broken ADR or architecture rules (B4),
-  scope beyond the spec. On the light tier it also checks B2 and B3.
+  from `engineering-standards` Changeability, broken written rules (B4), a Footprint or
+  tech-spec item the diff does not deliver (B6), scope beyond the spec. On the light tier
+  it also checks B2 and B3.
 - **refuter.** One finding per call, with a mandate to disprove it: reruns the test
   itself (B2 also on reverted code), checks the rule, the code path and the named item,
-  and may lower the severity. Mode `fixed` rechecks an earlier blocker at a new head.
+  and may lower the severity, except that B2, B4 and B6 stay blockers. Mode `fixed`
+  rechecks an earlier blocker at a new head.
   Reports `CONFIRMED`, `REFUTED`, `FIXED` or `NOT FIXED` with what it ran.
+- **Written rules outrank the work item.** The finders and the refuter read the
+  project's `CLAUDE.md`, planning standards, ADR directory and its README, and the
+  standards files, and check the work item's instructions against them: a conflicting
+  instruction makes the finding needs-decision, or is a question when the diff does not
+  touch it.
