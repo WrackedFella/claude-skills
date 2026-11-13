@@ -1,0 +1,258 @@
+#!/usr/bin/env bash
+# Deterministic facts for a PR review, as JSON on stdout. No model reads the PR text;
+# this script reads it only to find the linked issue, and never prints it.
+#
+#   pr-facts <pr-number>                         facts for an open PR (GitHub REST only)
+#   pr-facts --range <base>..<head> --issue <n>  dry run on two local commits; no PR
+#
+# Options:
+#   --claude-md <file>    settings source; default: CLAUDE.md on the base branch
+#   --ignore-check <re>   ignore check runs whose name matches (repeatable); check runs of
+#                         the current Actions run ($GITHUB_RUN_ID) are always ignored
+#
+# Output fields: mode, repo, pr, head_sha, base_ref, base_sha, author, draft, state,
+# labels, issue, issue_title, id_match, gate_class, tier, ci, conflict, changed_lines,
+# files, domain_hits, signoff_triggers, outside_comments, issue_edited_after_open,
+# prior_reviews, stop.
+#   tier: "full" when the gate class is domain or unknown, a changed file is under the
+#         project's domain-logic paths, or the PR carries the label review:full; else "light".
+#   stop: null, or {verdict, route, reason}; the review ends with it before any model runs.
+#         verdict "skip" (draft, closed, no linked issue), "wait" (CI pending), "reject"
+#         (CI failing or merge conflict, route "fix").
+#   signoff_triggers: the path- and forge-based Sign-off triggers; the skill adds the ones
+#         only a reading can find (security-relevant code, an undeclared public API).
+#
+# Exit codes: 0 facts printed (even when stop is set), 1 usage or forge error.
+set -euo pipefail
+
+die() { echo "pr-facts: $*" >&2; exit 1; }
+
+pr="" range="" issue="" claude_md="" ignore=()
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --range) range=${2:?}; shift 2 ;;
+    --issue) issue=${2:?}; shift 2 ;;
+    --claude-md) claude_md=${2:?}; shift 2 ;;
+    --ignore-check) ignore+=("${2:?}"); shift 2 ;;
+    -h|--help) sed -n '2,26p' "$0"; exit 0 ;;
+    -*) die "unknown option $1" ;;
+    *) pr=$1; shift ;;
+  esac
+done
+[[ -n $pr || -n $range ]] || die "usage: pr-facts <pr> | --range <base>..<head> --issue <n>"
+[[ -z $range || -n $issue ]] || die "--range needs --issue"
+
+if [[ -n ${GITHUB_REPOSITORY:-} ]]; then
+  repo=$GITHUB_REPOSITORY
+else
+  url=$(git remote get-url origin) || die "no origin remote"
+  url=${url%.git}
+  repo=$(awk -F'[/:]' '{print $(NF-1) "/" $NF}' <<<"$url")
+fi
+
+# Lockfiles and generated manifests do not count toward the 400-line trigger.
+is_lockfile() {
+  case ${1##*/} in
+    *.lock|package-lock.json|pnpm-lock.yaml|packages.lock.json|go.sum) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+# Globs from a CLAUDE.md setting: the backticked items of the nested list under the line
+# that names the setting, or the backticked items on that line after its colon.
+setting_globs() {
+  local name=$1 file=$2
+  awk -v name="$name" '
+    function emit(s) { while (match(s, /`[^`]+`/)) { print substr(s, RSTART + 1, RLENGTH - 2); s = substr(s, RSTART + RLENGTH) } }
+    !found && index($0, name) { found = 1
+      rest = substr($0, index($0, name) + length(name)); c = index(rest, ":")
+      if (c) emit(substr(rest, c + 1))
+      next }
+    found && /^[[:space:]]+- / { emit($0); next }
+    found && /^[[:space:]]+[^[:space:]]/ { next }
+    found { exit }' "$file"
+}
+
+# `**` and `*` both match across directories, which is what the project lists mean.
+matches_any() {
+  local path=$1 g; shift
+  for g in "$@"; do
+    g=${g//\*\*/*}
+    # shellcheck disable=SC2053
+    [[ $path == $g || $path == $g/* ]] && return 0
+  done
+  return 1
+}
+
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+
+# --- forge or local facts -----------------------------------------------------------
+author="" draft=false state="open" labels='[]' body="" created_at="" head_ref=""
+ci='{"state":"none","failing":[],"pending":[]}' conflict=false outside=0 prior='[]'
+if [[ -n $pr ]]; then
+  mode=pr
+  gh api "repos/$repo/pulls/$pr" >"$tmp/pr.json" || die "cannot read PR $pr"
+  head_sha=$(jq -r .head.sha "$tmp/pr.json")
+  head_ref=$(jq -r .head.ref "$tmp/pr.json")
+  base_ref=$(jq -r .base.ref "$tmp/pr.json")
+  author=$(jq -r .user.login "$tmp/pr.json")
+  draft=$(jq -r .draft "$tmp/pr.json")
+  state=$(jq -r .state "$tmp/pr.json")
+  labels=$(jq -c '[.labels[].name]' "$tmp/pr.json")
+  body=$(jq -r '.body // ""' "$tmp/pr.json")
+  created_at=$(jq -r .created_at "$tmp/pr.json")
+  [[ $(jq -r .mergeable_state "$tmp/pr.json") == dirty ]] && conflict=true
+  # The forge's merge base works in shallow clones, where `git merge-base` does not.
+  base_sha=$(gh api "repos/$repo/compare/$base_ref...$head_sha" -q .merge_base_commit.sha) \
+    || die "cannot read the merge base of $base_ref and $head_sha"
+  git fetch -q origin "$base_sha" "$head_sha" 2>/dev/null || die "cannot fetch $base_sha and $head_sha"
+  [[ -z $issue ]] && issue=$(grep -oiE '(close[sd]?|fix(e[sd])?|resolve[sd]?) #[0-9]+' <<<"$body" | head -n1 | grep -oE '[0-9]+' || true)
+
+  gh api "repos/$repo/commits/$head_sha/check-runs?per_page=100" --paginate \
+    -q '.check_runs[] | {name, status, conclusion, url: .details_url}' >"$tmp/checks.jsonl" \
+    || die "cannot read checks"
+  gh api "repos/$repo/commits/$head_sha/status" \
+    -q '.statuses[] | {name: .context, status: (if .state == "pending" then "in_progress" else "completed" end), conclusion: .state, url: .target_url}' \
+    >>"$tmp/checks.jsonl" || die "cannot read statuses"
+  ign=$(printf '%s\n' "${ignore[@]+"${ignore[@]}"}" | jq -R . | jq -sc 'map(select(length > 0))')
+  ci=$(jq -sc --arg run "${GITHUB_RUN_ID:-}" --argjson ign "$ign" '
+    map(select(($run == "" or ((.url // "") | contains("/runs/" + $run + "/") | not))
+               and (.name as $n | all($ign[]; . as $re | $n | test($re) | not))))
+    | {failing: [.[] | select(.status == "completed" and (.conclusion | IN("failure","timed_out","cancelled","action_required","error"))) | .name],
+       pending: [.[] | select(.status != "completed") | .name],
+       count: length}
+    | .state = (if .count == 0 then "none" elif (.failing | length) > 0 then "failing"
+                elif (.pending | length) > 0 then "pending" else "green" end)
+    | del(.count)' "$tmp/checks.jsonl")
+
+  # Comments by accounts that are not owner, member or collaborator, on the PR and its issue.
+  trusted='select(.user.type != "Bot" and (.author_association | IN("OWNER","MEMBER","COLLABORATOR") | not))'
+  outside=$(
+    { gh api "repos/$repo/issues/$pr/comments?per_page=100" --paginate -q ".[] | $trusted | .id"
+      gh api "repos/$repo/pulls/$pr/comments?per_page=100" --paginate -q ".[] | $trusted | .id"
+      gh api "repos/$repo/pulls/$pr/reviews?per_page=100" --paginate -q ".[] | $trusted | .id"
+      [[ -z $issue ]] || gh api "repos/$repo/issues/$issue/comments?per_page=100" --paginate -q ".[] | $trusted | .id"
+    } | wc -l | tr -d ' ')
+
+  # Earlier pr-review verdicts, from bots or trusted accounts only, oldest first.
+  prior=$(gh api "repos/$repo/pulls/$pr/reviews?per_page=100" --paginate -q '.[]' | jq -sc '
+    map(select((.user.type == "Bot" or (.author_association | IN("OWNER","MEMBER","COLLABORATOR")))
+               and ((.body // "") | startswith("Verdict:")))
+        | (.body | split("\n")) as $l
+        | {id, author: .user.login, commit_id, submitted_at,
+           verdict: ($l[0] | sub("^Verdict: *"; "") | split(" ")[0]),
+           route: ([$l[] | select(startswith("Route:")) | sub("^Route: *"; "")] | first),
+           round: ([$l[] | (capture("Round: *(?<r>[0-9]+)") | .r | tonumber)?] | first)})')
+else
+  mode=dry-run
+  base_sha=$(git rev-parse --verify "${range%%..*}^{commit}") || die "bad base in $range"
+  head_sha=$(git rev-parse --verify "${range##*..}^{commit}") || die "bad head in $range"
+  base_ref=${range%%..*}
+fi
+
+# --- settings from the base branch's CLAUDE.md ---------------------------------------
+if [[ -z $claude_md ]]; then
+  claude_md=$tmp/CLAUDE.md
+  git show "$base_sha:CLAUDE.md" >"$claude_md" 2>/dev/null || : >"$claude_md"
+fi
+mapfile -t domain_globs < <(setting_globs 'Domain-logic paths' "$claude_md")
+mapfile -t human_globs < <(setting_globs 'Human-only paths' "$claude_md")
+
+# --- diff ---------------------------------------------------------------------------
+git diff --numstat "$base_sha" "$head_sha" >"$tmp/numstat"
+changed_lines=0 files=() domain_hits=() human_hits=() config_hits=() dep_hits=()
+while IFS=$'\t' read -r add del path; do
+  [[ -n $path ]] || continue
+  path=${path##*=> }; path=${path%\}}
+  files+=("$path")
+  [[ $add == - ]] && add=0 && del=0
+  is_lockfile "$path" || changed_lines=$((changed_lines + add + del))
+  if ((${#domain_globs[@]})) && matches_any "$path" "${domain_globs[@]}"; then domain_hits+=("$path"); fi
+  if ((${#human_globs[@]})) && matches_any "$path" "${human_globs[@]}"; then human_hits+=("$path"); fi
+  case $path in
+    .github/*|.claude/*|.husky/*|.cargo/*|CLAUDE.md|*/CLAUDE.md|justfile|Justfile|Makefile|scripts/*|\
+    deny.toml|clippy.toml|rustfmt.toml|.rustfmt.toml|rust-toolchain*|.editorconfig|Directory.Build.*|.config/*|\
+    stryker-config.json|*.ruleset|.globalconfig|.mcp.json)
+      config_hits+=("$path") ;;
+  esac
+  case ${path##*/} in
+    Cargo.toml|Cargo.lock|package.json|*.lock|package-lock.json|pnpm-lock.yaml|*.csproj|*.fsproj|\
+    Directory.Packages.props|packages.lock.json|go.mod|go.sum|pyproject.toml|requirements*.txt|LICENSE*)
+      dep_hits+=("$path") ;;
+  esac
+done <"$tmp/numstat"
+
+# --- work item ----------------------------------------------------------------------
+issue_title="" gate_class=unknown edited=null id_match=null
+if [[ -n $issue ]]; then
+  gh api "repos/$repo/issues/$issue" >"$tmp/issue.json" || die "cannot read issue $issue"
+  issue_title=$(jq -r .title "$tmp/issue.json")
+  ibody=$(jq -r '.body // ""' "$tmp/issue.json")
+  g=$(grep -oiE 'board:[^>]*gate=(domain|glue)' <<<"$ibody" | grep -oiE '(domain|glue)$' | head -n1 || true)
+  [[ -n $g ]] || g=$(grep -iE 'gate class' <<<"$ibody" | grep -oiE '\b(domain|glue)\b' | head -n1 || true)
+  [[ -n $g ]] && gate_class=${g,,}
+  if [[ -n $created_at ]]; then
+    # Body edits are visible only through GraphQL; unreadable stays null and is a trigger.
+    last=$(gh api graphql -F n="$issue" -f o="${repo%/*}" -f r="${repo#*/}" \
+      -f query='query($o:String!,$r:String!,$n:Int!){repository(owner:$o,name:$r){issue(number:$n){lastEditedAt}}}' \
+      -q '.data.repository.issue.lastEditedAt // ""' 2>/dev/null) && {
+        if [[ -n $last && $last > $created_at ]]; then edited=true; else edited=false; fi
+      }
+  fi
+  # Only a branch that carries a work-item ID can contradict the issue; one without is null.
+  id=$(grep -oE '^\[[^]]+\]' <<<"$issue_title" | tr -d '[]' || true)
+  branch_id=$(grep -oiE '[a-z]+-f[0-9]+-[0-9]+' <<<"$head_ref" | head -n1 || true)
+  if [[ -n $id && -n $branch_id ]]; then
+    if [[ ${branch_id^^} == "${id^^}" ]]; then id_match=true; else id_match=false; fi
+  fi
+fi
+
+# --- tier and stop ------------------------------------------------------------------
+tier=light
+[[ $gate_class != glue ]] && tier=full
+((${#domain_hits[@]})) && tier=full
+jq -e 'index("review:full")' <<<"$labels" >/dev/null && tier=full
+
+triggers=()
+((${#config_hits[@]})) && triggers+=("gate, CI or agent configuration changed: ${config_hits[*]}")
+((${#dep_hits[@]})) && triggers+=("dependencies or licenses changed: ${dep_hits[*]}")
+((${#human_hits[@]})) && triggers+=("Human-only paths changed: ${human_hits[*]}")
+((changed_lines > 400)) && triggers+=("$changed_lines changed lines, over 400 excluding lockfiles")
+((outside > 0)) && triggers+=("$outside comment(s) from accounts outside the project")
+[[ $edited == true ]] && triggers+=("work item body edited after the PR opened")
+[[ $mode == pr && -n $issue && $edited == null ]] && triggers+=("work item edit time unreadable")
+[[ $id_match == false ]] && triggers+=("branch name does not carry the work item's ID")
+
+stop=null
+ci_state=$(jq -r .state <<<"$ci")
+if [[ $mode == pr ]]; then
+  if [[ $state != open ]]; then stop='{"verdict":"skip","route":null,"reason":"PR is not open"}'
+  elif [[ $draft == true ]]; then stop='{"verdict":"skip","route":null,"reason":"PR is a draft"}'
+  elif [[ -z $issue ]]; then stop='{"verdict":"skip","route":null,"reason":"no linked work item (Closes #N)"}'
+  elif [[ $conflict == true ]]; then stop='{"verdict":"reject","route":"fix","reason":"merge conflict with the base branch"}'
+  elif [[ $ci_state == failing ]]; then stop=$(jq -c '{verdict:"reject",route:"fix",reason:("CI failing on the head: " + (.failing | join(", ")))}' <<<"$ci")
+  elif [[ $ci_state == pending ]]; then stop='{"verdict":"wait","route":null,"reason":"CI pending on the head"}'
+  fi
+fi
+
+arr() { if (($#)); then printf '%s\n' "$@" | jq -R . | jq -sc .; else echo '[]'; fi; }
+jq -n \
+  --arg mode "$mode" --arg repo "$repo" --arg pr "$pr" --arg head "$head_sha" \
+  --arg base_ref "$base_ref" --arg base "$base_sha" --arg author "$author" \
+  --argjson draft "$draft" --arg state "$state" --argjson labels "$labels" \
+  --arg issue "$issue" --arg title "$issue_title" --argjson id_match "$id_match" \
+  --arg gate "$gate_class" --arg tier "$tier" --argjson ci "$ci" --argjson conflict "$conflict" \
+  --argjson lines "$changed_lines" --argjson files "$(arr "${files[@]+"${files[@]}"}")" \
+  --argjson domain "$(arr "${domain_hits[@]+"${domain_hits[@]}"}")" \
+  --argjson triggers "$(arr "${triggers[@]+"${triggers[@]}"}")" \
+  --argjson outside "$outside" --argjson edited "$edited" --argjson prior "$prior" \
+  --argjson stop "$stop" '
+  {mode: $mode, repo: $repo, pr: (if $pr == "" then null else ($pr | tonumber) end),
+   head_sha: $head, base_ref: $base_ref, base_sha: $base, author: $author,
+   draft: $draft, state: $state, labels: $labels,
+   issue: (if $issue == "" then null else ($issue | tonumber) end), issue_title: $title,
+   id_match: $id_match, gate_class: $gate, tier: $tier, ci: $ci, conflict: $conflict,
+   changed_lines: $lines, files: $files, domain_hits: $domain,
+   signoff_triggers: $triggers, outside_comments: $outside,
+   issue_edited_after_open: $edited, prior_reviews: $prior, stop: $stop}'
