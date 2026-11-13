@@ -43,7 +43,7 @@ linked checkout of this repo, and refresh it from `main`.
 
 ## What's in devflow
 
-Role skills: `business-analyst` (feature negotiation and acceptance criteria), `tech-lead` (tech spec, test map, ADRs), `refine` (unattended feature splitting) and `orchestrate` (one ready item to a PR). Delivery skills: `ship`, `publish` (file approved draft cards as issues), `respond` (address PR review feedback) and `pr-review` (independent PR review with a verdict). Support skills: `comment-audit`, `wiki`, `sitrep`, `engineering-standards`, `rust-standards`, `dotnet-standards` and `azure-standards`. Agents: `test-writer`, `implementer`, `test-critic` and `reviewer`. Details are in the [wiki](wiki/README.md), [skills](wiki/skills.md) and [agents](wiki/agents.md).
+Role skills: `business-analyst` (feature negotiation and acceptance criteria), `tech-lead` (tech spec, test map, ADRs), `refine` (unattended feature splitting) and `orchestrate` (one ready item to a PR). Delivery skills: `ship`, `publish` (file approved draft cards as issues), `respond` (address PR review feedback) and `pr-review` (adversarial PR review: approve or reject, routed to the fix loop or a person). Support skills: `comment-audit`, `wiki`, `sitrep`, `engineering-standards`, `rust-standards`, `dotnet-standards` and `azure-standards`. Agents: `test-writer`, `implementer`, `test-critic`, `reviewer`, and the PR review's `defect-finder`, `design-critic` and `refuter`. Details are in the [wiki](wiki/README.md), [skills](wiki/skills.md) and [agents](wiki/agents.md).
 
 ## Project contract
 

@@ -12,7 +12,7 @@ project-specific lives in the consumer's `CLAUDE.md` ([project contract](project
 | The spec is the issue | The published GitHub issue is the accepted spec; local files are drafts or working copies. The issue wins on disagreement. |
 | Tests before code | `test-writer` produces failing tests first; `implementer` sees them as the definition of done. |
 | Gates are not negotiable | No agent edits, skips or weakens a test or lint to get green. The project gate runs after every change set. |
-| Independent judgment | Test review and final review run in fresh context (`test-critic`, `reviewer`) and never see the author's reasoning. |
+| Independent judgment | Test review and final review run in fresh context (`test-critic`, `reviewer`) and never see the author's reasoning. PR review finders never see the PR text, and a refuter must reproduce every finding. |
 | Cheapest capable model | Haiku for mechanical work, Sonnet for spec-driven work, Opus for judgment and review. |
 | Review points are switches | Each human pause is a setting in `CLAUDE.md`, so a project can move toward unattended runs one switch at a time. |
 
@@ -69,7 +69,7 @@ Planning detail: [Planning](planning.md). Pipeline detail: [Orchestration](orche
 | Feature approval | none | always human | n/a |
 | Card review | `Card review` | `required` (default), `not required` | BA and Tech Lead publish cards themselves; the Tech Lead, `refine` and `publish` label cards that pass the [promotion checks](planning.md#6-promotion) `agent-ready` |
 | Domain-test review | `Domain-test review` | `required` (default), `agent`, `not required` | `agent`: `test-critic` reviews tests, no pause. `not required`: continue and flag the tests in the PR |
-| PR approval | `PR approval` | `off` (default), `agent` | `agent`: a `pr-review` verdict of `approve` is submitted as a forge approval; the human merges on it instead of reading the diff. Needs branch protection that dismisses stale approvals. Human-only triggers and `changes` verdicts still go to a person |
+| PR approval | `PR approval` | `off` (default), `agent` | `agent`: a `pr-review` verdict of `approve` with `Sign-off: agent` is submitted as a forge approval; the human merges on it instead of reading the diff. Needs a base branch that dismisses stale approvals on push. `Sign-off: human` and `Route: human` still go to a person |
 | PR merge | none | always human | n/a |
 
 Items with gate class `glue` never pause for test review.

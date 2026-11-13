@@ -58,6 +58,10 @@ For each work item whose acceptance criteria are approved, write its **Tech spec
 - **Gate class:** `domain` (rules in the project's domain-logic paths: the
   Orchestrator has the tests reviewed, by the user or by `devflow:test-critic`, per the project's `Domain-test review` setting) or `glue`
   (tests and code together).
+- **One-way doors:** what the item opens that is costly to reverse (a persisted
+  format, a public API across a package boundary, a published event shape, a new
+  dependency), or "none". A door missing here is a review blocker (`engineering-standards`
+  Changeability C2).
 - **Risks:** blast radius, performance, migration or save-format concerns.
 
 Verify load-bearing claims before asking for approval: a trait bound, an API's

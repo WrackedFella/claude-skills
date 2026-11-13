@@ -1,6 +1,6 @@
 ---
 name: engineering-standards
-description: "Language-neutral engineering standards: layering, domain modeling, error handling, async, observability, testing (TDD, mutation), comment hygiene, complexity and abstraction rules. Load before writing, refactoring or reviewing code in any language; language skills add their own deltas."
+description: "Language-neutral engineering standards: layering, domain modeling, error handling, async, observability, testing (TDD, mutation), comment hygiene, complexity, abstraction and changeability rules. Load before writing, refactoring or reviewing code in any language; language skills add their own deltas."
 user-invocable: false
 ---
 
@@ -149,3 +149,24 @@ Applies to sections, sub-sections and milestones in every document and project.
 - **Exception:** in application entry/initialization code, fold multi-line wiring into a
   named helper even at one call site, kept beside the setup code.
 - **Abstractions are faithfully named** with no hidden clauses; docs match behavior.
+
+## Changeability
+
+A change must not raise the cost of the next known change, and must not buy flexibility
+nobody has asked for. Reversibility sets the severity: what is costly to undo after
+merge blocks; what is cheap to undo becomes a follow-up.
+
+| Check | Finding | Evidence required | Severity |
+|---|---|---|---|
+| C1 Boundary | A dependency points the wrong way, or an infrastructure type leaks into a domain surface | The written rule (ADR, project architecture, layering above) and the import or signature | Blocker |
+| C2 One-way door | Something hard to reverse that the tech spec or an ADR does not name: a persisted format, a public API across a package boundary, a published event shape, a new dependency | The lines, and the spec's silence | Blocker; a person signs off |
+| C3 Named-future collision | A decision fixed in place that a named upcoming item must change, so that item would rewrite this code instead of extending it | A link to the item (roadmap row, open issue, ADR, sibling card), the lines, and what the item would undo | Blocker when the item is in the same feature or the next milestone; follow-up otherwise |
+| C4 Speculative generality | A trait, generic parameter, config switch or extension point with one use and no named consumer | The single use, and no item that names a second | Blocker on a public surface; follow-up when private |
+
+- **The evidence rule cuts both ways.** No named future item: no finding for
+  under-design ("this might need to change someday" is dropped). No named consumer: the
+  abstraction goes ("this might be useful someday" is C4).
+- **Short horizon.** Only the same feature and the next milestone can block; further out
+  is too uncertain.
+- **Name one-way doors up front.** A tech spec lists the one-way doors it opens, so a
+  reviewer can tell a planned door from an accidental one.

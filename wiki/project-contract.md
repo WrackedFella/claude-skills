@@ -9,7 +9,7 @@ and the planning standards it names. Unset optional items disable the step that 
 | Mutation command | yes | orchestrate step 6 | `just mutants` |
 | Base branch | yes | branches, PRs, diffs | `dev` |
 | Planning index and standards | yes | BA, Tech Lead, refine | where features and cards live; ID format; templates; statuses |
-| Domain-logic paths | yes | gate class | crates holding game rules; matching items are `domain`, the rest `glue` |
+| Domain-logic paths | yes | gate class, `pr-review` tier | crates holding game rules; matching items are `domain`, the rest `glue`. `scripts/pr-facts` reads the backticked globs of the nested list under the line naming the setting (`**` and `*` match across directories) |
 | Full-platform CI command | no | orchestrate step 9 | `gh workflow run CI --ref <branch>` |
 | Docs directory | no | `wiki`, `reviewer` | `wiki/`; without it the docs step is skipped |
 | Environment setup command | no | orchestrate, ship | `bash scripts/cloud-tools.sh`; run only when `CLAUDE_CODE_REMOTE=true` |
@@ -18,10 +18,12 @@ and the planning standards it names. Unset optional items disable the step that 
 | `Board header` | no | tech-lead, refine, publish | `yes`: the project's automation applies a `<!-- board: gate=<class>; eligible=<yes\|no>; priority=<P?> -->` comment at the top of an issue body to the board (`priority` optional). Skills write it and, when the board is unreachable, still file the issue; unset = no header, board fields are set with `scripts/board` |
 | `Card review` | no | BA, Tech Lead, refine, publish | `required` (default) or `not required`: `not required` also lets skills apply `agent-ready` to cards that pass the [promotion checks](planning.md#6-promotion) |
 | `Domain-test review` | no | orchestrate, pr-review | `required` (default), `agent` or `not required` |
-| `PR approval` | no | pr-review | `off` (default) or `agent`: `agent` lets a verdict of `approve` be submitted as a forge approval; `off` posts it as a comment |
-| `Human-only paths` | no | pr-review | globs whose changes always get verdict `human`, on top of the built-in triggers |
+| `PR approval` | no | pr-review | `off` (default) or `agent`: `agent` lets a verdict of `approve` with `Sign-off: agent` be submitted as a forge approval; `off` posts it as a comment. A `reject` requests changes under either value |
+| `PR follow-ups` | no | pr-review | `comment` (default): follow-ups are listed in the review; `issue`: also filed (at most 3 per review, label `follow-up`, never `agent-ready`); `off`: omitted |
+| `Human-only paths` | no | pr-review | globs, in the same format as the domain-logic paths, whose changes always set `Sign-off: human`, on top of the built-in triggers |
 | `Standards` | no | orchestrate, respond, pr-review, tech-lead, refine, BA, sitrep | ordered devflow skill names, e.g. `engineering-standards, dotnet-standards, azure-standards`; each resolves to `${CLAUDE_PLUGIN_ROOT}/skills/<name>/SKILL.md` (devflow skills only), and workers receive only the paths in their brief; unset = `engineering-standards, rust-standards` |
 | Pre-commit change check | no | ship, agents | GitNexus `detect_changes` |
+| `PR_REVIEW_MAX_ROUNDS` (repository variable, not `CLAUDE.md`) | no | pr-review | fix rounds before a reject routes to a person; default 3 |
 
 Review-point semantics are in [Overview](overview.md#human-review-points).
 
@@ -29,7 +31,8 @@ Review-point semantics are in [Overview](overview.md#human-review-points).
 
 The operations skills perform on work items and PRs (read work item, edit body, comment on
 work item, add label, create child work item, list children, set state, open PR, read PR, read review threads, reply
-to thread, read PR review context, submit review) are defined once, per tracker, in
+to thread, read PR review context, submit review, resolve review thread, label PR, find open
+issues, file follow-up) are defined once, per tracker, in
 [`plugins/devflow/operations.md`](../plugins/devflow/operations.md). Skills name the
 operation; the `Tracker` column supplies the command. `scripts/board` and `scripts/card`
 stay GitHub-only. A project that declares no board skips every board step. `Tracker` is `github` or `azure-devops`; the Azure DevOps column is Unverified.
@@ -53,6 +56,9 @@ stay GitHub-only. A project that declares no board skips every board step. `Trac
 | `feature` | Parent issue; `refine` accepts only this |
 | `agent-ready` | Starts an unattended run (routed by issue type); with `Card review: required`, applied by the user to approve a card |
 | line label (for example `strategy`) | Copied from the feature onto its cards |
+| `follow-up` | Filed by `pr-review` from a confirmed non-blocking finding; a backlog observation, never `agent-ready` |
+| `needs-human` | Set by `pr-review` on a PR whose reject is routed to a person |
+| `review:full` | On a PR, forces the full review tier |
 
 ## Cloud environments
 

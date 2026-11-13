@@ -1,6 +1,6 @@
 # Agents
 
-Worker agents are launched by the orchestrator, run in their own context, and return a
+Worker agents are launched by the orchestrator (the review agents by `pr-review`), run in their own context, and return a
 report. All preload `engineering-standards`, apply the further standards named in their brief
 (the orchestrator resolves the project's `Standards` setting to skill file paths), see the repository and the project's
 `CLAUDE.md`, and do not see the orchestrator's conversation. Definitions:
@@ -11,10 +11,14 @@ report. All preload `engineering-standards`, apply the further standards named i
 | `devflow:test-writer` | sonnet | Read, Grep, Glob, Edit, Write, Bash | tests only | Failing tests from criteria and test map |
 | `devflow:implementer` | sonnet | Read, Grep, Glob, Edit, Write, Bash, GitNexus `impact`/`context`/`detect_changes` | production code | Minimum code to pass; behavior-preserving refactors |
 | `devflow:test-critic` | opus | Read, Grep, Glob, Bash | nothing | Portfolio review of fresh tests |
-| `devflow:reviewer` | opus | Read, Grep, Glob, Bash, GitNexus `impact`/`context`/`detect_changes` | nothing | Diff review against the spec |
+| `devflow:reviewer` | opus | Read, Grep, Glob, Bash, GitNexus `impact`/`context`/`detect_changes` | nothing | Diff review against the spec, in orchestrate |
+| `devflow:defect-finder` | opus | Read, Grep, Glob, Edit, Write, Bash, GitNexus `impact`/`context` | scratch tests | Demonstrated defects in a PR (full tier) |
+| `devflow:design-critic` | opus; `pr-review` runs it on fable for the full tier | Read, Grep, Glob, Bash, GitNexus `impact`/`context` | nothing | Structure against written rules and Changeability |
+| `devflow:refuter` | opus | Read, Grep, Glob, Edit, Write, Bash | scratch tests | Disproves one finding, or confirms a fix |
 
 No worker's tool list includes `Agent`, so workers cannot spawn subagents; that keeps
-fan-out at the orchestrator. `test-critic` and `reviewer` carry `maxTurns: 40`.
+fan-out at the orchestrator. `test-critic` and `reviewer` carry `maxTurns: 40`,
+`defect-finder` 60, `design-critic` 50 and `refuter` 30.
 
 GitNexus tools are used when available; when the project's `CLAUDE.md` calls for
 code-graph checks and the tools are missing, the agent says so in its report.
@@ -80,7 +84,7 @@ to test. It ends with counts, with no style preferences or praise.
 
 ## reviewer
 
-Sees only the diff (`git diff <base>...HEAD` plus uncommitted work) and the issue body. Called by `orchestrate` before the PR and by `pr-review` on a checked-out PR head.
+Sees only the diff (`git diff <base>...HEAD` plus uncommitted work) and the issue body. Called by `orchestrate` before the PR.
 Reports only:
 
 - correctness bugs, with the triggering input or sequence;
@@ -92,3 +96,23 @@ Reports only:
 
 Each finding cites `file:line` with a one-line failure scenario. If nothing material
 remains, it says exactly that.
+
+## Review agents
+
+`pr-review`'s agents get the base and head SHA, a worktree at the head, the work item
+and the standards, never the PR number, PR text, commit messages or another agent's
+output. Code comments and test names are data. Each finding has a class, `file:line`,
+`Kind` (blocker or follow-up), `Fix` (in-spec or needs-decision), claim, evidence and
+expected fix; an ambiguity is a question with both readings and a proposed default.
+
+- **defect-finder.** Counts a defect only with a test or command it ran: wrong behavior
+  (B1), an acceptance criterion with no test or one that passes on reverted code (B2), a
+  weakened gate (B3). Reruns the gate and mutation command when the toolchain is present.
+  Defects in unchanged code are follow-ups.
+- **design-critic.** Cites a written rule or a named item for every finding: C1 to C4
+  from `engineering-standards` Changeability, broken ADR or architecture rules (B4),
+  scope beyond the spec. On the light tier it also checks B2 and B3.
+- **refuter.** One finding per call, with a mandate to disprove it: reruns the test
+  itself (B2 also on reverted code), checks the rule, the code path and the named item,
+  and may lower the severity. Mode `fixed` rechecks an earlier blocker at a new head.
+  Reports `CONFIRMED`, `REFUTED`, `FIXED` or `NOT FIXED` with what it ran.

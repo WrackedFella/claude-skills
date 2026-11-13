@@ -51,8 +51,8 @@ observable behavior and fit one reviewable PR. Place the boundaries so slices ha
 disjoint file footprints where the behavior allows (see the Tech Lead's scope check);
 slices that must share a file are ordered by dependency. More than eight new cards means the
 feature is too big: comment with a proposed split and stop. Write each card's
-acceptance criteria, then its tech spec with design, footprint, out of scope, test map
-and gate class, following the planning standards' card template.
+acceptance criteria, then its tech spec with design, footprint, out of scope, test map,
+one-way doors and gate class, following the planning standards' card template.
 
 Verify load-bearing claims by reading the source, as the Tech Lead does, including
 callers of code a card keeps and what a gate a card extends reads. Read-only commands
