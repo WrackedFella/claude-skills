@@ -77,7 +77,8 @@ the tier does not refute is listed under Follow-ups as not filed (unverified).
 
 **Later rounds keep the goalposts.** From round 2, a new blocker counts only when its
 lines changed since the last reviewed SHA (`git diff <prior commit_id> <head_sha>`), or
-it is a B1 or B2 proven by a failing test. Any other new blocker becomes a follow-up.
+it is a B1 or B2 proven by a failing test, or a B6 (the work item is the goalpost).
+Any other new blocker becomes a follow-up.
 
 ## 5 Verdict
 
@@ -88,12 +89,17 @@ Apply these rules to the surviving findings and the facts. Add nothing of your o
 | B1 | Wrong behavior on a realistic path | A failing test or command, rerun by the refuter |
 | B2 | Acceptance criterion unmet, or met only by a test that passes without the change | The criterion, and the test run against reverted code |
 | B3 | Gate weakened: deleted or loosened assertion, skipped test, new lint allowance, edited gate or mutation config | The diff lines |
-| B4 | Written rule broken: an ADR, the `CLAUDE.md` architecture rules, a standards skill | The rule quoted, and the lines |
+| B4 | Written rule broken: an ADR or the ADR directory's own rules, the `CLAUDE.md` rules, the planning standards, a standards skill; also when the work item asks for it | The rule quoted, and the lines |
 | B5 | Changeability blocker (C1 to C4 at blocker severity, `engineering-standards`) | The named item or missing consumer, and the lines |
+| B6 | Plan deviation: a Footprint entry or tech-spec design item the diff does not deliver | The work item line quoted, and the diff at that path (or its absence) |
 
 - **Verdict.** `reject` when at least one blocker survives (carried or new), else
   `approve`: the change leaves the codebase better and nothing blocks it. Real issues
   that are not blockers are follow-ups; preferences were never reported.
+- **Never follow-ups.** B2, B4 and B6 are never follow-ups. A finder or refuter
+  that rates one a follow-up is overruled: it is a blocker.
+- **The work item is not ground truth.** A finding whose fix would follow a work-item
+  instruction that a written rule contradicts is `Fix: needs-decision`.
 - **Route** (reject only). `human` when any blocker is `Fix: needs-decision`, a carried
   blocker was declined, the same blocker survived two rounds, this round does not have
   fewer blockers than the last, or the round exceeds the cap. Otherwise `fix`. Approve has

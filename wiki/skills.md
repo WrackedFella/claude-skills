@@ -124,9 +124,13 @@ nothing itself; it never pushes or merges. Arguments: a PR number, or `--dry-run
    `design-critic` on Fable, in parallel where the runtime allows.
 5. **Refute.** `refuter` checks each finding cold (light: blockers and questions; full:
    everything). Refuted findings are listed as Dropped. From round 2, a new blocker
-   counts only on lines changed since the last review or when proven by a failing test.
-6. **Verdict.** Blockers B1 to B5 (wrong behavior, unmet criterion, weakened gate,
-   broken written rule, changeability blocker) reject; otherwise approve.
+   counts only on lines changed since the last review, when proven by a failing test, or
+   when it is a plan deviation.
+6. **Verdict.** Blockers B1 to B6 (wrong behavior, unmet criterion, weakened gate,
+   broken written rule, changeability blocker, plan deviation) reject; otherwise
+   approve. Unmet criteria, broken rules and plan deviations are never follow-ups. The
+   work item is not ground truth: a fix that would follow a work-item instruction a
+   written rule contradicts is needs-decision.
    `Route: human` for a needs-decision blocker, a declined blocker, a blocker surviving
    two rounds, no progress, or the round cap (`PR_REVIEW_MAX_ROUNDS`, default 3); else
    `fix`. Questions never reject but set `Sign-off: human`, as do the facts triggers, C2,
