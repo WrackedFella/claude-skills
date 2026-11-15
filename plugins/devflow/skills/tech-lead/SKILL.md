@@ -37,6 +37,14 @@ Business Analyst can't:
 
 The user decides scope; you make each trade visible with its cost.
 
+When the project sets an `Acceptance command`, slicing a feature also writes its
+**feature test plan** into the feature issue body: the user journeys that cross cards,
+personas and roles, the seed data each journey needs, the test doubles for third-party
+services, and the end-to-end suite's seed test (shared setup such as sign-in, fixtures
+and seeded data). Journeys that span cards break at seams no single card's tests see,
+and criteria fixed before the build can't be fitted to the code. Card test plans draw
+on it.
+
 ## Tech spec
 
 For each work item whose acceptance criteria are approved, write its **Tech spec**:
@@ -55,6 +63,14 @@ For each work item whose acceptance criteria are approved, write its **Tech spec
 - **Test map:** each acceptance scenario → the test that proves it
   (example name: `module::tests::scenario_expected_result`), plus edge-case tests the design
   implies. Prefer property tests for invariants and snapshot tests for formats.
+- **Test plan** (only when the project sets an `Acceptance command`): tag each
+  test-map entry `unit`, `api` or `e2e`, name the seed data each scenario needs, and
+  list the card's `Visual:` items. Each criterion goes to the cheapest layer that proves
+  it: rules, calculations and a `Scenario Outline`'s examples to `unit` or `api`; each
+  user-journey scenario to one `e2e` test with one representative example; measurable
+  visual `Then`s to `e2e` assertions. End-to-end tests are slow, flake first and sit
+  outside mutation testing, so they prove the wiring, not the rules. Move every visual
+  item that can be measured out of `Visual:` and into an assertion.
 - **Gate class:** `domain` (rules in the project's domain-logic paths: the
   Orchestrator has the tests reviewed, by the user or by `devflow:test-critic`, per the project's `Domain-test review` setting) or `glue`
   (tests and code together).

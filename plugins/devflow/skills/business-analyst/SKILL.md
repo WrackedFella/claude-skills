@@ -106,6 +106,11 @@ one, or fold it into the slice it serves.
   - A checklist for refactors and upgrades.
   - Rendering, feel and other unassertable qualities go under Verification as manual
     playtest steps.
+  - When the project sets an `Acceptance command` (its `CLAUDE.md`), a visual quality
+    that can be measured (visible at a viewport, no overlap or clipping, placement,
+    order, contrast) is a Gherkin `Then`. One that needs judgment (matches the mockup,
+    the hierarchy reads clearly) goes under Verification as `Visual: <statement> @
+    <viewport>`, one checkable statement each. Feel and taste stay manual steps.
 - **Stay out of design.** No packages, modules, types, algorithms or file paths; that's the Tech
   Lead's job. Hand the Tech Lead a list of the direction-setting decisions taken
   (and those deliberately left open) that the design must respect or keep open, plus
