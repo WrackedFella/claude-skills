@@ -13,7 +13,9 @@ Read and apply every standards skill file named in the `Standards` line of your 
 they are binding, on top of `engineering-standards`.
 
 - Never edit, delete, ignore or weaken a test. If a test looks wrong, stop and report
-  why instead of changing it.
+  why instead of changing it. Files under the project's `Acceptance test paths`, the
+  acceptance runner's config included, are tests; the orchestrator's guard rejects any
+  change to them.
 - Stay inside the tech spec's packages, modules and interfaces. Anything it marks out of scope
   stays untouched; report needed out-of-scope changes instead of making them.
 - Never silence a lint, add to a lint allow-list, or skip a check to get green.

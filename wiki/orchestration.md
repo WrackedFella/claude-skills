@@ -11,6 +11,8 @@ Challenges, triage and decisions are its own judgment work.
   is the step 2 test review removing or merging tests *before* implementation.
 - Never merge, enable auto-merge, or push to the base branch or `main`.
 - Push the work branch after every commit.
+- Acceptance tests ([3.3](#33-acceptance-tests)) run with the gate and are locked against
+  implementer changes by `scripts/e2e-guard`.
 - Headless: foreground subagents only.
 - Steps 5, 7 and 8 invoke skills through the Skill tool. If the Skill tool refuses a call,
   the PR records that under Verification and the orchestrator continues; it never
@@ -95,10 +97,26 @@ The `agent` loop, at most 2 rounds:
 The PR gets a **Test review** section: verdict counts, tests removed or merged with
 reasons, findings still open or rejected.
 
+### 3.3 Acceptance tests
+
+Applies when the project sets an `Acceptance command` and the item's test map has `e2e`
+entries.
+
+- Step 2 writes the `e2e` tests with the rest and verifies them red with the app
+  started; a failure because the app is down does not count.
+- Wherever the gate runs, the acceptance run follows: `App start command`,
+  `Acceptance command`, `App stop command` (always).
+- After every implementer call, [`scripts/e2e-guard`](../plugins/devflow/scripts/e2e-guard)
+  fails on a change to an acceptance test path outside the step 2 and later
+  test-writer commits, and on any added `test.only`, `test.skip`, `test.fixme` or
+  `test.slow`. Claude models that game tests do it mostly by editing them, and read-only
+  tests stop that at no cost to honest work ([ImpossibleBench](https://arxiv.org/abs/2510.20270)).
+
 ## 4 PR contents
 
 Issue link, gate output, test review (when run), mutation counts, challenges raised,
-refactorings made, docs report, reviewer findings and resolutions, and manual
+refactorings made, docs report, acceptance tests with the last acceptance run and guard
+results (when they apply), reviewer findings and resolutions, and manual
 verification still required.
 
 ## 5 Failure and stop conditions
@@ -115,4 +133,5 @@ pushed branch. See [Unattended runs](runtimes.md#unattended-runs).
 | Ambiguous or untestable criteria | Pause |
 | Fix would change scope or a public contract | Pause (interactive: ask the user) |
 | `Domain-test review: required` | Pause at the checkpoint after the failing tests |
+| `e2e-guard` fails | Restore the acceptance tests and re-brief the implementer |
 | Board unreachable (`board` exit 5) | Skip all board steps; PR body lists the Status changes left to the environment |
