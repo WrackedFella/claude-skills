@@ -52,7 +52,9 @@ disjoint file footprints where the behavior allows (see the Tech Lead's scope ch
 slices that must share a file are ordered by dependency. More than eight new cards means the
 feature is too big: comment with a proposed split and stop. Write each card's
 acceptance criteria, then its tech spec with design, footprint, out of scope, test map,
-one-way doors and gate class, following the planning standards' card template.
+one-way doors and gate class, following the planning standards' card template. When the
+project sets an `Acceptance command`, also write the feature test plan into the feature
+issue body and a test plan in each card, by the Tech Lead's rules.
 
 Verify load-bearing claims by reading the source, as the Tech Lead does, including
 callers of code a card keeps and what a gate a card extends reads. Read-only commands

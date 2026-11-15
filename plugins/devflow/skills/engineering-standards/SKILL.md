@@ -106,6 +106,23 @@ override them; it wins. A language skill adds only what is specific to that lang
 - **Structure:** arrange / act / assert as blank-line-separated blocks, no labels.
 - **Gate slow tests** with an ignore marker (with a reason) or a feature flag.
 
+### Acceptance tests (end to end, against the running app)
+
+- **Locate as a user does:** by role, label or visible text, never by CSS or DOM
+  structure.
+- **Wait on the outcome:** retrying assertions on what the user sees; no fixed sleeps.
+- **Isolated:** each test has its own browser context and seeded data, and no test
+  depends on another's order or leftovers.
+- **Deterministic:** fixed clock, locale, timezone and viewport; animations off.
+- **Only what the project controls:** third-party services (payment, email, identity)
+  are stubbed at the network layer and never called for real.
+- **Errors fail the test:** a shared fixture fails on uncaught page errors and
+  unexpected 4xx/5xx responses.
+- **Flaky is failing:** a test that passes only on retry is a defect to fix, never green.
+- **Never repaired by weakening:** a failing acceptance test is not fixed by changing its
+  assertions or expected values, skipping it or raising its timeout. Automated test
+  "healers" do exactly that and are not used.
+
 ## Comments
 
 A comment earns its place only by preserving what the code cannot: why it is shaped

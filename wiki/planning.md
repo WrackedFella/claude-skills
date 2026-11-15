@@ -34,7 +34,9 @@ Owns what and why; never names packages, modules, types, algorithms or paths.
    and testable criteria.
 4. **Write it down.** Gherkin (`Scenario`, `Given/When/Then`, `Scenario Outline`) for
    observable behavior; checklists for refactors and upgrades; unassertable qualities
-   become manual verification steps. Cards stay terse: tables over prose, no narration,
+   become manual verification steps. With an `Acceptance command`, measurable visual
+   qualities are Gherkin `Then`s and judgment ones are `Visual: <statement> @ <viewport>`
+   items under Verification. Cards stay terse: tables over prose, no narration,
    provenance or status words, each fact stated once. Hands the Tech Lead the decisions
    taken and left open.
 
@@ -59,6 +61,7 @@ Drafts left by a thread without board access are filed later with `/devflow:publ
   | Out of scope | Concrete tempting changes the implementer must not make |
   | Test map | Each scenario → (example name: `module::tests::scenario_expected_result`), plus implied edge cases |
   | Gate class | `domain` (rules in the project's domain-logic paths; test review applies) or `glue` |
+  | Test plan | Only when the project sets an `Acceptance command` (see [3.2](#32-test-plans)) |
   | Risks | Blast radius, performance, migration or save-format concerns |
 
 - **Verification before approval.** Load-bearing claims (trait bounds, API existence,
@@ -76,6 +79,30 @@ Drafts left by a thread without board access are filed later with `/devflow:publ
    `Gate class` and `Agent-eligible`. Without a board, the card's status line and labels
    are the record.
 4. Report the issue number and branch. Next step: `/devflow:orchestrate`.
+
+### 3.2 Test plans
+
+A project that sets an `Acceptance command` plans its acceptance tests before the build,
+at two levels.
+
+| Plan | Written | Holds |
+|---|---|---|
+| Feature test plan | In the feature issue, when the feature is sliced | User journeys that cross cards, personas and roles, seed data per journey, test doubles for third-party services, the suite's seed test (shared setup) |
+| Card test plan | In the card's tech spec | Each test-map entry tagged `unit`, `api` or `e2e`, the seed data each scenario needs, the card's `Visual:` items |
+
+Each criterion goes to the cheapest layer that proves it:
+
+| Criterion | Layer |
+|---|---|
+| Rule or calculation, and a `Scenario Outline`'s examples | `unit` or `api` |
+| User journey through the UI | One `e2e` test, one representative example |
+| Measurable visual (visibility at a viewport, overlap, placement, contrast) | `e2e` assertion |
+| Judgment visual (matches the mockup) | `Visual:` item under Verification |
+| Feel or taste | Manual step |
+
+End-to-end tests are slow, flake first and sit outside mutation testing, so they prove
+the wiring and leave the rules to cheaper tests. Their conventions are in
+`engineering-standards` (Acceptance tests).
 
 ## 4 Published issues
 
