@@ -184,7 +184,7 @@ while IFS=$'\t' read -r add del path; do
 done <"$tmp/numstat"
 
 # --- work item ----------------------------------------------------------------------
-issue_title="" gate_class=unknown edited=null id_match=null
+issue_title="" gate_class=unknown edited=null id_match=null visual=false
 if [[ -n $issue ]]; then
   gh api "repos/$repo/issues/$issue" >"$tmp/issue.json" || die "cannot read issue $issue"
   issue_title=$(jq -r .title "$tmp/issue.json")
@@ -192,6 +192,8 @@ if [[ -n $issue ]]; then
   g=$(grep -oiE 'board:[^>]*gate=(domain|glue)' <<<"$ibody" | grep -oiE '(domain|glue)$' | head -n1 || true)
   [[ -n $g ]] || g=$(grep -iE 'gate class' <<<"$ibody" | grep -oiE '\b(domain|glue)\b' | head -n1 || true)
   [[ -n $g ]] && gate_class=${g,,}
+  # A judgment visual criterion ("Visual: <statement> @ <viewport>") needs a person's eye.
+  grep -qE '^[[:space:]]*([-*][[:space:]]+)?(\[[ xX]\][[:space:]]+)?[`*]*Visual:' <<<"$ibody" && visual=true
   if [[ -n $created_at ]]; then
     # Body edits are visible only through GraphQL; unreadable stays null and is a trigger.
     last=$(gh api graphql -F n="$issue" -f o="${repo%/*}" -f r="${repo#*/}" \
@@ -223,6 +225,7 @@ triggers=()
 [[ $edited == true ]] && triggers+=("work item body edited after the PR opened")
 [[ $mode == pr && -n $issue && $edited == null ]] && triggers+=("work item edit time unreadable")
 [[ $id_match == false ]] && triggers+=("branch name does not carry the work item's ID")
+[[ $visual == true ]] && triggers+=("work item has Visual: criteria, which need a person's eye")
 
 stop=null
 ci_state=$(jq -r .state <<<"$ci")
