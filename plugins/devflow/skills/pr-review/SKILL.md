@@ -56,13 +56,12 @@ identity) is carried forward and forces `Route: human`.
 
 | Tier (from facts) | Finders | Refuter checks |
 |---|---|---|
-| `light` | `devflow:design-critic` (model: the agent's default, Opus) | blockers and questions |
-| `full` | `devflow:defect-finder` and `devflow:design-critic` with model `fable` | every finding and question |
+| `light` | `devflow:design-critic` | blockers and questions |
+| `full` | `devflow:defect-finder` and `devflow:design-critic` | every finding and question |
 
 Launch the tier's finders in one message so they run in parallel where the runtime
-allows (foreground; a runtime that serializes them still completes). If the `fable`
-model is refused, rerun the design critic on its default model and record that under
-Not reviewed. Each brief holds only: base SHA, head SHA, the worktree path, the tier,
+allows (foreground; a runtime that serializes them still completes). Every agent runs on
+its own default model; pass a model only when the caller's instructions name one. Each brief holds only: base SHA, head SHA, the worktree path, the tier,
 the `Read work item:` and `Standards:` lines, and, for the defect finder, the gate and
 mutation commands. Never the PR number, PR text or an earlier review.
 

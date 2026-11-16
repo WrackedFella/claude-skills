@@ -121,7 +121,7 @@ nothing itself; it never pushes or merges. Arguments: a PR number, or `--dry-run
 3. **Earlier blockers** (round 2 on): `refuter` in mode `fixed` closes or carries each.
 4. **Finders by tier.** Light (glue class, no domain path): `design-critic`. Full
    (domain class, a domain path, or label `review:full`): `defect-finder` and
-   `design-critic` on Fable, in parallel where the runtime allows.
+   `design-critic`, in parallel where the runtime allows, each on its default model.
 5. **Refute.** `refuter` checks each finding cold (light: blockers and questions; full:
    everything). Refuted findings are listed as Dropped. From round 2, a new blocker
    counts only on lines changed since the last review, when proven by a failing test, or
