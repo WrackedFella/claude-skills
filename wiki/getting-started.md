@@ -1,7 +1,7 @@
 # Getting started
 
 Steps to adopt devflow in a repository, in the order to do them. Steps 1 to 4 give a
-working interactive flow; 5 to 7 are optional.
+working interactive flow; 5 to 8 are optional.
 [Moho](https://github.com/WrackedFella/moho) is the worked example throughout.
 
 | # | Step | Needed for |
@@ -13,6 +13,7 @@ working interactive flow; 5 to 7 are optional.
 | 5 | Set up the board | queue pickup, `sitrep` records |
 | 6 | Add the GitHub Actions workflows | unattended runs |
 | 7 | Set up the cloud environment | Claude Code Projects threads |
+| 8 | Turn on acceptance tests and review | web apps checked against the running app |
 
 ## 1 Install the plugin
 
@@ -165,7 +166,57 @@ Claude Code Projects threads do not load plugins from `.claude/settings.json`
 3. Link the repositories to the Project. The environment is a cached snapshot, so a merge
    to `main` reaches threads only after the script changes or the snapshot expires.
 
-## 8 First commands
+## 8 Turn on acceptance tests and review (optional)
+
+For a project with a UI or API to check end to end, such as a web app. Acceptance tests
+pin a card's user-facing criteria as end-to-end tests in the gate; acceptance review adds
+an agent that uses the running app before code review
+([Orchestration](orchestration.md#33-acceptance-tests)). A project that sets none of
+these settings is unaffected.
+
+1. **Make the app bootable by script.** A start command that runs non-interactively,
+   loads freshly seeded data, stubs third-party services (payment, email, identity) and
+   returns once a health check passes, and a stop command. It needs no external secrets.
+2. **Add the acceptance suite.** For example Playwright Test, with its config, a seed test
+   for shared setup (sign-in, fixtures), and the conventions in `engineering-standards`
+   (Acceptance tests): user-facing locators, no fixed sleeps, isolation, a fixed clock and
+   viewport, and a fixture that fails on page errors.
+3. **Add the settings to `CLAUDE.md`** ([project contract](project-contract.md)):
+
+   ```markdown
+   - **Acceptance command:** `npx playwright test`
+   - **Acceptance test paths:**
+     - `e2e/**`
+     - `playwright.config.ts`
+   - **App start command:** `just serve-test`
+   - **App stop command:** `just serve-test-stop`
+   - **App URL:** `http://localhost:5173`
+   - **Acceptance review:** `agent`
+   ```
+
+   `Acceptance command` alone gives test plans and gated acceptance tests;
+   `Acceptance review: agent` adds the reviewer step.
+4. **Prepare the runners.** In `claude.yml` (step 6): install the browser
+   (`npx playwright install --with-deps chromium`, cached) and `playwright-cli`; add the
+   app start, acceptance and app stop commands, `playwright-cli` and
+   `scripts/e2e-guard` to `--allowedTools`; upload `/tmp/devflow-acceptance/` and the
+   runner's traces as a run artifact. In a cloud environment, check that the browser
+   and `playwright-cli` install under its network policy
+   ([Runtimes](runtimes.md#unattended-runs)).
+5. **Plan a feature.** With the settings in place, `business-analyst`, `tech-lead` and
+   `refine` write a feature test plan into the feature issue, a test plan in each card
+   (test-map entries tagged `unit`, `api` or `e2e`), `Visual:` items for judgment
+   visuals, and a final journey card for journeys that cross cards
+   ([Planning](planning.md#32-test-plans)).
+6. **Run a card.** Label it `agent-ready`, or run `/devflow:orchestrate <issue>`. Its PR
+   carries the acceptance run, the guard result and, with review on, an Acceptance review
+   section with verdicts and evidence. Cards with `Visual:` items always get
+   `Sign-off: human` from `pr-review`.
+
+Start with one card whose criteria are easy to see, and read its Acceptance review
+section and evidence before trusting a pass.
+
+## 9 First commands
 
 | Goal | Command |
 |---|---|
