@@ -14,7 +14,7 @@ report. All preload `engineering-standards`, apply the further standards named i
 | `devflow:acceptance-reviewer` | opus | Bash, Write | scratch evidence and repro tests | Black-box check of the running app against the work item, in orchestrate step 10 |
 | `devflow:reviewer` | opus | Read, Grep, Glob, Bash, GitNexus `impact`/`context`/`detect_changes` | nothing | Diff review against the spec, in orchestrate |
 | `devflow:defect-finder` | opus | Read, Grep, Glob, Edit, Write, Bash, GitNexus `impact`/`context` | scratch tests | Demonstrated defects in a PR (full tier) |
-| `devflow:design-critic` | opus; `pr-review` runs it on fable for the full tier | Read, Grep, Glob, Bash, GitNexus `impact`/`context` | nothing | Structure against written rules and Changeability |
+| `devflow:design-critic` | opus | Read, Grep, Glob, Bash, GitNexus `impact`/`context` | nothing | Structure against written rules and Changeability |
 | `devflow:refuter` | opus | Read, Grep, Glob, Edit, Write, Bash | scratch tests | Disproves one finding, or confirms a fix |
 
 No worker's tool list includes `Agent`, so workers cannot spawn subagents; that keeps
