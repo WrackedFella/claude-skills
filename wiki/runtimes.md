@@ -35,6 +35,10 @@ A runner (for example `claude-code-action`) reacts to a label and invokes a skil
 | `agent-ready` on a `feature` issue | `/devflow:refine <issue>` |
 | `agent-ready` on any other issue | `/devflow:orchestrate <issue>` |
 
+- Projects with an `Acceptance command` need a browser on the runner (for Playwright,
+  `npx playwright install --with-deps chromium`, cached) and allow-list entries for the
+  app start, acceptance and app stop commands and `scripts/e2e-guard`. Keep the
+  acceptance runner's traces on failure and upload them as a run artifact.
 - Headless runs match Bash commands against the allow-list by prefix, so `orchestrate` and `respond` issue one command per call; a compound is denied unless every part is allowed, and each denial costs a turn.
 - Headless runs force foreground subagents. Parallel implementer calls issued in one message run concurrently where the host allows and serially otherwise; correctness does not depend on concurrency, only wall-clock does.
 - Only the default app token is available; no board access.

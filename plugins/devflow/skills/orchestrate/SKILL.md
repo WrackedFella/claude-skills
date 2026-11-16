@@ -61,6 +61,22 @@ path, so put the resolved *Read work item* command, filled in with the issue, on
 `Read work item:` line in every `devflow:reviewer` and `devflow:test-critic` brief.
 If the `Tracker` has no column in the table, stop and tell the user in the run output that the tracker is unknown; with no column, there is no comment command to run.
 
+## Acceptance tests
+
+Applies when the project sets an `Acceptance command` and the item's test map has
+`e2e` entries; otherwise skip this section and every acceptance note below.
+
+- **Acceptance run:** the `App start command`, then the `Acceptance command`, then the
+  `App stop command`, which runs even after a failure. Wherever this skill runs the gate,
+  run the acceptance run after it; red in either is red.
+- **Guard:** after every `devflow:implementer` call, run
+  `${CLAUDE_PLUGIN_ROOT}/scripts/e2e-guard --base <base commit> --since <step 2 test commit>`
+  with `--allow <sha>` for each later test-writer commit and the project's
+  `Acceptance test paths` globs as arguments. A non-zero exit means the implementer changed
+  or weakened an acceptance test: restore those files, re-brief the implementer with the
+  guard output, and never accept the change. The tests stay the spec only while the code
+  under test cannot rewrite them.
+
 ## Bash commands
 
 In a headless run, issue one command per Bash call: no `&&`, `;`, pipes, `cd` or `$(...)`. The allow-list matches each command by prefix, so a compound is denied unless every part is allowed, and a denial costs a turn. Search with the Grep, Glob and Read tools and edit with Edit or Write; never use `python`, `sed`, `printenv` or `env` in a Bash call. Put these rules in every worker brief.
@@ -115,6 +131,11 @@ line pasted in full. It sees the repo and `CLAUDE.md`, plus the standards in its
 yourself that every new test fails, and fails for the right reason. Commit the tests on
 their own (`test(scope): ...`) so the PR shows test-first history, and push, so the
 checkpoint can be read on GitHub as well as in this session.
+
+Acceptance tests (`e2e` entries) are verified red with the app started: each fails on a
+missing or wrong element or response, never because the app did not start. Record the
+test commit's SHA for the guard; a test that passes before implementation proves
+nothing.
 
 Then apply the project's `Domain-test review` setting (`CLAUDE.md`; `required` unless it
 says otherwise) to `domain` items. `glue` items skip this and continue.
@@ -208,7 +229,8 @@ Update the card and, per the tech lead's Published issues rule, the issue body
 (anything the Verification section needs from a human, any recorded deviation) and
 any feature item table per the project's standards. Then `/devflow:ship`: the PR body
 links the issue and includes gate output, the test review (domain items with `Domain-test review: agent`), mutation counts, challenges raised, refactorings made, the
-docs report (pages updated, new pages flagged, or why none were needed), reviewer
+docs report (pages updated, new pages flagged, or why none were needed), the acceptance
+tests with the last acceptance run and guard results (when they apply), reviewer
 findings and their resolution, and manual verification still required. Once the PR
 is open, set the board Status to `In review` (or the card status without a board).
 

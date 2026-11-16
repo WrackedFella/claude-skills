@@ -25,5 +25,11 @@ existing implementation.
 - Run the new tests with the project's test command and confirm each fails for the
   right reason (assertion or `todo!()`, not a compile error elsewhere or a typo).
 
+Test-map entries tagged `e2e` go in the project's acceptance suite (its `Acceptance test
+paths`) and follow the acceptance-test rules in `engineering-standards`. Confirm their red
+with the app started (`App start command`, the `Acceptance command` for the new tests,
+`App stop command`): each fails on a missing or wrong element or response, not because
+the app is down.
+
 Report: each test added (path::name → scenario), the failure reason observed for each,
 and any stubs you added.
