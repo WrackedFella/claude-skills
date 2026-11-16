@@ -28,6 +28,7 @@ Challenges, triage and decisions are its own judgment work.
 | Failing tests, challenge tests, mutant-killing tests | `devflow:test-writer` | sonnet |
 | Production code, refactor briefs, one part of a split item | `devflow:implementer` | sonnet (opus for a delicate or open-design part) |
 | Test review | `devflow:test-critic` | opus |
+| Acceptance review | `devflow:acceptance-reviewer` | opus |
 | Final review | `devflow:reviewer` | opus |
 | Challenges, triage, scope decisions | orchestrator | session model |
 
@@ -44,11 +45,12 @@ Challenges, triage and decisions are its own judgment work.
 | 7 | Comment audit | `/devflow:comment-audit`, then the gate. | Counts and flags |
 | 8 | Docs | If the project names a docs directory, `/devflow:wiki`; commit `docs(scope)`. New pages are flagged for review. | Docs report |
 | 9 | Platform coverage | If behavior may differ per platform and PR CI does not cover every target, trigger the full-platform CI command and report. | CI result |
-| 10 | Independent review | `reviewer` against the issue and base branch; fix material findings via `implementer` or tests. At most 2 rounds. | Findings and resolutions |
-| 11 | Ship | Update the card and issue body for deviations; `/devflow:ship`; set Status `In review`. A later `/devflow:pr-review` reviews the open PR. | PR and final report |
+| 10 | Acceptance review | With `Acceptance review: agent`, on items with `e2e` entries or `Visual:` items: `acceptance-reviewer` uses the running app black-box; accepted fails become acceptance tests, then fixes. At most 2 rounds; a standing judgment fail pauses ([3.4](#34-acceptance-review-step-10)). | Verdicts, evidence, tests added |
+| 11 | Independent review | `reviewer` against the issue and base branch; fix material findings via `implementer` or tests. At most 2 rounds. | Findings and resolutions |
+| 12 | Ship | Update the card and issue body for deviations; `/devflow:ship`; set Status `In review`. A later `/devflow:pr-review` reviews the open PR. | PR and final report |
 
-The parallel-parts and agent test-review procedures live in `parallel-parts.md` and
-`test-review.md` beside the skill and load only when triggered.
+The parallel-parts, agent test-review and acceptance-review procedures live in
+`parallel-parts.md`, `test-review.md` and `acceptance-review.md` beside the skill and load only when triggered.
 
 ### 3.1 Parallel parts
 
@@ -112,11 +114,31 @@ entries.
   `test.slow`. Claude models that game tests do it mostly by editing them, and read-only
   tests stop that at no cost to honest work ([ImpossibleBench](https://arxiv.org/abs/2510.20270)).
 
+### 3.4 Acceptance review (step 10)
+
+Applies with `Acceptance review: agent` to items with `e2e` entries or `Visual:` items.
+The tests cover what can be asserted; this step checks what they encode against the
+app itself. A separate evaluator that uses the running app is the strongest single
+check on agent work, and agents grading their own work skew positive
+([Anthropic](https://www.anthropic.com/engineering/harness-design-long-running-apps)).
+
+| Rule | Why |
+|---|---|
+| Black-box: the brief holds the work item, test plans, `App URL` and standards; tools are Bash and Write in a scratch directory; no diff, tests, git history or PR text | Reading the code anchors the reviewer to what it does; git history leaks answers |
+| Every scenario is walked through the UI, not by running the suite | Catches tests that pass against stubs or wrong routes |
+| Every `Visual:` item is checked at its viewport with a screenshot | Evidence for the human sign-off |
+| A fixed exploration list (empty and error states, validation, refresh and back, keyboard only, console and network errors) | Reviewers probe superficially without one, and drift without a bound |
+| Verdicts `pass`, `fail`, `unsure`; any deviation is a fail; calibration examples in the prompt | Reviewers talk themselves out of defects; `unsure` keeps them from guessing |
+| A fail counts only with evidence; an assertable one carries a repro test | A reviewer asked to find problems always finds something |
+| Accepted assertable fails become acceptance tests (allowed in the guard), then fixes | The gate grows with every finding |
+| At most 2 rounds; a standing judgment fail pauses; `unsure` ships under manual verification | More rounds raise test gaming; an exit to a person lowers it |
+| Cards with `Visual:` items get `Sign-off: human` from `pr-facts` | Vision models miss most small visual defects |
+
 ## 4 PR contents
 
 Issue link, gate output, test review (when run), mutation counts, challenges raised,
 refactorings made, docs report, acceptance tests with the last acceptance run and guard
-results (when they apply), reviewer findings and resolutions, and manual
+results and the Acceptance review section (when they apply), reviewer findings and resolutions, and manual
 verification still required.
 
 ## 5 Failure and stop conditions
@@ -134,4 +156,5 @@ pushed branch. See [Unattended runs](runtimes.md#unattended-runs).
 | Fix would change scope or a public contract | Pause (interactive: ask the user) |
 | `Domain-test review: required` | Pause at the checkpoint after the failing tests |
 | `e2e-guard` fails | Restore the acceptance tests and re-brief the implementer |
+| Acceptance review: a judgment fail stands after round 2 | Pause, with its screenshots |
 | Board unreachable (`board` exit 5) | Skip all board steps; PR body lists the Status changes left to the environment |

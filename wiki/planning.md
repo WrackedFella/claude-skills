@@ -100,6 +100,10 @@ Each criterion goes to the cheapest layer that proves it:
 | Judgment visual (matches the mockup) | `Visual:` item under Verification |
 | Feel or taste | Manual step |
 
+The feature's last card is its journey card: the feature test plan's journeys as `e2e`
+tests, depending on every other card, so the seams between cards are tested and
+reviewed like any card.
+
 End-to-end tests are slow, flake first and sit outside mutation testing, so they prove
 the wiring and leave the rules to cheaper tests. Their conventions are in
 `engineering-standards` (Acceptance tests).

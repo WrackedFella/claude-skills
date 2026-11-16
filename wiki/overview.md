@@ -53,8 +53,9 @@ Orchestrator
    7 comment audit
    8 wiki
    9 full-platform CI (if platform-sensitive)
-  10 independent review (≤2 rounds)
-  11 ship ──► PR into base branch
+  10 acceptance review against the running app (switch, ≤2 rounds)
+  11 independent review (≤2 rounds)
+  12 ship ──► PR into base branch
    │
    ▼
 human review and merge

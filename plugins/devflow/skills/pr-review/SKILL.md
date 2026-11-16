@@ -23,7 +23,7 @@ Headless runs use foreground subagents only and one command per Bash call.
    --issue <n>`) and keep its JSON. It reads the PR, CI on the head SHA, merge state,
    the linked issue, the diff, the project's domain-logic paths and `Human-only paths`
    from the base branch's `CLAUDE.md`, picks the tier and lists the path- and
-   forge-based Sign-off triggers.
+   forge-based Sign-off triggers, including a work item with `Visual:` criteria.
 2. If `stop` is set, end there: `skip` reports one line and posts nothing; `wait`
    posts nothing and reports "wait" (the runner re-runs when CI finishes); `reject`
    posts a review (§6) with `Route: fix`, the reason as its only blocker, and no model

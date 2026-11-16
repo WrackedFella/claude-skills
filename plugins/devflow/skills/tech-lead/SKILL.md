@@ -43,7 +43,9 @@ personas and roles, the seed data each journey needs, the test doubles for third
 services, and the end-to-end suite's seed test (shared setup such as sign-in, fixtures
 and seeded data). Journeys that span cards break at seams no single card's tests see,
 and criteria fixed before the build can't be fitted to the code. Card test plans draw
-on it.
+on it. The feature's last card is its **journey card**: its test map is the feature test
+plan's journeys as `e2e` tests, it depends on every other card, and its acceptance
+review walks the whole feature.
 
 ## Tech spec
 

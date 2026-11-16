@@ -11,6 +11,7 @@ report. All preload `engineering-standards`, apply the further standards named i
 | `devflow:test-writer` | sonnet | Read, Grep, Glob, Edit, Write, Bash | tests only | Failing tests from criteria and test map |
 | `devflow:implementer` | sonnet | Read, Grep, Glob, Edit, Write, Bash, GitNexus `impact`/`context`/`detect_changes` | production code | Minimum code to pass; behavior-preserving refactors |
 | `devflow:test-critic` | opus | Read, Grep, Glob, Bash | nothing | Portfolio review of fresh tests |
+| `devflow:acceptance-reviewer` | opus | Bash, Write | scratch evidence and repro tests | Black-box check of the running app against the work item, in orchestrate step 10 |
 | `devflow:reviewer` | opus | Read, Grep, Glob, Bash, GitNexus `impact`/`context`/`detect_changes` | nothing | Diff review against the spec, in orchestrate |
 | `devflow:defect-finder` | opus | Read, Grep, Glob, Edit, Write, Bash, GitNexus `impact`/`context` | scratch tests | Demonstrated defects in a PR (full tier) |
 | `devflow:design-critic` | opus; `pr-review` runs it on fable for the full tier | Read, Grep, Glob, Bash, GitNexus `impact`/`context` | nothing | Structure against written rules and Changeability |
@@ -18,7 +19,7 @@ report. All preload `engineering-standards`, apply the further standards named i
 
 No worker's tool list includes `Agent`, so workers cannot spawn subagents; that keeps
 fan-out at the orchestrator. `test-critic` and `reviewer` carry `maxTurns: 40`,
-`defect-finder` 60, `design-critic` 50 and `refuter` 30.
+`defect-finder` 60, `design-critic` 50, `acceptance-reviewer` 50 and `refuter` 30.
 
 GitNexus tools are used when available; when the project's `CLAUDE.md` calls for
 code-graph checks and the tools are missing, the agent says so in its report.
@@ -96,6 +97,18 @@ Reports only:
 
 Each finding cites `file:line` with a one-line failure scenario. If nothing material
 remains, it says exactly that.
+
+## acceptance-reviewer
+
+- Black-box: gets the work item, test plans, `App URL`, a scratch directory and the
+  standards; never the diff, tests, git history or PR text. Drives the app with
+  `playwright-cli`.
+- Walks every scenario through the UI, checks every `Visual:` item with a screenshot,
+  explores a fixed list (empty and error states, validation, refresh and back, keyboard
+  only, console and network errors).
+- Verdict per item: `pass`, `fail` (any deviation; severity is not weighed) or `unsure`.
+- Reports a fail only with evidence; an assertable fail carries a repro Playwright test.
+- Report: verdict table, fails with kind and steps, unsure items with what blocked them.
 
 ## Review agents
 
