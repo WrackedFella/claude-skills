@@ -24,13 +24,13 @@ Challenges, triage and decisions are its own judgment work.
 
 | Work | Delegate | Model |
 |---|---|---|
-| Searching, summarizing, running commands, formatting | ad hoc subagent | haiku |
+| Broad read-only sweep needed only as a conclusion | ad hoc subagent | haiku |
 | Failing tests, challenge tests, mutant-killing tests | `devflow:test-writer` | sonnet |
 | Production code, refactor briefs, one part of a split item | `devflow:implementer` | sonnet (opus for a delicate or open-design part) |
 | Test review | `devflow:test-critic` | opus |
 | Acceptance review | `devflow:acceptance-reviewer` | opus |
 | Final review | `devflow:reviewer` | opus |
-| Challenges, triage, scope decisions | orchestrator | session model |
+| Challenges, triage, scope decisions; running commands and reading their output | orchestrator | session model |
 
 ## 3 Pipeline
 
