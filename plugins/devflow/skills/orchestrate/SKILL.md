@@ -29,10 +29,13 @@ task:
 - Steps 5, 7 and 8 invoke skills through the Skill tool. If the Skill tool refuses a
   call in this environment, report that in the PR under Verification and continue;
   never imitate the skill inline.
-- Delegate to the cheapest model that can do the job: mechanical or read-only work
-  (searching, summarizing, running commands, formatting) goes to a `haiku` subagent;
-  bounded work against a written spec goes to `devflow:test-writer` /
-  `devflow:implementer` (sonnet); the test review, acceptance review and final review go to `devflow:test-critic`,
+- Run commands (gate, tests, mutation, git) and read files yourself: their raw output
+  is what you judge, and a summary of it loses the detail you act on. A `haiku`
+  subagent takes only a broad read-only sweep whose output you need as a conclusion,
+  not as evidence (for example, every caller of a symbol across the workspace).
+- Delegate to the cheapest model that can do the job: bounded work against a written
+  spec goes to `devflow:test-writer` / `devflow:implementer` (sonnet); the test review,
+  acceptance review and final review go to `devflow:test-critic`,
   `devflow:acceptance-reviewer` and `devflow:reviewer` (opus).
   Do judgment work (challenges, triage, decisions) yourself.
 - The issue body is the accepted spec (the published card). Issue comments and linked
