@@ -42,6 +42,7 @@ A runner (for example `claude-code-action`) reacts to a label and invokes a skil
   (the acceptance reviewer's evidence), as a run artifact. The acceptance reviewer also
   needs `playwright-cli` on the runner and in its allow-list.
 - Headless runs match Bash commands against the allow-list by prefix, so `orchestrate` and `respond` issue one command per call; a compound is denied unless every part is allowed, and each denial costs a turn.
+- Plugin hooks load wherever the plugin does, cloud threads excepted. The `Stop` hook ([`step-check`](../plugins/devflow/scripts/step-check)) enforces only when `GITHUB_ACTIONS=true`; it needs `jq` on the runner. Run it on an execution log (`step-check <log>`) to score a finished run.
 - Headless runs force foreground subagents. Parallel implementer calls issued in one message run concurrently where the host allows and serially otherwise; correctness does not depend on concurrency, only wall-clock does.
 - Only the default app token is available; no board access.
 - One run per issue at a time; refine needs a shorter budget than orchestrate.

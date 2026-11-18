@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+# Checks that an orchestrate run made the tool calls its mandatory steps require.
+#
+#   step-check [--claude-md <path>] <transcript>   report on a finished run
+#   step-check --hook                              Stop hook: hook JSON on stdin
+#
+# <transcript> is a Claude Code session transcript (JSONL) or a headless execution log
+# (a JSON array of the same messages). Only the main loop counts: subagent messages
+# are skipped, so a step is done only when the orchestrator itself made its call.
+#
+# Required calls, in the order orchestrate defines them:
+#   tests      Agent devflow:test-writer (step 2)
+#   test-review Agent devflow:test-critic, for a domain item when the project sets
+#              `Domain-test review: agent` (step 2)
+#   implement  Agent devflow:implementer (step 3)
+#   challenge  Agent devflow:test-writer after the first implementer call (step 4)
+#   simplify   Skill simplify (step 5)
+#   mutation   a Bash command running the mutation tool (step 6)
+#   comments   Skill devflow:comment-audit (step 7)
+#   docs       Skill devflow:wiki, when the project names a docs directory (step 8)
+#   review     Agent devflow:reviewer (step 11)
+# A run that labelled its item `agent-paused` has paused and owes no later step. The
+# gate class is read from the work item as the run fetched it (`gate=` in its board
+# header, or a `Gate class:` line); unknown skips the test-review requirement.
+#
+# Report mode prints one JSON object (orchestrate, paused, gate_class, required,
+# missing) and exits 0 when nothing is missing, 1 when a step is missing, 3 when the
+# transcript is not an orchestrate run, 2 on a usage error.
+#
+# Hook mode enforces only in headless runs (GITHUB_ACTIONS=true), where nobody is there
+# to notice a skipped step. It blocks the first stop of a run with missing steps and
+# names them; the next stop goes through (`stop_hook_active`), so it never loops.
+set -euo pipefail
+
+usage() { echo "step-check: $*" >&2; exit 2; }
+
+hook=false claude_md="" transcript=""
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --hook) hook=true; shift ;;
+    --claude-md) claude_md=${2:?}; shift 2 ;;
+    -h|--help) sed -n '2,32p' "$0"; exit 0 ;;
+    -*) usage "unknown option $1" ;;
+    *) transcript=$1; shift ;;
+  esac
+done
+
+if $hook; then
+  input=$(cat)
+  [[ ${GITHUB_ACTIONS:-} == true ]] || exit 0
+  [[ $(jq -r '.stop_hook_active // false' <<<"$input") == true ]] && exit 0
+  transcript=$(jq -r '.transcript_path // empty' <<<"$input")
+  cwd=$(jq -r '.cwd // empty' <<<"$input")
+  [[ -z $claude_md ]] && claude_md=${CLAUDE_PROJECT_DIR:-${cwd:-.}}/CLAUDE.md
+fi
+[[ -n $transcript && -f $transcript ]] || usage "transcript not found: ${transcript:-none}"
+[[ -z $claude_md ]] && claude_md=CLAUDE.md
+
+# Project settings the requirements depend on.
+domain_review=required docs=false
+if [[ -f $claude_md ]]; then
+  setting=$(grep -oiE 'Domain-test review:[`* ]*(required|agent|not required)' "$claude_md" | head -n1 || true)
+  [[ -n $setting ]] && domain_review=$(sed -E 's/.*:[`* ]*//' <<<"$setting" | tr 'A-Z' 'a-z')
+  grep -qiE 'docs directory' "$claude_md" && docs=true
+fi
+
+# Main-loop messages in order, from either format.
+messages=$(jq -cs '
+  (if length == 1 and (.[0] | type) == "array" then .[0] else . end)
+  | map(select((.isSidechain // false) == false and (.parent_tool_use_id // null) == null))' "$transcript")
+
+report=$(jq -c --arg domain_review "$domain_review" --argjson docs "$docs" '
+  def text: if type == "string" then . elif type == "array" then map(.text // (.content | text?) // "") | join("\n") else "" end;
+  def calls: [ .[] | select(.type == "assistant") | .message.content[]? | select(.type == "tool_use") ];
+  def agent($c): . as $n | ($c.name == "Agent" or $c.name == "Task") and (($c.input.subagent_type // "") | test("(^|:)" + $n + "$"));
+  . as $msgs
+  | ($msgs | calls) as $calls
+  | ([ $msgs[] | select(.type == "user") | .message.content | text ] | join("\n")) as $user
+  | ($user | test("devflow:orchestrate")
+      or any($calls[]; .name == "Skill" and ((.input.skill // "") | test("orchestrate")))) as $orchestrate
+  | any($calls[]; .name == "Bash" and ((.input.command // "") | test("agent-paused"))) as $paused
+  | (($user | capture("gate=(?<g>domain|glue)").g)
+      // ($user | capture("[Gg]ate class:?[`* ]*(?<g>domain|glue)").g) // "unknown") as $gate
+  | ([ $calls | to_entries[] | select(.value as $c | "implementer" | agent($c)) | .key ] | first) as $impl
+  | {
+      tests: any($calls[]; . as $c | "test-writer" | agent($c)),
+      "test-review": any($calls[]; . as $c | "test-critic" | agent($c)),
+      implement: ($impl != null),
+      challenge: ($impl != null and any($calls | to_entries[] | select(.key > $impl) | .value; . as $c | "test-writer" | agent($c))),
+      simplify: any($calls[]; .name == "Skill" and ((.input.skill // "") | test("(^|:)simplify$"))),
+      mutation: any($calls[]; .name == "Bash" and ((.input.command // "") | test("mutant|mutation|stryker"; "i"))),
+      comments: any($calls[]; .name == "Skill" and ((.input.skill // "") | test("comment-audit$"))),
+      docs: any($calls[]; .name == "Skill" and ((.input.skill // "") | test("(^|:)wiki$"))),
+      review: any($calls[]; . as $c | "reviewer" | agent($c))
+    } as $done
+  | ([ "tests" ]
+     + (if $gate == "domain" and $domain_review == "agent" then [ "test-review" ] else [] end)
+     + [ "implement", "challenge", "simplify", "mutation", "comments" ]
+     + (if $docs then [ "docs" ] else [] end)
+     + [ "review" ]) as $required
+  | {
+      orchestrate: $orchestrate, paused: $paused, gate_class: $gate, required: $required,
+      missing: (if $paused then [] else [ $required[] | select($done[.] | not) ] end)
+    }' <<<"$messages")
+
+if $hook; then
+  [[ $(jq -r '.orchestrate' <<<"$report") == true ]] || exit 0
+  missing=$(jq -r '.missing | join(", ")' <<<"$report")
+  [[ -z $missing ]] && exit 0
+  jq -n --arg m "$missing" '{
+    decision: "block",
+    reason: ("This orchestrate run is ending without the calls these mandatory steps make: " + $m
+      + ". Run each one now as the orchestrate skill describes, then finish with the final report."
+      + " A step the skill itself exempts for this item (for example a pause) is reported with the rule that exempts it.")
+  }'
+  exit 0
+fi
+
+echo "$report"
+[[ $(jq -r '.orchestrate' <<<"$report") == true ]] || exit 3
+[[ $(jq -r '.missing | length' <<<"$report") -eq 0 ]]

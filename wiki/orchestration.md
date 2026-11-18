@@ -14,6 +14,12 @@ Challenges, triage and decisions are its own judgment work.
 - Acceptance tests ([3.3](#33-acceptance-tests)) run with the gate and are locked against
   implementer changes by `scripts/e2e-guard`.
 - Headless: foreground subagents only.
+- Headless: the plugin's `Stop` hook runs [`scripts/step-check`](../plugins/devflow/scripts/step-check),
+  which blocks the first stop of a run whose main loop never made a mandatory step's call
+  (test-writer, test-critic when it applies, implementer, a test-writer call after it,
+  `/simplify`, the mutation command, comment audit, wiki when a docs directory is set,
+  reviewer) and names the missing steps. A paused run owes nothing more. The next stop
+  goes through, so a step the skill exempts is explained in the final report.
 - Steps 5, 7 and 8 invoke skills through the Skill tool. If the Skill tool refuses a call,
   the PR records that under Verification and the orchestrator continues; it never
   imitates the skill inline.
@@ -156,5 +162,6 @@ pushed branch. See [Unattended runs](runtimes.md#unattended-runs).
 | Fix would change scope or a public contract | Pause (interactive: ask the user) |
 | `Domain-test review: required` | Pause at the checkpoint after the failing tests |
 | `e2e-guard` fails | Restore the acceptance tests and re-brief the implementer |
+| `step-check` blocks the stop (headless) | Run the named steps, then finish; report any the skill exempts |
 | Acceptance review: a judgment fail stands after round 2 | Pause, with its screenshots |
 | Board unreachable (`board` exit 5) | Skip all board steps; PR body lists the Status changes left to the environment |
