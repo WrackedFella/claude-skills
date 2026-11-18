@@ -9,17 +9,22 @@
 # are skipped, so a step is done only when the orchestrator itself made its call.
 #
 # Required calls, in the order orchestrate defines them:
+#   intake     Agent devflow:design-critic before the first test-writer call (step 1),
+#              unless the run resumed from a pause
 #   tests      Agent devflow:test-writer (step 2)
 #   test-review Agent devflow:test-critic, for a domain item when the project sets
 #              `Domain-test review: agent` (step 2)
 #   implement  Agent devflow:implementer (step 3)
 #   challenge  Agent devflow:test-writer after the first implementer call (step 4)
 #   simplify   Skill simplify (step 5)
-#   mutation   a Bash command running the mutation tool (step 6)
+#   mutation   a Bash command running the mutation tool after the last test-writer or
+#              implementer call, so the reported counts are for the final code (step 6)
 #   comments   Skill devflow:comment-audit (step 7)
 #   docs       Skill devflow:wiki, when the project names a docs directory (step 8)
 #   review     Agent devflow:reviewer (step 11)
-# A run that labelled its item `agent-paused` has paused and owes no later step. The
+# A run that added `agent-paused` to its item, or whose last message starts with the pause
+# comment's first line (`Paused: needs a human answer`, used where the run can't label),
+# has paused and owes no later step. A run that removed the label has resumed. The
 # gate class is read from the work item as the run fetched it (`gate=` in its board
 # header, or a `Gate class:` line); unknown skips the test-review requirement.
 #
@@ -39,7 +44,7 @@ while [[ $# -gt 0 ]]; do
   case $1 in
     --hook) hook=true; shift ;;
     --claude-md) claude_md=${2:?}; shift 2 ;;
-    -h|--help) sed -n '2,32p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,36p' "$0"; exit 0 ;;
     -*) usage "unknown option $1" ;;
     *) transcript=$1; shift ;;
   esac
@@ -73,27 +78,36 @@ report=$(jq -c --arg domain_review "$domain_review" --argjson docs "$docs" '
   def text: if type == "string" then . elif type == "array" then map(.text // (.content | text?) // "") | join("\n") else "" end;
   def calls: [ .[] | select(.type == "assistant") | .message.content[]? | select(.type == "tool_use") ];
   def agent($c): . as $n | ($c.name == "Agent" or $c.name == "Task") and (($c.input.subagent_type // "") | test("(^|:)" + $n + "$"));
+  def mutation_call: .name == "Bash" and ((.input.command // "") | test("mutant|mutation|stryker"; "i"));
   . as $msgs
   | ($msgs | calls) as $calls
   | ([ $msgs[] | select(.type == "user") | .message.content | text ] | join("\n")) as $user
   | ($user | test("devflow:orchestrate")
       or any($calls[]; .name == "Skill" and ((.input.skill // "") | test("orchestrate")))) as $orchestrate
-  | any($calls[]; .name == "Bash" and ((.input.command // "") | test("agent-paused"))) as $paused
+  | [ $calls[] | select(.name == "Bash") | .input.command // "" | select(test("agent-paused")) ] as $labels
+  | ([ $msgs[] | select(.type == "assistant") | .message.content[]? | select(.type == "text") | .text ]
+      | last // "" | test("^\\s*\\**Paused: needs a human answer")) as $reported
+  | ($reported or any($labels[]; test("remove-label") | not)) as $paused
+  | any($labels[]; test("remove-label")) as $resumed
   | (($user | capture("gate=(?<g>domain|glue)").g)
       // ($user | capture("[Gg]ate class:?[`* ]*(?<g>domain|glue)").g) // "unknown") as $gate
   | ([ $calls | to_entries[] | select(.value as $c | "implementer" | agent($c)) | .key ] | first) as $impl
+  | ([ $calls | to_entries[] | select(.value as $c | "test-writer" | agent($c)) | .key ] | first) as $first_tests
+  | ([ $calls | to_entries[] | select(.value as $c | ("test-writer" | agent($c)) or ("implementer" | agent($c))) | .key ] | last) as $last_change
   | {
-      tests: any($calls[]; . as $c | "test-writer" | agent($c)),
+      intake: any($calls | to_entries[] | select($first_tests == null or .key < $first_tests) | .value;
+        . as $c | "design-critic" | agent($c)),
+      tests: ($first_tests != null),
       "test-review": any($calls[]; . as $c | "test-critic" | agent($c)),
       implement: ($impl != null),
       challenge: ($impl != null and any($calls | to_entries[] | select(.key > $impl) | .value; . as $c | "test-writer" | agent($c))),
       simplify: any($calls[]; .name == "Skill" and ((.input.skill // "") | test("(^|:)simplify$"))),
-      mutation: any($calls[]; .name == "Bash" and ((.input.command // "") | test("mutant|mutation|stryker"; "i"))),
+      mutation: any($calls | to_entries[] | select($last_change == null or .key > $last_change) | .value; mutation_call),
       comments: any($calls[]; .name == "Skill" and ((.input.skill // "") | test("comment-audit$"))),
       docs: any($calls[]; .name == "Skill" and ((.input.skill // "") | test("(^|:)wiki$"))),
       review: any($calls[]; . as $c | "reviewer" | agent($c))
     } as $done
-  | ([ "tests" ]
+  | ((if $resumed then [] else [ "intake" ] end) + [ "tests" ]
      + (if $gate == "domain" and $domain_review == "agent" then [ "test-review" ] else [] end)
      + [ "implement", "challenge", "simplify", "mutation", "comments" ]
      + (if $docs then [ "docs" ] else [] end)

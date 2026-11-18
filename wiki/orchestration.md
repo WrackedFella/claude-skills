@@ -16,9 +16,12 @@ Challenges, triage and decisions are its own judgment work.
 - Headless: foreground subagents only.
 - Headless: the plugin's `Stop` hook runs [`scripts/step-check`](../plugins/devflow/scripts/step-check),
   which blocks the first stop of a run whose main loop never made a mandatory step's call
-  (test-writer, test-critic when it applies, implementer, a test-writer call after it,
-  `/simplify`, the mutation command, comment audit, wiki when a docs directory is set,
-  reviewer) and names the missing steps. A paused run owes nothing more. The next stop
+  (the intake design-critic before the first test-writer call unless the run resumed,
+  test-writer, test-critic when it applies, implementer, a test-writer call after it,
+  `/simplify`, a mutation run after the last test-writer or implementer call, comment
+  audit, wiki when a docs directory is set, reviewer) and names the missing steps. A
+  paused run (the `agent-paused` label added, or a final report whose first line is
+  `Paused: needs a human answer`) owes nothing more. The next stop
   goes through, so a step the skill exempts is explained in the final report.
 - Steps 5, 7 and 8 invoke skills through the Skill tool. If the Skill tool refuses a call,
   the PR records that under Verification and the orchestrator continues; it never
@@ -33,6 +36,7 @@ Challenges, triage and decisions are its own judgment work.
 | Broad read-only sweep needed only as a conclusion | ad hoc subagent | haiku |
 | Failing tests, challenge tests, mutant-killing tests | `devflow:test-writer` | sonnet |
 | Production code, refactor briefs, one part of a split item | `devflow:implementer` | sonnet (opus for a delicate or open-design part) |
+| Intake conformance check (work item against written rules) | `devflow:design-critic`, `Mode: intake` | opus |
 | Test review | `devflow:test-critic` | opus |
 | Acceptance review | `devflow:acceptance-reviewer` | opus |
 | Final review | `devflow:reviewer` | opus |
@@ -42,12 +46,12 @@ Challenges, triage and decisions are its own judgment work.
 
 | # | Step | What happens | Output |
 |---|---|---|---|
-| 1 | Intake | Take the issue (or `board next`); proceed only if acceptance criteria, tech spec, test map and gate class exist; otherwise comment what is missing and stop. Look for earlier work first: an open PR (comment and stop), one existing branch (resume from it), several (ask which and stop); never a second branch for the item. Use the Tech Lead's work branch if present. Claim by moving Status to `In progress`; if already so, stop. Run the environment setup command in remote sessions. | Claimed item, branch |
+| 1 | Intake | Take the issue (or `board next`); proceed only if acceptance criteria, tech spec, test map and gate class exist; otherwise comment what is missing and stop. Look for earlier work first: an open PR (comment and stop), one existing branch (resume from it), several (ask which and stop); never a second branch for the item. Use the Tech Lead's work branch if present. Claim by moving Status to `In progress`; if already so, stop. Run the environment setup command in remote sessions. Then `devflow:design-critic` in intake mode checks the work item against the written rules and sibling items; any conflict pauses with numbered questions (skipped on a resume). | Claimed item, branch, conformance result |
 | 2 | Failing tests | `test-writer` gets the criteria and test map; the orchestrator verifies each test fails for the right reason. Commit `test(scope)` and push. Then apply `Domain-test review` (below). | Test commit |
 | 3 | Implementation | One `implementer` call, or one per part when the spec's footprint marks disjoint parts ([below](#31-parallel-parts)). `implementer` gets the spec and failing tests; the orchestrator checks scope, untouched tests and lints, green gate. A wrong spec is handled minimally and recorded; a scope or public-contract change stops for the user. | Implementation commit |
 | 4 | Adversarial challenge | Orchestrator attacks the code with concrete inputs or sequences (edge cases, invalid input, ordering, error paths, hot-path traps). `test-writer` turns each into a test; failures go to `implementer`. At most 2 rounds, ending early on a round with no failing test. | New tests and fixes |
 | 5 | Refactor | Structure improves with tests fixed: duplication, naming, responsibilities, layering, shortcuts taken to reach green. `implementer` executes a refactor brief; then `/simplify`. Commit `refactor(scope)`. | Refactor commit, or a statement that none was warranted |
-| 6 | Mutation testing | Run the mutation command on changed code. Survivors become stronger tests, never weaker code; equivalent mutants get a one-line justification. | Caught / missed / unviable counts |
+| 6 | Mutation testing | Run the mutation command on changed code. Survivors become stronger tests, never weaker code; equivalent mutants get a one-line justification. Re-run on the final code, also after a step 10 or 11 fix. | Caught / missed / unviable counts of the final run |
 | 7 | Comment audit | `/devflow:comment-audit`, then the gate. | Counts and flags |
 | 8 | Docs | If the project names a docs directory, `/devflow:wiki`; commit `docs(scope)`. New pages are flagged for review. | Docs report |
 | 9 | Platform coverage | If behavior may differ per platform and PR CI does not cover every target, trigger the full-platform CI command and report. | CI result |
