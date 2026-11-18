@@ -20,6 +20,10 @@ task:
   is lost.
 - In a headless run (`GITHUB_ACTIONS=true`, or no person attached) run every subagent
   in the foreground and wait for its report; the run ends when you stop.
+- Every numbered step runs unless its own text exempts the item (gate class, a project
+  setting, a pause). Small size is not an exemption: a one-line change still gets its
+  challenge round, `/simplify`, comment audit and independent review. In Actions a Stop
+  hook (`scripts/step-check`) blocks the first stop of a run that skipped one.
 - A reply with no tool call ends a headless run, and the job reports success. After any
   skill or subagent returns (`/simplify`, `/devflow:wiki`, `/devflow:comment-audit`),
   its report is input, not your answer: record it and start the next step in the same
