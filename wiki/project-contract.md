@@ -11,7 +11,7 @@ and the planning standards it names. Unset optional items disable the step that 
 | Planning index and standards | yes | BA, Tech Lead, refine | where features and cards live; ID format; templates; statuses |
 | Domain-logic paths | yes | gate class, `pr-review` tier | crates holding game rules; matching items are `domain`, the rest `glue`. `scripts/pr-facts` reads the backticked globs of the nested list under the line naming the setting (`**` and `*` match across directories) |
 | Full-platform CI command | no | orchestrate step 9 | `gh workflow run CI --ref <branch>` |
-| Docs directory | no | `wiki` | `wiki/`; without it the docs step is skipped |
+| Docs directory | no | `wiki`, `reviewer` | `wiki/`; without it the docs step is skipped |
 | Environment setup command | no | orchestrate, ship | `bash scripts/cloud-tools.sh`; run only when `CLAUDE_CODE_REMOTE=true` |
 | `Tracker` | no | every skill and agent that touches work items or PRs | `github` (default) or `azure-devops`; selects the column of the [operations table](#operations) |
 | Project board | no | board script, orchestrate, tech-lead | owner and project number; none declared = no board, and every board step is skipped |
