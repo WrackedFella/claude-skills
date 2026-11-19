@@ -9,8 +9,6 @@
 # are skipped, so a step is done only when the orchestrator itself made its call.
 #
 # Required calls, in the order orchestrate defines them:
-#   intake     Agent devflow:design-critic before the first test-writer call (step 1),
-#              unless the run resumed from a pause
 #   tests      Agent devflow:test-writer (step 2)
 #   test-review Agent devflow:test-critic, for a domain item when the project sets
 #              `Domain-test review: agent` (step 2)
@@ -24,7 +22,7 @@
 #   review     Agent devflow:reviewer (step 11)
 # A run that added `agent-paused` to its item, or whose last message starts with the pause
 # comment's first line (`Paused: needs a human answer`, used where the run can't label),
-# has paused and owes no later step. A run that removed the label has resumed. The
+# has paused and owes no later step. Removing the label (a resume) is not a pause. The
 # gate class is read from the work item as the run fetched it (`gate=` in its board
 # header, or a `Gate class:` line); unknown skips the test-review requirement.
 #
@@ -88,15 +86,12 @@ report=$(jq -c --arg domain_review "$domain_review" --argjson docs "$docs" '
   | ([ $msgs[] | select(.type == "assistant") | .message.content[]? | select(.type == "text") | .text ]
       | last // "" | test("^\\s*\\**Paused: needs a human answer")) as $reported
   | ($reported or any($labels[]; test("remove-label") | not)) as $paused
-  | any($labels[]; test("remove-label")) as $resumed
   | (($user | capture("gate=(?<g>domain|glue)").g)
       // ($user | capture("[Gg]ate class:?[`* ]*(?<g>domain|glue)").g) // "unknown") as $gate
   | ([ $calls | to_entries[] | select(.value as $c | "implementer" | agent($c)) | .key ] | first) as $impl
   | ([ $calls | to_entries[] | select(.value as $c | "test-writer" | agent($c)) | .key ] | first) as $first_tests
   | ([ $calls | to_entries[] | select(.value as $c | ("test-writer" | agent($c)) or ("implementer" | agent($c))) | .key ] | last) as $last_change
   | {
-      intake: any($calls | to_entries[] | select($first_tests == null or .key < $first_tests) | .value;
-        . as $c | "design-critic" | agent($c)),
       tests: ($first_tests != null),
       "test-review": any($calls[]; . as $c | "test-critic" | agent($c)),
       implement: ($impl != null),
@@ -107,7 +102,7 @@ report=$(jq -c --arg domain_review "$domain_review" --argjson docs "$docs" '
       docs: any($calls[]; .name == "Skill" and ((.input.skill // "") | test("(^|:)wiki$"))),
       review: any($calls[]; . as $c | "reviewer" | agent($c))
     } as $done
-  | ((if $resumed then [] else [ "intake" ] end) + [ "tests" ]
+  | ([ "tests" ]
      + (if $gate == "domain" and $domain_review == "agent" then [ "test-review" ] else [] end)
      + [ "implement", "challenge", "simplify", "mutation", "comments" ]
      + (if $docs then [ "docs" ] else [] end)
