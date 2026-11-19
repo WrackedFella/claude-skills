@@ -16,7 +16,8 @@ Challenges, triage and decisions are its own judgment work.
 - Headless: foreground subagents only.
 - Headless: the plugin's `Stop` hook runs [`scripts/step-check`](../plugins/devflow/scripts/step-check),
   which blocks the first stop of a run whose main loop never made a mandatory step's call
-  (test-writer, test-critic when it applies, implementer, a test-writer call after it,
+  (the intake design-critic before the first test-writer call unless the run resumed,
+  test-writer, test-critic when it applies, implementer, a test-writer call after it,
   `/simplify`, a mutation run after the last test-writer or implementer call, comment
   audit, wiki when a docs directory is set, reviewer) and names the missing steps. A
   paused run (the `agent-paused` label added, or a final report whose first line is
@@ -35,6 +36,7 @@ Challenges, triage and decisions are its own judgment work.
 | Broad read-only sweep needed only as a conclusion | ad hoc subagent | haiku |
 | Failing tests, challenge tests, mutant-killing tests | `devflow:test-writer` | sonnet |
 | Production code, refactor briefs, one part of a split item | `devflow:implementer` | sonnet (opus for a delicate or open-design part) |
+| Intake conformance check (work item against written rules) | `devflow:design-critic`, `Mode: intake` | opus |
 | Test review | `devflow:test-critic` | opus |
 | Acceptance review | `devflow:acceptance-reviewer` | opus |
 | Final review | `devflow:reviewer` | opus |
@@ -44,7 +46,7 @@ Challenges, triage and decisions are its own judgment work.
 
 | # | Step | What happens | Output |
 |---|---|---|---|
-| 1 | Intake | Take the issue (or `board next`); proceed only if acceptance criteria, tech spec, test map and gate class exist; otherwise comment what is missing and stop. Look for earlier work first: an open PR (comment and stop), one existing branch (resume from it), several (ask which and stop); never a second branch for the item. Use the Tech Lead's work branch if present. Claim by moving Status to `In progress`; if already so, stop. Run the environment setup command in remote sessions. | Claimed item, branch |
+| 1 | Intake | Take the issue (or `board next`); proceed only if acceptance criteria, tech spec, test map and gate class exist; otherwise comment what is missing and stop. Look for earlier work first: an open PR (comment and stop), one existing branch (resume from it), several (ask which and stop); never a second branch for the item. Use the Tech Lead's work branch if present. Claim by moving Status to `In progress`; if already so, stop. Run the environment setup command in remote sessions. Then `devflow:design-critic` in intake mode checks the work item against the written rules and sibling items; only a conflict that would get a correct build rejected at review pauses, with numbered questions (skipped on a resume). Rules about how the card is written never pause. | Claimed item, branch, conformance result |
 | 2 | Failing tests | `test-writer` gets the criteria and test map; the orchestrator verifies each test fails for the right reason. Commit `test(scope)` and push. Then apply `Domain-test review` (below). | Test commit |
 | 3 | Implementation | One `implementer` call, or one per part when the spec's footprint marks disjoint parts ([below](#31-parallel-parts)). `implementer` gets the spec and failing tests; the orchestrator checks scope, untouched tests and lints, green gate. A wrong spec is handled minimally and recorded; a scope or public-contract change stops for the user. | Implementation commit |
 | 4 | Adversarial challenge | Orchestrator attacks the code with concrete inputs or sequences (edge cases, invalid input, ordering, error paths, hot-path traps). `test-writer` turns each into a test; failures go to `implementer`. At most 2 rounds, ending early on a round with no failing test. | New tests and fixes |
