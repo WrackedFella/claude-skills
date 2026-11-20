@@ -12,7 +12,7 @@ project-specific lives in the consumer's `CLAUDE.md` ([project contract](project
 | The spec is the issue | The published GitHub issue is the accepted spec; local files are drafts or working copies. The issue wins on disagreement. |
 | Tests before code | `test-writer` produces failing tests first; `implementer` sees them as the definition of done. |
 | Gates are not negotiable | No agent edits, skips or weakens a test or lint to get green. The project gate runs after every change set. |
-| Independent judgment | Test review and final review run in fresh context (`test-critic`, and pr-review's finders before and after the PR) and never see the author's reasoning. PR review finders never see the PR text, and a refuter must reproduce every finding. |
+| Independent judgment | Test review and final review run in fresh context (`test-critic`, `reviewer`) and never see the author's reasoning. PR review finders never see the PR text, and a refuter must reproduce every finding. |
 | Cheapest capable model | Haiku for broad read-only sweeps, Sonnet for spec-driven work, Opus for judgment and review. Output the orchestrator judges (gate, tests, mutation) is never summarized by another agent. |
 | Review points are switches | Each human pause is a setting in `CLAUDE.md`, so a project can move toward unattended runs one switch at a time. |
 
