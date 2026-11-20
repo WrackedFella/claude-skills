@@ -12,12 +12,13 @@ report. All preload `engineering-standards`, apply the further standards named i
 | `devflow:implementer` | sonnet | Read, Grep, Glob, Edit, Write, Bash, GitNexus `impact`/`context`/`detect_changes` | production code | Minimum code to pass; behavior-preserving refactors |
 | `devflow:test-critic` | opus | Read, Grep, Glob, Bash | nothing | Portfolio review of fresh tests |
 | `devflow:acceptance-reviewer` | opus | Bash, Write | scratch evidence and repro tests | Black-box check of the running app against the work item, in orchestrate step 10 |
+| `devflow:reviewer` | opus | Read, Grep, Glob, Bash, GitNexus `impact`/`context`/`detect_changes` | nothing | Diff review against the spec, in orchestrate |
 | `devflow:defect-finder` | opus | Read, Grep, Glob, Edit, Write, Bash, GitNexus `impact`/`context` | scratch tests | Demonstrated defects in a PR (full tier) |
-| `devflow:design-critic` | opus | Read, Grep, Glob, Bash, GitNexus `impact`/`context` | nothing | Structure against written rules and Changeability; the work item against the rules at orchestrate intake |
+| `devflow:design-critic` | opus | Read, Grep, Glob, Bash, GitNexus `impact`/`context` | nothing | Structure against written rules and Changeability |
 | `devflow:refuter` | opus | Read, Grep, Glob, Edit, Write, Bash | scratch tests | Disproves one finding, or confirms a fix |
 
 No worker's tool list includes `Agent`, so workers cannot spawn subagents; that keeps
-fan-out at the orchestrator. `test-critic` carries `maxTurns: 40`,
+fan-out at the orchestrator. `test-critic` and `reviewer` carry `maxTurns: 40`,
 `defect-finder` 60, `design-critic` 50, `acceptance-reviewer` 50 and `refuter` 30.
 
 GitNexus tools are used when available; when the project's `CLAUDE.md` calls for
@@ -81,6 +82,21 @@ The only test pinning a spec scenario is never removed (marked STRENGTHEN instea
 After verdicts it lists material **gaps**: unpinned scenarios, implied boundaries,
 tests that fail for the wrong reason or pass against the stub, criteria too ambiguous
 to test. It ends with counts, with no style preferences or praise.
+
+## reviewer
+
+Sees only the diff (`git diff <base>...HEAD` plus uncommitted work) and the issue body. Called by `orchestrate` before the PR.
+Reports only:
+
+- correctness bugs, with the triggering input or sequence;
+- acceptance criteria unmet, or met only by a test that does not assert them;
+- missing or weak tests for new behavior;
+- API misuse, swallowed errors, and violations of the Standards listed in the brief (for example unsound low-level/unsafe code, hot-path regressions where the standards name them);
+- scope creep beyond the spec;
+- docs drift, when the project names a docs directory.
+
+Each finding cites `file:line` with a one-line failure scenario. If nothing material
+remains, it says exactly that.
 
 ## acceptance-reviewer
 
