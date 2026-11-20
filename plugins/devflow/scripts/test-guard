@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+# Rejects changes that remove or rewrite existing test code after the tests were
+# written, so the agent that makes them pass can add tests but never weaken one.
+#
+#   test-guard --since <sha> [--allow <sha>]... [--marker <regex>] <glob>...
+#
+#   --since   the step 2 test commit; commits after it are checked
+#   --allow   a later commit that may change test code (the step 2 test review's own
+#             commit, which can remove or merge tests before implementation); repeatable
+#   --marker  an extended regex for the line that opens inline test code in a source
+#             file (for Rust, '#\[cfg\(test\)\]'); every line from its first match to the
+#             end of the file counts as test code
+#   <glob>    files that are test code as a whole (`**/tests/**`); `*` and `**` match
+#             across directories
+#
+# Fails when a commit after --since that is not allowed, or the uncommitted working
+# tree, deletes or changes a line of test code. Added lines are fine anywhere.
+#
+# Exit codes: 0 clean, 1 violation (each printed as file, line and commit), 2 usage error.
+set -euo pipefail
+
+usage() { echo "test-guard: $*" >&2; exit 2; }
+
+since="" marker="" allow=() globs=()
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --since) since=${2:?}; shift 2 ;;
+    --allow) allow+=("$(git rev-parse --verify "${2:?}^{commit}")"); shift 2 ;;
+    --marker) marker=${2:?}; shift 2 ;;
+    -h|--help) sed -n '2,20p' "$0"; exit 0 ;;
+    -*) usage "unknown option $1" ;;
+    *) globs+=("$1"); shift ;;
+  esac
+done
+[[ -n $since ]] || usage "need --since"
+[[ ${#globs[@]} -gt 0 || -n $marker ]] || usage "need a glob or --marker"
+since=$(git rev-parse --verify "$since^{commit}") || usage "bad --since"
+
+matches() {
+  local f=$1 g
+  for g in "${globs[@]}"; do
+    # In [[ == ]], `*` already matches `/`; `**` is the same pattern.
+    # shellcheck disable=SC2053
+    [[ $f == ${g//\*\*/*} ]] && return 0
+  done
+  return 1
+}
+
+allowed() {
+  local c=$1 a
+  for a in "${allow[@]}"; do [[ $c == "$a" ]] && return 0; done
+  return 1
+}
+
+violations=0
+
+# Reads `git diff --unified=0` for one change set and reports each removed or rewritten
+# line of test code. $1 names the change set; $2 is the revision holding the old file.
+check() {
+  local what=$1 old=$2 file="" start=0 line m
+  while IFS= read -r line; do
+    case $line in
+      "--- a/"*) file=${line#--- a/}
+                 start=0
+                 if matches "$file"; then start=1
+                 elif [[ -n $marker ]]; then
+                   m=$(git show "$old:$file" 2>/dev/null | grep -n -m1 -E -- "$marker" | cut -d: -f1 || true)
+                   [[ -n $m ]] && start=$m
+                 fi ;;
+      "--- "*) file="" start=0 ;;
+      "@@ -"*)
+        [[ -n $file && $start -gt 0 ]] || continue
+        [[ $line =~ ^@@\ -([0-9]+)(,([0-9]+))?\  ]] || continue
+        local a=${BASH_REMATCH[1]} n=${BASH_REMATCH[3]:-1}
+        if [[ $n -gt 0 && $((a + n - 1)) -ge $start ]]; then
+          local first=$(( a > start ? a : start ))
+          echo "$file:$first: test code removed or changed in $what"
+          violations=$((violations + 1))
+        fi ;;
+    esac
+  done
+}
+
+while read -r commit; do
+  allowed "$commit" && continue
+  check "${commit:0:12}" "$commit^" < <(git diff "$commit^" "$commit" --unified=0 --no-color --no-renames)
+done < <(git rev-list --reverse "$since..HEAD")
+
+check "the uncommitted working tree" HEAD < <(git diff HEAD --unified=0 --no-color --no-renames)
+
+[[ $violations -eq 0 ]] || exit 1

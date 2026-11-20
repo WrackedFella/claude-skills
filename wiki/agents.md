@@ -8,6 +8,7 @@ report. All preload `engineering-standards`, apply the further standards named i
 
 | Agent | Model | Tools | Writes | Role |
 |---|---|---|---|---|
+| `devflow:builder` | sonnet | Read, Grep, Glob, Edit, Write, Bash, GitNexus `impact`/`context`/`detect_changes` | tests and production code; existing tests fixed by `scripts/test-guard` | One unsplit item test-first: failing tests, minimum code, challenge and mutant tests with their fixes, refactor briefs |
 | `devflow:test-writer` | sonnet | Read, Grep, Glob, Edit, Write, Bash | tests only | Failing tests from criteria and test map |
 | `devflow:implementer` | sonnet | Read, Grep, Glob, Edit, Write, Bash, GitNexus `impact`/`context`/`detect_changes` | production code | Minimum code to pass; behavior-preserving refactors |
 | `devflow:test-critic` | opus | Read, Grep, Glob, Bash | nothing | Portfolio review of fresh tests |
@@ -24,7 +25,22 @@ fan-out at the orchestrator. `test-critic` and `reviewer` carry `maxTurns: 40`,
 GitNexus tools are used when available; when the project's `CLAUDE.md` calls for
 code-graph checks and the tools are missing, the agent says so in its report.
 
+## builder
+
+- One agent per unsplit item, started at step 2 and briefed again through SendMessage at
+  each later step, so it keeps the code it read. Each brief opens with `Mode:` (`tests`,
+  `test review`, `implement`, `challenge`, `refactor`); `step-check` reads the mode.
+- `tests` and `implement` follow the test-writer and implementer rules below.
+- `challenge`: pins each scenario or mutant in a test first, fixes the code only where
+  the test fails; a test that passes at once stays and is reported as already covered.
+- After `tests`, adds tests but never edits, deletes or weakens one; only `test review`
+  changes existing tests, as the triaged findings say. `scripts/test-guard` enforces it.
+- Doesn't commit; the orchestrator verifies and commits each step.
+
 ## test-writer
+
+Used for a split item (parallel parts) and by other skills.
+
 
 - Never modifies non-test code. A test that cannot compile without a new type adds the
   smallest `todo!()` stub and reports it.
