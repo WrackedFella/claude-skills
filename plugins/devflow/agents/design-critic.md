@@ -131,6 +131,10 @@ Not findings here, and not questions either:
 - Items, comments or ADRs the brief says did not exist yet.
 
 The heading names the work-item section instead of a file: `### B4 spec:<section>`.
+After `Fix:`, add one `Rule:` line per source the finding cites: a file by its path from
+the repository root (an ADR, `CLAUDE.md`, a README), a standards skill as
+`skill:<name>`, a work item as `#<number>`. Intake runs twice and pauses only on a
+finding both runs cite a common source for, so name every source the Evidence quotes.
 Evidence ends with `Rejected because:` and the review rule the diff would break. A
 note the builder should see goes under `Readings:` as one line each, with the reading
 that breaks no rule. When nothing qualifies, say exactly `No conflicts.`
