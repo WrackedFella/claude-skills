@@ -135,16 +135,20 @@ another session holds it; stop.
 If the project names an environment setup command and this session is remote
 (`CLAUDE_CODE_REMOTE=true`), run it before the first build.
 
-**Conformance check.** Before step 2, delegate to `devflow:design-critic` with
-`Mode: intake`, the `Read work item:` and `Standards:` lines, and no SHAs. It checks the
-work item itself against the written rules and its sibling items, and reports only
-conflicts that would get a correct build rejected at review. Each `Kind: blocker`
-finding pauses the run: one numbered question per finding, quoting the conflicting
-instruction and the rule or item, with a proposed default. Don't work around a blocker
-or pick a side yourself; a rule that conflicts with the spec is a person's decision,
-and a run that builds either side gets rejected at review. `Readings:` lines don't
-pause: follow the reading that breaks no rule and pass it to the test-writer and
-implementer briefs. Skip the check on a resume from a pause: the answers settle what it
+**Conformance check.** Before step 2, delegate to `devflow:design-critic` twice, in
+parallel, with the same brief: `Mode: intake`, the `Read work item:` and `Standards:`
+lines, and no SHAs. Each checks the work item itself against the written rules and its
+sibling items, and reports only conflicts that would get a correct build rejected at
+review. Save the two reports verbatim to two files and run
+`${CLAUDE_PLUGIN_ROOT}/scripts/intake-agree <a> <b>`; its exit status decides, not your
+reading of the reports. Exit 3: each blocker under `Confirmed:` pauses the run, one
+numbered question per finding, quoting the conflicting instruction and the rule or
+item, with a proposed default. Exit 0: continue; list the `Unconfirmed:` blockers in
+the final report and the PR body as unconfirmed intake findings, and don't act on them.
+Don't work around a confirmed blocker or pick a side yourself; a rule that conflicts
+with the spec is a person's decision, and a run that builds either side gets rejected
+at review. `Readings:` lines from either report don't pause: follow the reading that
+breaks no rule and pass it to the test-writer and implementer briefs. Skip the check on a resume from a pause: the answers settle what it
 found.
 
 ## 2. Failing tests

@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+# Decides whether orchestrate's intake pauses, from two independent design-critic intake
+# reports on the same work item. A blocker pauses the run only when both reports raise
+# it, so a finding one sample happens to reach and the other misses never stops a run.
+#
+#   intake-agree <report-a> <report-b>
+#
+# Two blockers are the same when they share a `Rule:` key. Keys are normalised: an
+# issue link or `#<n>` becomes `#<n>`, a standards skill (`skill:<name>` or its
+# SKILL.md path) becomes `skill:<name>`, and a path loses backticks, a leading `./`,
+# anchors (`#...`, `§...`, `:<line>`) and case. A blocker with no `Rule:` line can't
+# be matched and stays unconfirmed.
+#
+# Prints the confirmed blockers (report A's wording), then the unconfirmed ones from
+# either report under `Unconfirmed:`. Exit 3 when at least one blocker is confirmed
+# (pause), 0 when none is (proceed), 2 on a usage error.
+set -euo pipefail
+
+usage() { echo "intake-agree: $*" >&2; exit 2; }
+
+[[ ${1:-} == -h || ${1:-} == --help ]] && { sed -n '2,16p' "$0"; exit 0; }
+[[ $# -eq 2 ]] || usage "expected two report files"
+for f in "$1" "$2"; do [[ -r $f ]] || usage "cannot read $f"; done
+
+# One record per blocker: <keys, space-separated>\t<block text with \n escaped as \x1f>.
+blockers() {
+  awk '
+    function norm(s,   m) {
+      gsub(/[`*"]/, "", s); sub(/^[ \t]+/, "", s); sub(/[ \t].*$/, "", s)
+      if (match(s, /\/issues\/[0-9]+/)) return "#" substr(s, RSTART + 8, RLENGTH - 8)
+      if (s ~ /^#[0-9]+/) { match(s, /^#[0-9]+/); return substr(s, 1, RLENGTH) }
+      sub(/^\.\//, "", s); sub(/[#§].*$/, "", s); sub(/:[0-9].*$/, "", s); sub(/[.,;:)]+$/, "", s)
+      s = tolower(s)
+      if (match(s, /skills\/[^\/]+\/skill\.md$/)) { s = substr(s, RSTART + 7); sub(/\/skill\.md$/, "", s); return "skill:" s }
+      return s
+    }
+    function flush() {
+      if (inblock && blocker) printf "%s\t%s\n", keys, text
+      inblock = 0; blocker = 0; keys = ""; text = ""
+    }
+    /^###[ \t]/ { flush(); inblock = 1 }
+    /^##?[ \t]/ || /^Not reviewed:/ || /^Readings:/ { flush() }
+    inblock {
+      text = text (text == "" ? "" : "\037") $0
+      if ($0 ~ /^[ \t*]*Kind:[ \t*]*blocker/) blocker = 1
+      if ($0 ~ /^[ \t*]*Rule:/) {
+        r = $0; sub(/^[ \t*]*Rule:[ \t*]*/, "", r)
+        k = norm(r); if (k != "") keys = keys (keys == "" ? "" : " ") k
+      }
+    }
+    END { flush() }
+  ' "$1"
+}
+
+mapfile -t a < <(blockers "$1")
+mapfile -t b < <(blockers "$2")
+
+shares() { # <keys> <keys>
+  local x y
+  for x in $1; do for y in $2; do [[ $x == "$y" ]] && return 0; done; done
+  return 1
+}
+show() { # a block, without its trailing blank lines
+  local t=$1
+  while [[ $t == *$'\x1f' ]]; do t=${t%$'\x1f'}; done
+  printf '%s\n\n' "${t//$'\x1f'/$'\n'}"
+}
+
+confirmed=() unconfirmed=() matched_b=()
+for ra in "${a[@]}"; do
+  hit=false
+  for i in "${!b[@]}"; do
+    if [[ -n ${ra%%$'\t'*} ]] && shares "${ra%%$'\t'*}" "${b[i]%%$'\t'*}"; then
+      hit=true; matched_b[i]=1
+    fi
+  done
+  if $hit; then confirmed+=("${ra#*$'\t'}"); else unconfirmed+=("${ra#*$'\t'}"); fi
+done
+for i in "${!b[@]}"; do
+  [[ -z ${matched_b[i]:-} ]] && unconfirmed+=("${b[i]#*$'\t'}")
+done
+
+if [[ ${#confirmed[@]} -eq 0 ]]; then
+  echo "Confirmed: none"
+else
+  echo "Confirmed: ${#confirmed[@]}"; echo
+  for t in "${confirmed[@]}"; do show "$t"; done
+fi
+if [[ ${#unconfirmed[@]} -gt 0 ]]; then
+  echo "Unconfirmed:"; echo
+  for t in "${unconfirmed[@]}"; do show "$t"; done
+fi
+[[ ${#confirmed[@]} -eq 0 ]] && exit 0
+exit 3
