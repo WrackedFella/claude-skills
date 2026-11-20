@@ -16,11 +16,12 @@ it into more gate.
 3. Run the `App stop command`, whatever the outcome.
 4. Triage each fail yourself. Accept it only when its evidence shows the spec, the
    standards or a plain user expectation violated; record each rejection with its reason.
-   - **Assertable:** `devflow:test-writer` turns the repro file into a failing acceptance
-     test in the suite; commit it (`test(scope): ...`), push, and add its SHA to the
-     guard's `--allow` list. Then `devflow:implementer` fixes it, followed by the gate,
-     the acceptance run and the guard.
-   - **Judgment:** `devflow:implementer` gets the screenshot and the `Visual:` statement;
+   - **Assertable:** the builder (`Mode: tests`) turns the repro file into a failing
+     acceptance test in the suite; commit it (`test(scope): ...`), push, and add its SHA
+     to the guard's `--allow` list. Then the builder (`Mode: implement`) fixes it,
+     followed by the gate, the acceptance run and both guards.
+   - **Judgment:** the builder (`Mode: implement`)
+     gets the screenshot and the `Visual:` statement;
      then the gate, the acceptance run and the guard.
 5. Run round 2 only if round 1 had an accepted fail, rechecking those items.
 

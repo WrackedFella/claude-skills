@@ -38,7 +38,8 @@ task:
   subagent takes only a broad read-only sweep whose output you need as a conclusion,
   not as evidence (for example, every caller of a symbol across the workspace).
 - Delegate to the cheapest model that can do the job: bounded work against a written
-  spec goes to `devflow:test-writer` / `devflow:implementer` (sonnet); the test review,
+  spec goes to `devflow:builder` (sonnet; `devflow:test-writer` and `devflow:implementer`
+  when the item is split into parallel parts); the test review,
   acceptance review and final review go to `devflow:test-critic`,
   `devflow:acceptance-reviewer` and `devflow:reviewer` (opus), and the intake
   conformance check goes to `devflow:design-critic` (opus).
@@ -55,7 +56,7 @@ task:
 Read the project's `Standards` setting in `CLAUDE.md`: an ordered list of skill names;
 unset means `engineering-standards, rust-standards`. Map each name to
 `${CLAUDE_PLUGIN_ROOT}/skills/<name>/SKILL.md` and put the resulting paths, in order,
-on a `Standards:` line in every worker brief (test-writer, implementer, test-critic,
+on a `Standards:` line in every worker brief (builder, test-writer, implementer, test-critic,
 design-critic, reviewer, acceptance-reviewer, including those in `parallel-parts.md`, `test-review.md`
 and `acceptance-review.md`). The standards
 are binding on the worker, and the reviewer checks the diff against them. Agent
@@ -80,13 +81,25 @@ Applies when the project sets an `Acceptance command` and the item's test map ha
 - **Acceptance run:** the `App start command`, then the `Acceptance command`, then the
   `App stop command`, which runs even after a failure. Wherever this skill runs the gate,
   run the acceptance run after it; red in either is red.
-- **Guard:** after every `devflow:implementer` call, run
+- **Guard:** after every builder or `devflow:implementer` call, run
   `${CLAUDE_PLUGIN_ROOT}/scripts/e2e-guard --base <base commit> --since <step 2 test commit>`
-  with `--allow <sha>` for each later test-writer commit and the project's
-  `Acceptance test paths` globs as arguments. A non-zero exit means the implementer changed
-  or weakened an acceptance test: restore those files, re-brief the implementer with the
+  with `--allow <sha>` for each later acceptance-test commit and the project's
+  `Acceptance test paths` globs as arguments. A non-zero exit means the agent changed
+  or weakened an acceptance test: restore those files, re-brief the agent with the
   guard output, and never accept the change. The tests stay the spec only while the code
   under test cannot rewrite them.
+
+## Test guard
+
+Tests are the spec only while the code under test cannot rewrite them. After every
+builder, implementer or test-writer call after step 2, run
+`${CLAUDE_PLUGIN_ROOT}/scripts/test-guard --since <step 2 test commit>` with `--allow <sha>`
+for the step 2 test review's commit, `--marker` set to the line that opens inline test
+code in the project's language (Rust: `'#\[cfg\(test\)\]'`), and the project's test-file
+globs (Rust: `'**/tests/**' '**/benches/**'`). A non-zero exit means existing test code
+was removed or rewritten: restore it (`git checkout <step 2 test commit> -- <file>` for a
+whole file, or by hand for the reported lines), re-brief the agent with the guard output,
+and never accept the change. Added tests pass the guard.
 
 ## Bash commands
 
@@ -148,12 +161,29 @@ the final report and the PR body as unconfirmed intake findings, and don't act o
 Don't work around a confirmed blocker or pick a side yourself; a rule that conflicts
 with the spec is a person's decision, and a run that builds either side gets rejected
 at review. `Readings:` lines from either report don't pause: follow the reading that
-breaks no rule and pass it to the test-writer and implementer briefs. Skip the check on a resume from a pause: the answers settle what it
+breaks no rule and pass it to the builder's briefs. Skip the check on a resume from a pause: the answers settle what it
 found.
+
+## The builder
+
+One `devflow:builder` carries steps 2 to 6 and the fixes of steps 10 and 11 in a single
+context, so it never re-learns the code between steps. Start it once, at step 2, with
+`Mode: tests`; send each later brief to that same agent (SendMessage to its agent ID)
+with the `Mode:` line the step names. If it can't be reached (no SendMessage tool, or
+the conversation is gone), start a new `devflow:builder` with the brief plus the
+acceptance criteria, tech spec, `Standards:` line and the step 2 test commit's SHA. The
+builder doesn't commit; you verify and commit each step. The test guard is what keeps
+its tests fixed, and you stay the attacker: the challenges, the refactor brief and the
+triage are yours.
+
+When the tech spec's footprint marks two or more parts, the item is built in parallel
+instead: `devflow:test-writer` writes the tests, `devflow:implementer` builds each part
+(`${CLAUDE_SKILL_DIR}/parallel-parts.md`), and in every later step the test-writer takes
+each test brief and the implementer each code brief, in the same modes.
 
 ## 2. Failing tests
 
-Delegate to `devflow:test-writer` with the acceptance criteria, test map and `Standards:`
+Start the builder with `Mode: tests`, the acceptance criteria, test map and `Standards:`
 line pasted in full. It sees the repo and `CLAUDE.md`, plus the standards in its brief, not this conversation. Verify
 yourself that every new test fails, and fails for the right reason. Commit the tests on
 their own (`test(scope): ...`) so the PR shows test-first history, and push, so the
@@ -180,15 +210,15 @@ Read `${CLAUDE_SKILL_DIR}/test-review.md` and follow it (at most 2 rounds). The 
 
 ## 3. Implementation
 
-Delegate to `devflow:implementer` with the tech spec, the failing-test list and the
-`Standards:` line. Check
-its report against the spec: scope respected, no tests or lints touched, gate green.
+Send the builder `Mode: implement` with the tech spec and the failing-test list. Check
+its report against the spec and run the test guard: scope respected, no tests or lints
+touched, gate green. Commit and push.
 
 ### Parallel parts
 
-When the tech spec's footprint marks two or more parts, read `${CLAUDE_SKILL_DIR}/parallel-parts.md` and follow it; otherwise use the single call above. Every later step runs once, on the merged work.
+When the tech spec's footprint marks two or more parts, read `${CLAUDE_SKILL_DIR}/parallel-parts.md` and follow it; otherwise use the builder as above. Every later step runs once, on the merged work.
 
-If the spec turns out to be wrong, the implementer does the minimal correct thing
+If the spec turns out to be wrong, the builder does the minimal correct thing
 within scope; record the deviation and its reason in the card and the PR. If the fix
 changes scope or a public contract the spec didn't name, pause and ask.
 
@@ -199,15 +229,17 @@ ordering and state bugs, error paths, and performance traps in hot paths. Every
 challenge must be concrete: a specific input or sequence with an expected outcome.
 Vague concerns don't count.
 
-Have `devflow:test-writer` turn each challenge into a test. If it fails, send it to
-`devflow:implementer`. Stop after two rounds or when a round produces no failing test.
+Send the round's challenges to the builder with `Mode: challenge`: it pins each in a
+test, then fixes the code where the test fails. Check its report, run the test guard and
+the gate, then commit the tests and fixes (`test(scope): ...`, `fix(scope): ...`) and
+push. Stop after two rounds or when a round produces no failing test.
 
 ## 5. Refactor
 
 Green came from the minimum code; now improve its structure with every test held
 fixed. Review the change against the tech spec and the project's standards: duplication,
 naming, responsibilities, layering, and any shortcut taken to get green. Send concrete
-restructurings to `devflow:implementer` as a refactor brief. Then run `/simplify` on
+restructurings to the builder with `Mode: refactor`. Then run `/simplify` on
 the changed code through the Skill tool.
 
 Refactoring changes structure, never behavior: no test edits, no new behavior, and it
@@ -219,9 +251,9 @@ straight to step 6.
 ## 6. Mutation testing
 
 Run the project's mutation command on changed code. For each surviving mutant in
-code this work changed, have `devflow:test-writer` strengthen the tests, never weaken
-the code. Then run the command again: the counts you report come from a run on the
-final code, after the last test-writer or implementer change, including any fix from
+code this work changed, send it to the builder with `Mode: challenge` to strengthen the
+tests, never weaken the code. Then run the command again: the counts you report come from
+a run on the final code, after the last builder change, including any fix from
 steps 10 and 11 (re-run it before ship when one of those changed code). A mutant you judge equivalent (no observable behavior change) gets a one-line
 justification in the PR. A mutant that cannot be tested gets the same, plus the exact exclusion line for the mutation config; never edit the config's exclusions yourself, a human adds them. Record caught / missed / unviable counts.
 
@@ -258,8 +290,8 @@ evidence.
 ## 11. Independent review (at most 2 rounds)
 
 Delegate to `devflow:reviewer` with the issue number (its body is the spec), the base branch, and the `Standards:` and `Read work item:` lines.
-Fix material findings via the implementer, or turn them into tests via the
-test-writer. Re-review only if a fix was non-trivial.
+Fix material findings through the builder (`Mode: challenge` for a behavior finding,
+`Mode: refactor` for a structural one). Re-review only if a fix was non-trivial.
 
 ## 12. Ship
 
