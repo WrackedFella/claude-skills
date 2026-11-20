@@ -33,8 +33,10 @@ task:
 - Steps 5, 7 and 8 invoke skills through the Skill tool. If the Skill tool refuses a
   call in this environment, report that in the PR under Verification and continue;
   never imitate the skill inline.
-- Run commands (gate, tests, mutation, git) and read files yourself: their raw output
-  is what you judge, and a summary of it loses the detail you act on. A `haiku`
+- Run commands (gate, tests, mutation, git) and read files yourself: their own output
+  is what you judge, and a subagent's summary of it loses the detail you act on. Long
+  runs go through `run-log` (*Command output* below), which keeps the failing lines
+  verbatim and the rest on disk. A `haiku`
   subagent takes only a broad read-only sweep whose output you need as a conclusion,
   not as evidence (for example, every caller of a symbol across the workspace).
 - Delegate to the cheapest model that can do the job: bounded work against a written
@@ -91,6 +93,22 @@ Applies when the project sets an `Acceptance command` and the item's test map ha
 ## Bash commands
 
 In a headless run, issue one command per Bash call: no `&&`, `;`, pipes, `cd` or `$(...)`. The allow-list matches each command by prefix, so a compound is denied unless every part is allowed, and a denial costs a turn. Search with the Grep, Glob and Read tools and edit with Edit or Write; never use `python`, `sed`, `printenv` or `env` in a Bash call. Put these rules in every worker brief.
+
+## Command output
+
+Every context token is re-read on each later turn, so a passing gate's thousands of
+lines cost the rest of the run. Run the gate, test, mutation and acceptance commands as
+`${CLAUDE_PLUGIN_ROOT}/scripts/run-log <log> <command> [args...]`, with a fresh log path
+per run under `/tmp/devflow/` (for example `/tmp/devflow/gate-3.log`). It prints the
+exit code, every failure line with its line number in the log, and the run's last lines,
+and exits with the command's own code. When the digest is not enough to act on, read the
+log around the line numbers it gives (Read with offset and limit), never whole. Git and
+short commands run directly. Put the resolved path on a `Command output:` line in every
+worker brief, with this paragraph's rule.
+
+`devflow:test-writer` and `devflow:implementer` reports stay short: about 300 words at
+most, with longer detail (full logs, long test lists) in a file under `/tmp/devflow/`
+named in the report. Reviewer and critic findings are not capped.
 
 ## Project board
 

@@ -14,6 +14,7 @@ Challenges, triage and decisions are its own judgment work.
 - Acceptance tests ([3.3](#33-acceptance-tests)) run with the gate and are locked against
   implementer changes by `scripts/e2e-guard`.
 - Headless: foreground subagents only.
+- Gate, test, mutation and acceptance runs go through [`scripts/run-log`](../plugins/devflow/scripts/run-log): the full output goes to a log under `/tmp/devflow/`, and the caller's context gets the exit code, the failure lines verbatim with their log line numbers, and the last lines. Test-writer and implementer reports are capped at about 300 words, with detail in a file. Every token in context is re-read on each later turn, so a run's cost tracks how much output it keeps.
 - Headless: the plugin's `Stop` hook runs [`scripts/step-check`](../plugins/devflow/scripts/step-check),
   which blocks the first stop of a run whose main loop never made a mandatory step's call
   (the intake design-critic before the first test-writer call unless the run resumed,
