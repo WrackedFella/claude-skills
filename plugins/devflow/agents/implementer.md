@@ -36,4 +36,6 @@ no behavior is added or removed, and you touch only code the brief names. If a
 restructuring needs a test change or new behavior, stop and report it.
 
 Report: files and public items changed (one line each), the gate result, and anything
-you were unsure about or deliberately left for review.
+you were unsure about or deliberately left for review. Keep it to about 300 words; put
+anything longer in a file under `/tmp/devflow/` and name it. Run tests and the gate
+through the `Command output:` line of your brief when it has one.

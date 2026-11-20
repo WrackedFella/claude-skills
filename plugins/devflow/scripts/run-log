@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# Runs a command with its full output in a log file and prints only a digest, so a
+# gate, test or mutation run costs the caller's context a few dozen lines, not thousands.
+#
+#   run-log <log-file> <command> [args...]
+#
+# Prints the command, its exit code and the log's path and length; then, on failure,
+# every line that names a failure (compiler and lint errors with their `-->` locations,
+# failing and panicking tests, assertion values, format diffs, missed mutants), at most
+# 80, each with its line number in the log; then the last 15 lines (5 on success), where
+# test runners and mutation tools print their totals. The digest lines are verbatim, so
+# the caller judges the tool's own words; it reads the log around a line number when it
+# needs more.
+#
+# Exit code: the command's own (127 if it could not start), or 2 on a usage error.
+set -uo pipefail
+
+[[ $# -ge 2 ]] || { echo "usage: run-log <log-file> <command> [args...]" >&2; exit 2; }
+log=$1
+shift
+mkdir -p "$(dirname "$log")" || exit 2
+
+start=$SECONDS
+"$@" >"$log" 2>&1
+status=$?
+lines=$(wc -l <"$log" | tr -d ' ')
+
+printf '$ %s\n' "$*"
+printf 'exit %d after %ds; %s lines in %s\n' "$status" "$((SECONDS - start))" "$lines" "$log"
+
+if [[ $status -ne 0 ]]; then
+  pattern='^(error|warning)(\[[A-Z0-9]+\])?:|^ +--> |FAIL|panicked|^---- |assertion|^ *(left|right)[: ]|^Diff in|MISSED|TIMEOUT|^not ok|[✗✘×] |Error:|error: '
+  matches=$(grep -nE "$pattern" "$log" | head -n 81)
+  count=$(grep -cE "$pattern" "$log")
+  if [[ -n $matches ]]; then
+    printf -- '-- failure lines (%d; first 80) --\n' "$count"
+    printf '%s\n' "$matches" | head -n 80 | cut -c1-300
+  fi
+  tail_lines=15
+else
+  tail_lines=5
+fi
+printf -- '-- last %d lines --\n' "$tail_lines"
+tail -n "$tail_lines" "$log" | cut -c1-300
+exit "$status"

@@ -32,4 +32,6 @@ with the app started (`App start command`, the `Acceptance command` for the new 
 the app is down.
 
 Report: each test added (path::name → scenario), the failure reason observed for each,
-and any stubs you added.
+and any stubs you added. Keep it to about 300 words; put anything longer in a file under
+`/tmp/devflow/` and name it. Run tests and the gate through the `Command output:` line of
+your brief when it has one.
