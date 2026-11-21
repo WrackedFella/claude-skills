@@ -1,0 +1,36 @@
+# Eval tier for each changed path (D0010). First matching line wins; a PR takes the
+# highest tier of its files. `*` matches across directories. Tier full is not listed:
+# ci/eval-tier sets it when an agent or skill is added, removed or renamed, or a
+# `model:` or `effort:` frontmatter line changes.
+#
+# standard: what orchestrate replays measure directly, and the review that scores them.
+standard  plugins/devflow/skills/orchestrate/*
+standard  plugins/devflow/agents/builder.md
+standard  plugins/devflow/agents/test-critic.md
+standard  plugins/devflow/agents/design-critic.md
+standard  plugins/devflow/agents/reviewer.md
+standard  plugins/devflow/agents/defect-finder.md
+standard  plugins/devflow/agents/refuter.md
+standard  plugins/devflow/skills/pr-review/*
+standard  plugins/devflow/scripts/step-check
+standard  plugins/devflow/scripts/intake-agree
+standard  plugins/devflow/scripts/test-guard
+standard  plugins/devflow/scripts/pr-facts
+standard  plugins/devflow/hooks/*
+# none: parts of the plugin that moho's orchestrate replays never load.
+none      plugins/devflow/skills/business-analyst/*
+none      plugins/devflow/skills/tech-lead/*
+none      plugins/devflow/skills/refine/*
+none      plugins/devflow/skills/publish/*
+none      plugins/devflow/skills/respond/*
+none      plugins/devflow/skills/sitrep/*
+none      plugins/devflow/skills/dotnet-standards/*
+none      plugins/devflow/skills/azure-standards/*
+none      plugins/devflow/agents/acceptance-reviewer.md
+none      plugins/devflow/scripts/e2e-guard
+none      plugins/devflow/scripts/card
+# smoke: every other plugin file (worker agents, standards, other scripts) and the manifests.
+smoke     plugins/*
+smoke     .claude-plugin/*
+# none: docs, wiki, CI and tests.
+none      *

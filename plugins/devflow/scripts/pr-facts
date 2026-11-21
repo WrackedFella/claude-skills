@@ -91,7 +91,7 @@ trap 'rm -rf "$tmp"' EXIT
 author="" draft=false state="open" labels='[]' body="" created_at="" head_ref=""
 ci='{"state":"none","failing":[],"pending":[]}' conflict=false outside=0 prior='[]'
 if [[ -n $pr ]]; then
-  mode=pr
+  mode="pr"
   gh api "repos/$repo/pulls/$pr" >"$tmp/pr.json" || die "cannot read PR $pr"
   head_sha=$(jq -r .head.sha "$tmp/pr.json")
   head_ref=$(jq -r .head.ref "$tmp/pr.json")
@@ -196,6 +196,7 @@ if [[ -n $issue ]]; then
   grep -qE '^[[:space:]]*([-*][[:space:]]+)?(\[[ xX]\][[:space:]]+)?[`*]*Visual:' <<<"$ibody" && visual=true
   if [[ -n $created_at ]]; then
     # Body edits are visible only through GraphQL; unreadable stays null and is a trigger.
+    # shellcheck disable=SC2016 # $o, $r and $n are GraphQL variables
     last=$(gh api graphql -F n="$issue" -f o="${repo%/*}" -f r="${repo#*/}" \
       -f query='query($o:String!,$r:String!,$n:Int!){repository(owner:$o,name:$r){issue(number:$n){lastEditedAt}}}' \
       -q '.data.repository.issue.lastEditedAt // ""' 2>/dev/null) && {

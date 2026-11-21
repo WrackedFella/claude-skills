@@ -1,0 +1,80 @@
+# Labels each pull request with its eval tier (D0010): eval:none, eval:smoke,
+# eval:standard or eval:full, from the files it changes (ci/eval-tier, ci/eval-tiers).
+#
+# Runs on pull_request_target so it can label PRs from forks too. It checks out the base
+# branch and only fetches the PR's commits as data: the tier rules and script come from
+# main, and no code from the PR runs. A rules change takes effect once it merges.
+#
+# The label only rises: when the PR already carries a higher eval label, set by a person
+# or an earlier push, it stays. Removing it lets the next push recompute the tier.
+name: Eval tier
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions: {}
+
+concurrency:
+  group: eval-tier-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  tier:
+    name: eval tier
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      PR: ${{ github.event.pull_request.number }}
+      BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Fetch the PR's commits (never checked out)
+        run: git fetch --quiet --no-tags origin "+refs/pull/$PR/head:refs/remotes/pr/head"
+      - name: Pick the tier
+        id: pick
+        run: |
+          tier=$(ci/eval-tier "$BASE_SHA" "$HEAD_SHA" 2>files.tsv)
+          echo "tier=$tier" >>"$GITHUB_OUTPUT"
+          {
+            echo "### Eval tier: $tier"
+            echo
+            echo "| Tier | File | Why |"
+            echo "|---|---|---|"
+            awk -F'\t' '{ printf "| %s | `%s` | %s |\n", $1, $2, $3 }' files.tsv
+          } >>"$GITHUB_STEP_SUMMARY"
+      - name: Label the PR
+        env:
+          TIER: ${{ steps.pick.outputs.tier }}
+        run: |
+          rank() { case $1 in none) echo 0 ;; smoke) echo 1 ;; standard) echo 2 ;; full) echo 3 ;; *) echo -1 ;; esac; }
+          mapfile -t have < <(gh api "repos/$REPO/issues/$PR/labels" --jq '.[].name | select(startswith("eval:"))')
+          keep=$TIER
+          for l in "${have[@]}"; do
+            [[ $(rank "${l#eval:}") -gt $(rank "$keep") ]] && keep=${l#eval:}
+          done
+          for l in "${have[@]}"; do
+            [[ $l == "eval:$keep" ]] || gh api -X DELETE "repos/$REPO/issues/$PR/labels/$l" >/dev/null
+          done
+          declare -A desc=(
+            [none]="No eval replay; deterministic CI only (D0010)"
+            [smoke]="Eval: 2 glue cards x1 before merge (D0010)"
+            [standard]="Eval: 5 cards x2 before merge (D0010)"
+            [full]="Eval: 10 cards x2, dispatched by hand (D0010)"
+          )
+          gh api "repos/$REPO/labels" -f name="eval:$keep" -f color=c5def5 \
+            -f description="${desc[$keep]}" >/dev/null 2>&1 || true
+          gh api "repos/$REPO/issues/$PR/labels" -f "labels[]=eval:$keep" >/dev/null
+          if [[ $keep != "$TIER" ]]; then
+            echo "Kept the higher label eval:$keep over the computed tier $TIER." >>"$GITHUB_STEP_SUMMARY"
+          fi

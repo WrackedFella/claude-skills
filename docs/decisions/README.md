@@ -23,4 +23,4 @@ status `Superseded by DNNNN`; the replacement links back.
 | [D0010](0010-evals-gate-before-merge.md) | devflow changes are evaluated before merge, on a change-gated queue | Accepted | 2026-11-21 |
 | [D0011](0011-intent-based-keep-rule.md) | One replay set, two reports, a keep rule fixed by declared intent | Accepted | 2026-11-21 |
 | [D0012](0012-lanes-measure-first.md) | Lighter per-card lanes wait on per-step data from normal runs | Accepted | 2026-11-21 |
-| [D0013](0013-claude-skills-ci.md) | claude-skills gets deterministic CI on pull requests | Proposed | 2026-11-21 |
+| [D0013](0013-claude-skills-ci.md) | claude-skills gets deterministic CI on pull requests and an eval-tier label | Accepted | 2026-11-21 |

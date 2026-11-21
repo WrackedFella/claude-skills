@@ -55,6 +55,13 @@ A merged PR into `main` is the release. Do not add a `version` to `plugin.json` 
 marketplace entry: a set `version` pins every consumer to the cached copy until the string
 changes, so commits stop reaching them.
 
+## Checks
+
+`ci/check` runs the checks CI requires on every pull request: shellcheck, fixture tests
+(`tests/run`), plugin validation, link checks and actionlint. It needs bash, git, jq and
+`pip install -r ci/requirements.txt`. CI also labels each PR with its eval tier
+([D0013](docs/decisions/0013-claude-skills-ci.md)).
+
 ## License
 
 MIT; see [LICENSE](LICENSE).
