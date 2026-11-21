@@ -68,7 +68,7 @@ fi
 domain_review=required docs=false
 if [[ -f $claude_md ]]; then
   setting=$(grep -oiE 'Domain-test review:[`* ]*(required|agent|not required)' "$claude_md" | head -n1 || true)
-  [[ -n $setting ]] && domain_review=$(sed -E 's/.*:[`* ]*//' <<<"$setting" | tr 'A-Z' 'a-z')
+  [[ -n $setting ]] && domain_review=$(sed -E 's/.*:[`* ]*//' <<<"$setting" | tr '[:upper:]' '[:lower:]')
   grep -qiE 'docs directory' "$claude_md" && docs=true
 fi
 

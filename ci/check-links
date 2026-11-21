@@ -1,0 +1,106 @@
+#!/usr/bin/env python3
+"""Checks that relative links in Markdown files resolve, anchors included.
+
+    ci/check-links [<repo-root>]
+
+Scans every tracked-looking `*.md` file under the root (skipping `.git`). A link
+`[text](target)` or `[text](target#anchor)` that is not a URL must name an existing
+file or directory; an anchor into a Markdown file must match one of its headings,
+slugged the way GitHub does. Links inside fenced or inline code are ignored.
+
+Prints one line per broken link as `<file>:<line>: <target>: <reason>`.
+Exit 0 clean, 1 broken links, 2 usage.
+"""
+
+import os
+import re
+import sys
+from urllib.parse import unquote
+
+LINK = re.compile(r"!?\[(?:[^\]\[]|\[[^\]]*\])*\]\(\s*<?([^)\s>]+)>?(?:\s+\"[^\"]*\")?\s*\)")
+FENCE = re.compile(r"^\s*(```|~~~)")
+INLINE_CODE = re.compile(r"`+[^`]*`+")
+HEADING = re.compile(r"^\s{0,3}#{1,6}\s+(.*?)\s*#*\s*$")
+SCHEME = re.compile(r"^[a-z][a-z0-9+.-]*:", re.I)
+
+
+def slug(heading):
+    """GitHub's heading anchor: lowercase, punctuation dropped, spaces to hyphens."""
+    text = re.sub(r"!?\[([^\]]*)\]\([^)]*\)", r"\1", heading)
+    text = re.sub(r"<[^>]+>", "", text).replace("`", "")
+    text = text.strip().lower()
+    text = re.sub(r"[^\w\- ]", "", text)
+    return text.replace(" ", "-")
+
+
+_anchors = {}
+
+
+def anchors(path):
+    if path not in _anchors:
+        found, seen, fenced = set(), {}, False
+        with open(path, encoding="utf-8") as f:
+            for line in f:
+                if FENCE.match(line):
+                    fenced = not fenced
+                    continue
+                m = None if fenced else HEADING.match(line)
+                if m:
+                    s = slug(m.group(1))
+                    n = seen.get(s, 0)
+                    seen[s] = n + 1
+                    found.add(s if n == 0 else f"{s}-{n}")
+                for a in re.findall(r"<a\s+(?:name|id)=\"([^\"]+)\"", line):
+                    found.add(a)
+        _anchors[path] = found
+    return _anchors[path]
+
+
+def check(path, root):
+    broken, fenced = [], False
+    with open(path, encoding="utf-8") as f:
+        lines = f.readlines()
+    for n, line in enumerate(lines, 1):
+        if FENCE.match(line):
+            fenced = not fenced
+            continue
+        if fenced:
+            continue
+        for target in LINK.findall(INLINE_CODE.sub("", line)):
+            if SCHEME.match(target) or target.startswith("//"):
+                continue
+            file_part, _, anchor = target.partition("#")
+            file_part = unquote(file_part)
+            if file_part.startswith("/"):
+                dest = os.path.join(root, file_part.lstrip("/"))
+            elif file_part:
+                dest = os.path.normpath(os.path.join(os.path.dirname(path), file_part))
+            else:
+                dest = path
+            if not os.path.exists(dest):
+                broken.append((n, target, "no such file"))
+            elif anchor and dest.endswith(".md") and os.path.isfile(dest) \
+                    and unquote(anchor).lower() not in anchors(dest):
+                broken.append((n, target, "no such heading"))
+    return broken
+
+
+def main(root):
+    failed = False
+    for dirpath, dirs, files in os.walk(root):
+        dirs[:] = sorted(d for d in dirs if d not in (".git", "node_modules"))
+        for fname in sorted(files):
+            if not fname.endswith(".md"):
+                continue
+            path = os.path.join(dirpath, fname)
+            for n, target, reason in check(path, root):
+                print(f"{os.path.relpath(path, root)}:{n}: {target}: {reason}")
+                failed = True
+    return 1 if failed else 0
+
+
+if __name__ == "__main__":
+    if len(sys.argv) > 2 or (len(sys.argv) == 2 and sys.argv[1].startswith("-")):
+        print(__doc__.strip(), file=sys.stderr)
+        sys.exit(2)
+    sys.exit(main(os.path.abspath(sys.argv[1] if len(sys.argv) == 2 else ".")))

@@ -55,6 +55,7 @@ find_item_id() {
 
 field_values() {
   local out
+  # shellcheck disable=SC2016 # $id is a GraphQL variable
   out=$(gh api graphql -f query='query($id:ID!){ node(id:$id){ ... on ProjectV2Item{
       fieldValues(first:50){ nodes{ ... on ProjectV2ItemFieldSingleSelectValue{
         name field{ ... on ProjectV2FieldCommon{ name } } } } } } } }' \

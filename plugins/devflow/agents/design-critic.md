@@ -1,6 +1,6 @@
 ---
 name: design-critic
-description: Adversarial finder that judges a change's structure against written rules and the changeability bar, citing a rule or a named work item for every finding. Use from pr-review on every review tier, with SHAs and an issue number, never a PR; or from orchestrate's intake with `Mode: intake` and an issue number, to check the work item itself against the rules before any code.
+description: "Adversarial finder that judges a change's structure against written rules and the changeability bar, citing a rule or a named work item for every finding. Use from pr-review on every review tier, with SHAs and an issue number, never a PR; or from orchestrate's intake with `Mode: intake` and an issue number, to check the work item itself against the rules before any code."
 tools: Read, Grep, Glob, Bash, mcp__gitnexus__impact, mcp__gitnexus__context
 skills: engineering-standards
 model: opus

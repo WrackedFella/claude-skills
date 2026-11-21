@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Test stand-in for the GitHub CLI: logs the call to $GH_LOG, asks the test's exported
+# `gh_stub` function for the response, and applies -q/--jq the way gh does.
+set -uo pipefail
+
+printf '%s\n' "$*" >>"${GH_LOG:-/dev/null}"
+filter="" args=()
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -q|--jq) filter=$2; shift 2 ;;
+    *) args+=("$1"); shift ;;
+  esac
+done
+body=$(gh_stub "${args[@]}") || { rc=$?; [[ -n $body ]] && echo "$body" >&2; exit "$rc"; }
+if [[ -n $filter ]]; then jq -r "$filter" <<<"$body"; else [[ -z $body ]] || echo "$body"; fi

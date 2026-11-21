@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+# Picks a pull request's eval tier (D0010) from the files it changes.
+#
+#   ci/eval-tier [--rules <file>] <base> <head>
+#
+# Diffs <base>...<head> (from their merge base) and prints the tier on stdout: none,
+# smoke, standard or full. Each path takes the tier of its first matching line in the
+# rules file (default: ci/eval-tiers next to this script); the PR takes the highest.
+# Tier full is set by the diff itself, for an agent (`agents/*.md`) or skill
+# (`skills/*/SKILL.md`) that is added, removed or renamed, or a changed `model:` or
+# `effort:` line in one. Explains each file's tier on stderr.
+#
+# Exit codes: 0 tier printed, 2 usage error.
+set -euo pipefail
+
+usage() { echo "eval-tier: $*" >&2; exit 2; }
+
+rules=$(dirname "$0")/eval-tiers
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --rules) rules=${2:?}; shift 2 ;;
+    -h|--help) sed -n '2,13p' "$0"; exit 0 ;;
+    -*) usage "unknown option $1" ;;
+    *) break ;;
+  esac
+done
+[[ $# -eq 2 ]] || usage "expected <base> <head>"
+[[ -r $rules ]] || usage "cannot read rules $rules"
+git rev-parse -q --verify "$1^{commit}" >/dev/null || usage "bad base $1"
+git rev-parse -q --verify "$2^{commit}" >/dev/null || usage "bad head $2"
+range="$1...$2"
+
+rank() { case $1 in none) echo 0 ;; smoke) echo 1 ;; standard) echo 2 ;; full) echo 3 ;; *) echo -1 ;; esac; }
+
+mapfile -t rule_lines < <(grep -vE '^[[:space:]]*(#|$)' "$rules")
+for r in "${rule_lines[@]}"; do
+  read -r tier glob extra <<<"$r"
+  [[ $(rank "$tier") -ge 0 && -n $glob && -z ${extra:-} ]] || usage "bad rule line: $r"
+done
+
+tier_of() {
+  local path=$1 r tier glob
+  for r in "${rule_lines[@]}"; do
+    read -r tier glob <<<"$r"
+    # In [[ == ]], `*` already matches `/`.
+    # shellcheck disable=SC2053
+    [[ $path == $glob ]] && { echo "$tier"; return; }
+  done
+  echo none
+}
+
+is_role() { [[ $1 == */agents/*.md || $1 == */skills/*/SKILL.md ]]; }
+
+best=none
+raise() { # <tier> <path> <why>
+  echo "$1	$2	$3" >&2
+  [[ $(rank "$1") -gt $(rank "$best") ]] && best=$1
+  return 0
+}
+
+while IFS=$'\t' read -r status path new; do
+  [[ -n $status ]] || continue
+  if [[ $status == R* || $status == C* ]]; then
+    if is_role "$path" || is_role "$new"; then raise full "$new" "agent or skill renamed from $path"; continue; fi
+    path=$new
+  fi
+  if is_role "$path" && [[ $status == A || $status == D ]]; then
+    raise full "$path" "agent or skill $([[ $status == A ]] && echo added || echo removed)"
+    continue
+  fi
+  if is_role "$path" && git diff --unified=0 --no-color "$range" -- "$path" | grep -qE '^[+-](model|effort):'; then
+    raise full "$path" "model or effort changed"
+    continue
+  fi
+  raise "$(tier_of "$path")" "$path" "rule"
+done < <(git diff --name-status -M --no-color "$range")
+
+echo "$best"

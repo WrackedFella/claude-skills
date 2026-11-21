@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# The repository's gate, as CI runs it: `ci/check` runs every check, `ci/check <name>...`
+# the ones named. Needs bash, git, jq and the Python packages in ci/requirements.txt.
+#
+# Checks:
+#   - shellcheck: lint every shell script (plugin scripts, CI scripts, tests)
+#   - tests: fixture tests for the plugin and CI scripts (tests/run)
+#   - plugin: manifests, frontmatter, scripts, plugin paths and names (ci/check-plugin)
+#   - links: relative Markdown links and anchors (ci/check-links)
+#   - workflows: actionlint on .github/workflows, shellcheck on their run steps
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+checks=("$@")
+[[ ${#checks[@]} -gt 0 ]] || checks=(shellcheck tests plugin links workflows)
+
+for c in "${checks[@]}"; do
+  echo "== $c"
+  case $c in
+    shellcheck) shellcheck -x plugins/devflow/scripts/* ci/check ci/eval-tier tests/run tests/bin/* tests/*.sh ;;
+    tests) tests/run ;;
+    plugin) ci/check-plugin ;;
+    links) ci/check-links ;;
+    workflows) actionlint ;;
+    *) echo "ci/check: unknown check '$c'" >&2; exit 2 ;;
+  esac
+done

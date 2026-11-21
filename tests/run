@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Runs the fixture tests: every tests/*.test.sh, or the ones named (`tests/run step-check`).
+# Each file runs in its own shell with tests/lib.sh loaded; exit 1 when any test fails.
+set -uo pipefail
+
+here=$(cd "$(dirname "$0")" && pwd)
+export REPO=${here%/tests} TESTS=$here
+
+files=()
+if [[ $# -gt 0 ]]; then
+  for n in "$@"; do files+=("$here/$n.test.sh"); done
+else
+  files=("$here"/*.test.sh)
+fi
+
+failed=0
+for f in "${files[@]}"; do
+  [[ -f $f ]] || { echo "no such test file: $f" >&2; failed=1; continue; }
+  echo "== ${f##*/}"
+  bash -c 'set -uo pipefail; source "$TESTS/lib.sh"; source "$1"; finish' _ "$f" || failed=1
+done
+exit "$failed"
