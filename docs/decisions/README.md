@@ -26,4 +26,4 @@ status `Superseded by DNNNN`; the replacement links back.
 | [D0013](0013-claude-skills-ci.md) | claude-skills gets deterministic CI on pull requests and an eval-tier label | Accepted | 2026-11-21 |
 | [D0014](0014-rulesets-in-both-repos.md) | Branch rules are rulesets in both repositories | Accepted | 2026-11-21 |
 | [D0015](0015-moho-ruleset-per-branch.md) | moho's rulesets match each branch's role | Proposed | 2026-11-21 |
-| [D0016](0016-human-merge-is-a-rule.md) | "Only humans merge" is a ruleset on moho `dev` | Proposed | 2026-11-21 |
+| [D0016](0016-agents-may-merge.md) | Agents may merge once automated checks and review pass | Accepted | 2026-11-21 |
