@@ -24,3 +24,6 @@ status `Superseded by DNNNN`; the replacement links back.
 | [D0011](0011-intent-based-keep-rule.md) | One replay set, two reports, a keep rule fixed by declared intent | Accepted | 2026-11-21 |
 | [D0012](0012-lanes-measure-first.md) | Lighter per-card lanes wait on per-step data from normal runs | Accepted | 2026-11-21 |
 | [D0013](0013-claude-skills-ci.md) | claude-skills gets deterministic CI on pull requests and an eval-tier label | Accepted | 2026-11-21 |
+| [D0014](0014-rulesets-in-both-repos.md) | Branch rules are rulesets in both repositories | Accepted | 2026-11-21 |
+| [D0015](0015-moho-ruleset-per-branch.md) | moho's rulesets match each branch's role | Proposed | 2026-11-21 |
+| [D0016](0016-agents-may-merge.md) | Agents may merge once automated checks and review pass | Accepted | 2026-11-21 |
