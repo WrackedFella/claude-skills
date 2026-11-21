@@ -24,7 +24,7 @@
 #              implementer or builder call, so the reported counts are for the final code (step 6)
 #   comments   Skill devflow:comment-audit (step 7)
 #   docs       Skill devflow:wiki, when the project names a docs directory (step 8)
-#   review     Agent devflow:reviewer (step 11)
+#   review     Skill pr-review (step 11, a dry run on the branch)
 # A run that added `agent-paused` to its item, or whose last message starts with the pause
 # comment's first line (`Paused: needs a human answer`, used where the run can't label),
 # has paused and owes no later step. A run that removed the label has resumed. The
@@ -112,7 +112,7 @@ report=$(jq -c --arg domain_review "$domain_review" --argjson docs "$docs" '
       mutation: any($calls | to_entries[] | select($last_change == null or .key > $last_change) | .value; mutation_call),
       comments: any($calls[]; .name == "Skill" and ((.input.skill // "") | test("comment-audit$"))),
       docs: any($calls[]; .name == "Skill" and ((.input.skill // "") | test("(^|:)wiki$"))),
-      review: any($calls[]; . as $c | "reviewer" | agent($c))
+      review: any($calls[]; .name == "Skill" and ((.input.skill // "") | test("(^|:)pr-review$")))
     } as $done
   | ((if $resumed then [] else [ "intake" ] end) + [ "tests" ]
      + (if $gate == "domain" and $domain_review == "agent" then [ "test-review" ] else [] end)
