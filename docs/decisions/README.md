@@ -27,3 +27,4 @@ status `Superseded by DNNNN`; the replacement links back.
 | [D0014](0014-rulesets-in-both-repos.md) | Branch rules are rulesets in both repositories | Accepted | 2026-11-21 |
 | [D0015](0015-moho-ruleset-per-branch.md) | moho's rulesets match each branch's role | Proposed | 2026-11-21 |
 | [D0016](0016-agents-may-merge.md) | Agents may merge once automated checks and review pass | Accepted | 2026-11-21 |
+| [D0017](0017-agent-merge-step.md) | The PR review workflow merges an eligible agent PR, pinned to the reviewed SHA | Accepted | 2026-11-21 |

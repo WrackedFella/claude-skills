@@ -1,0 +1,31 @@
+# D0017 The PR review workflow merges an eligible agent PR, pinned to the reviewed SHA
+
+- **Status:** Accepted, 2026-11-21 (Justin chose glue first). Builds on D0016 (agents may merge).
+- **Decision:** in moho, the PR review workflow merges an agent PR after its review; no skill or agent run merges. A PR merges when all of these hold:
+  - an orchestrate run opened it from the same repository, into `dev`
+  - the reviewer App's latest review is on the head SHA, with `Verdict: approve` and `Sign-off: agent`
+  - the switch allows its class: variable `PR_AUTOMERGE` = `glue` (no domain path changed) or `all`
+  - a deterministic script finds no reason to stop it:
+    - no change to gate, agent-config or process paths (`.github/`, `.claude/`, `.cargo/`, `scripts/`, root `*.toml`, `Cargo.lock`, `justfile`, any `CLAUDE.md`, ADRs, `wiki/process/`, `_todo/_STANDARDS.md`, `_todo/WORKFLOW.md`)
+    - no comment or review by anyone outside the repository's members and its own bots, on the PR or its issue
+    - no changes requested by a person
+    - no `needs-human` or `agent-paused` label
+    - the last push CI on `dev` is green
+- **Mechanism:**
+  - The merge is a REST merge call with `sha` set to the reviewed head, made with the reviewer App's token.
+  - The required checks stay in the `dev` ruleset with no bypass, so the merge can't skip them.
+  - When a rule fails, the workflow comments with each failed rule and a person merges.
+  - `PR_AUTOMERGE` starts at `glue`, moves to `all` after 10 glue merges with green CI on `dev` and no revert, and anything else turns merging off.
+- **Stays human:** promotions into `main`; PRs that a person or a project thread opened; every claude-skills PR, because a merge there is the release; and every PR the review routes `human`.
+- **Why:**
+  - **Not native auto-merge.** Auto-merge stays armed through later pushes, so a commit pushed after the review would merge unreviewed unless a stale-approval rule or a disarm job intervened. The `sha` parameter makes GitHub refuse the merge once the head moves, and nothing stays armed for the switch to clear.
+  - **No required approval.** A required approval would need a stale-dismissal rule and an admin bypass for the person's own PRs. The pinned SHA gives the same freshness guarantee without that ruleset change (D0016).
+  - **The reviewer App's token.** Events made with `GITHUB_TOKEN` start no workflows, so a merge made with it would skip push CI on `dev` and Board sync.
+  - **Green `dev` as a precondition.** Required checks are non-strict, so two green PRs can merge into a red `dev`. Requiring the last `dev` run to be green stops the next merge with no state to reset; a variable-flipping breaker would need a token that can write variables.
+  - **Deny paths and the outside-comment rule are script rules.** The repository is public and agents read every comment. A rule that must always hold belongs in a script, not a prompt.
+- **Evidence:**
+  - 2 live reviews between 2026-11-13 and 2026-11-21 (moho #841, #843), both approved with `Sign-off: human`.
+  - #843 was reverted later (#847).
+  - The rules are unit-tested against fixtures (`just merge-eligibility-test`), and the script was run read-only against #841.
+- **Sources:** S7, S10, S11, S12, S13.
+- **Reopen when:** an automatic merge is reverted, `dev` goes red after one, or a merge lands a change that a person's review would have stopped.
