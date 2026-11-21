@@ -11,14 +11,17 @@
 # Required calls, in the order orchestrate defines them:
 #   intake     Agent devflow:design-critic before the first test-writer call (step 1),
 #              unless the run resumed from a pause
-#   tests      Agent devflow:test-writer (step 2)
+#   tests      Agent devflow:test-writer, or devflow:builder with `Mode: tests` (step 2)
 #   test-review Agent devflow:test-critic, for a domain item when the project sets
 #              `Domain-test review: agent` (step 2)
-#   implement  Agent devflow:implementer (step 3)
-#   challenge  Agent devflow:test-writer after the first implementer call (step 4)
+#   implement  Agent devflow:implementer, or a builder brief with `Mode: implement` (step 3)
+#   challenge  Agent devflow:test-writer, or a builder brief with `Mode: challenge`, after
+#              the implement call (step 4)
+# A builder brief is an Agent devflow:builder call or a SendMessage to the builder; its
+# prompt or message names the mode.
 #   simplify   Skill simplify (step 5)
-#   mutation   a Bash command running the mutation tool after the last test-writer or
-#              implementer call, so the reported counts are for the final code (step 6)
+#   mutation   a Bash command running the mutation tool after the last test-writer,
+#              implementer or builder call, so the reported counts are for the final code (step 6)
 #   comments   Skill devflow:comment-audit (step 7)
 #   docs       Skill devflow:wiki, when the project names a docs directory (step 8)
 #   review     Agent devflow:reviewer (step 11)
@@ -78,6 +81,9 @@ report=$(jq -c --arg domain_review "$domain_review" --argjson docs "$docs" '
   def text: if type == "string" then . elif type == "array" then map(.text // (.content | text?) // "") | join("\n") else "" end;
   def calls: [ .[] | select(.type == "assistant") | .message.content[]? | select(.type == "tool_use") ];
   def agent($c): . as $n | ($c.name == "Agent" or $c.name == "Task") and (($c.input.subagent_type // "") | test("(^|:)" + $n + "$"));
+  def brief($c): ($c.input.prompt // $c.input.message // "") | tostring;
+  def builder($c; $m): ((($c.name == "Agent" or $c.name == "Task") and (($c.input.subagent_type // "") | test("(^|:)builder$")))
+      or $c.name == "SendMessage") and (brief($c) | test("Mode: *" + $m));
   def mutation_call: .name == "Bash" and ((.input.command // "") | test("mutant|mutation|stryker"; "i"));
   . as $msgs
   | ($msgs | calls) as $calls
@@ -91,16 +97,17 @@ report=$(jq -c --arg domain_review "$domain_review" --argjson docs "$docs" '
   | any($labels[]; test("remove-label")) as $resumed
   | (($user | capture("gate=(?<g>domain|glue)").g)
       // ($user | capture("[Gg]ate class:?[`* ]*(?<g>domain|glue)").g) // "unknown") as $gate
-  | ([ $calls | to_entries[] | select(.value as $c | "implementer" | agent($c)) | .key ] | first) as $impl
-  | ([ $calls | to_entries[] | select(.value as $c | "test-writer" | agent($c)) | .key ] | first) as $first_tests
-  | ([ $calls | to_entries[] | select(.value as $c | ("test-writer" | agent($c)) or ("implementer" | agent($c))) | .key ] | last) as $last_change
+  | ([ $calls | to_entries[] | select(.value as $c | ("implementer" | agent($c)) or builder($c; "implement")) | .key ] | first) as $impl
+  | ([ $calls | to_entries[] | select(.value as $c | ("test-writer" | agent($c)) or builder($c; "tests")) | .key ] | first) as $first_tests
+  | ([ $calls | to_entries[] | select(.value as $c | ("test-writer" | agent($c)) or ("implementer" | agent($c)) or builder($c; "")) | .key ] | last) as $last_change
   | {
       intake: any($calls | to_entries[] | select($first_tests == null or .key < $first_tests) | .value;
         . as $c | "design-critic" | agent($c)),
       tests: ($first_tests != null),
       "test-review": any($calls[]; . as $c | "test-critic" | agent($c)),
       implement: ($impl != null),
-      challenge: ($impl != null and any($calls | to_entries[] | select(.key > $impl) | .value; . as $c | "test-writer" | agent($c))),
+      challenge: ($impl != null and any($calls | to_entries[] | select(.key > $impl) | .value;
+        . as $c | ("test-writer" | agent($c)) or builder($c; "challenge"))),
       simplify: any($calls[]; .name == "Skill" and ((.input.skill // "") | test("(^|:)simplify$"))),
       mutation: any($calls | to_entries[] | select($last_change == null or .key > $last_change) | .value; mutation_call),
       comments: any($calls[]; .name == "Skill" and ((.input.skill // "") | test("comment-audit$"))),
