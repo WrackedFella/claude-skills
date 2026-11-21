@@ -1,6 +1,6 @@
 # D0017 The PR review workflow merges an eligible agent PR, pinned to the reviewed SHA
 
-- **Status:** Proposed, 2026-11-21. Builds on D0016 (agents may merge).
+- **Status:** Accepted, 2026-11-21 (Justin chose glue first). Builds on D0016 (agents may merge).
 - **Decision:** in moho, the PR review workflow merges an agent PR after its review; no skill or agent run merges. A PR merges when all of these hold:
   - an orchestrate run opened it from the same repository, into `dev`
   - the reviewer App's latest review is on the head SHA, with `Verdict: approve` and `Sign-off: agent`
