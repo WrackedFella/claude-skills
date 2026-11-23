@@ -28,3 +28,8 @@ status `Superseded by DNNNN`; the replacement links back.
 | [D0015](0015-moho-ruleset-per-branch.md) | moho's rulesets match each branch's role | Proposed | 2026-11-21 |
 | [D0016](0016-agents-may-merge.md) | Agents may merge once automated checks and review pass | Accepted | 2026-11-21 |
 | [D0017](0017-agent-merge-step.md) | The PR review workflow merges an eligible agent PR, pinned to the reviewed SHA | Accepted | 2026-11-21 |
+| [D0018](0018-skill-scripts-on-allow-list.md) | Every script a skill calls is on the runner's allow-list, and deciding scripts are checked | Proposed | 2026-11-23 |
+| [D0019](0019-fix-loop-under-test-guard.md) | The review fix loop runs under the test guard | Proposed | 2026-11-23 |
+| [D0020](0020-verdict-from-a-script.md) | The PR review's verdict lines are computed by a script | Proposed | 2026-11-23 |
+| [D0021](0021-wiki-does-not-restate-skills.md) | The wiki explains and links; it does not restate a skill's procedure | Proposed | 2026-11-23 |
+| [D0022](0022-entry-point-skills-not-model-invocable.md) | Entry-point skills start only when named; plugin agents carry no hooks | Proposed | 2026-11-23 |
