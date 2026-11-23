@@ -27,7 +27,7 @@ enable auto-merge.
    `devflow:test-writer`. Group related threads into one change set. Resolve the
    `Standards:` line exactly as in `devflow:orchestrate`'s `## Standards` section (including
    its stop-and-comment rule for an unknown standard) and put it in every worker brief.
-3. Run the project's gate after each change set; never push red. Commit per change set
+3. Run the project's gate and the `## Test guard` checks after each change set; never push red or guarded-red. Commit per change set
    (`fix(scope): ...` or the fitting type), referencing nothing ephemeral in code
    comments. Merge the base branch into the PR branch if it is behind; never rebase or
    force-push.
@@ -39,6 +39,26 @@ enable auto-merge.
    and the harness protects such paths in headless runs. When a mutant cannot be tested, reply with
    the exact exclusion line and why, and leave the config unchanged for a human.
 6. In a headless run, run every subagent in the foreground and wait for its report, and issue one command per Bash call: no `&&`, `;`, pipes, `cd` or `$(...)`. The allow-list matches by prefix, so a compound is denied unless every part is allowed.
+
+## Test guard
+
+Tests are the spec only while the code that must satisfy them cannot rewrite them. Before every push, with
+`<H>` the head SHA the latest review (or, with none, the branch tip when `respond` started) covered:
+
+- Run `${CLAUDE_PLUGIN_ROOT}/scripts/test-guard --since <H>` with `--allow <sha>` for each commit
+  that only adds the test a review blocker asked for (B1, B2), `--marker` set to the line
+  that opens inline test code in the project's language, and the project's test-file globs.
+  These are the arguments of `devflow:orchestrate`'s `## Test guard`; `--since` is the
+  reviewed head, never a step 2 commit.
+- When the project sets `Acceptance test paths`, also run
+  `${CLAUDE_PLUGIN_ROOT}/scripts/e2e-guard --base <PR base commit> --since <H>` with the same
+  `--allow` commits and the globs as arguments.
+
+A non-zero exit from either means a test that existed at `<H>` was changed or removed:
+restore the files (`git checkout <H> -- <file>`, or by hand for the reported lines),
+re-brief the worker with the guard output, and push nothing with that edit. A worker
+that cannot satisfy a finding without editing an existing test gets a `Declined` reply
+for it. Never edit the guard's arguments to make it pass.
 
 A headless run that needs a person (a declined request, an untestable mutant, an unknown
 standard) says so in a PR-level reply, never only in the run output. A person resumes it
