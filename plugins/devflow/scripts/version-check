@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# SessionStart hook: warns when the devflow a session loaded differs from the plugin on
+# its repository's default branch. A session keeps the plugin it started with, and a
+# cloud environment restores the install made when its snapshot was built, so a stale
+# install goes unnoticed unless something says so at the start.
+#
+#   version-check [--plugin-root <dir>] [--upstream <git url>]
+#
+#   --plugin-root  the loaded plugin (default $CLAUDE_PLUGIN_ROOT)
+#   --upstream     the repository to compare with (default: `repository` in plugin.json)
+#
+# Prints nothing when the plugin matches, under GitHub Actions (each run installs the
+# default branch), when the plugin root is a git checkout (a local development copy), or
+# when the upstream can't be read. Otherwise prints SessionStart hook JSON: a
+# `systemMessage` for the user and `additionalContext` for the model. Always exits 0, so
+# the check never blocks a session.
+set -uo pipefail
+
+root=${CLAUDE_PLUGIN_ROOT:-} upstream=""
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --plugin-root) root=${2:?}; shift 2 ;;
+    --upstream) upstream=${2:?}; shift 2 ;;
+    -h|--help) sed -n '2,16p' "$0"; exit 0 ;;
+    *) echo "version-check: unknown argument '$1'" >&2; exit 0 ;;
+  esac
+done
+
+[[ ${GITHUB_ACTIONS:-} == true ]] && exit 0
+[[ -n $root && -f $root/.claude-plugin/plugin.json ]] || exit 0
+git -C "$root" rev-parse --is-inside-work-tree >/dev/null 2>&1 && exit 0
+
+name=$(jq -r '.name // empty' "$root/.claude-plugin/plugin.json" 2>/dev/null)
+[[ -n $upstream ]] || upstream=$(jq -r '.repository // empty' "$root/.claude-plugin/plugin.json" 2>/dev/null)
+[[ -n $name && -n $upstream ]] || exit 0
+
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+GIT_TERMINAL_PROMPT=0 timeout 30 git clone -q --depth 1 "$upstream" "$tmp/u" 2>/dev/null || exit 0
+current=$tmp/u/plugins/$name
+[[ -d $current ]] || exit 0
+head=$(git -C "$tmp/u" rev-parse --short=12 HEAD)
+
+# Paths that differ, relative to the plugin root. Dotfiles at the top of the loaded root
+# are the plugin manager's markers (such as `.in_use`), not plugin content.
+changed=$(diff -rq -x .git "$root" "$current" 2>/dev/null |
+  sed -E -e "s#^Files $root/(.*) and .* differ\$#\\1#" \
+    -e "s#^Only in $root: \\..*\$##" \
+    -e "s#^Only in $root/?([^:]*): (.*)\$#\\1/\\2#" \
+    -e "s#^Only in $current/?([^:]*): (.*)\$#\\1/\\2#" \
+    -e 's#^/##' | sed '/^$/d')
+[[ -n $changed ]] || exit 0
+
+count=$(wc -l <<<"$changed" | tr -d ' ')
+sample=$(head -n 5 <<<"$changed" | paste -sd, - | sed 's/,/, /g')
+loaded=$(basename "$root")
+market=$(basename "$(dirname "$(dirname "$root")")")
+
+user_msg="$name is out of date: this session loaded $loaded; $count file(s) differ from the default branch ($head). New sessions need a refreshed install (see the model's note)."
+context="$name is out of date. This session loaded $loaded; $count file(s) differ from $upstream at its default branch ($head), for example: $sample.
+The session keeps the loaded skills, agents and hooks until it ends. Before starting a $name skill or agent, tell the user this and ask whether to go on with the loaded version or start a new session after a refresh.
+To refresh:
+- Cloud session: the environment's setup script runs only when its snapshot is built, and changing the script rebuilds it. Bump the script's \`devflow-stamp:\` line to $head (propose it with update_environment where that tool exists; otherwise the user edits the setup script in the environment settings). New sessions then load the current version.
+- Terminal: run \`claude plugin marketplace update $market\` and \`claude plugin update $name@$market\`, then restart."
+
+jq -n --arg m "$user_msg" --arg c "$context" \
+  '{systemMessage: $m, hookSpecificOutput: {hookEventName: "SessionStart", additionalContext: $c}}'
+exit 0

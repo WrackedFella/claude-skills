@@ -14,8 +14,15 @@ tooling exists, and whether the board is reachable.
 
 - **Plugin delivery.** Plugins enabled in a repository's `.claude/settings.json` are not
   loaded. The environment's setup script installs devflow at user scope from the default
-  branch, or the Project links this repository. The environment is a snapshot rebuilt when
-  the script changes or after a few days, so a merge to `main` reaches threads only then.
+  branch. The script runs only when the environment's snapshot is built (when the script
+  changes, or after a few days), not per session, so a merge to `main` reaches threads only
+  after a rebuild. Bumping the script's `devflow-stamp:` line forces one
+  ([Getting started](getting-started.md#7-set-up-the-cloud-environment-optional)).
+- **Stale-plugin warning.** The `SessionStart` hook
+  ([`version-check`](../plugins/devflow/scripts/version-check)) compares the loaded plugin
+  with the default branch and, when they differ, tells the user and the model which files
+  differ and how to refresh. A session can't reload its plugin, so it asks before starting
+  a devflow skill or agent on the old version.
 - **Toolchain on demand.** The environment setup command from the
   [project contract](project-contract.md) installs the build toolchain. Threads that only
   edit text skip it and start faster.
@@ -42,7 +49,7 @@ A runner (for example `claude-code-action`) reacts to a label and invokes a skil
   (the acceptance reviewer's evidence), as a run artifact. The acceptance reviewer also
   needs `playwright-cli` on the runner and in its allow-list.
 - Headless runs match Bash commands against the allow-list by prefix, so `orchestrate` and `respond` issue one command per call; a compound is denied unless every part is allowed, and each denial costs a turn.
-- Plugin hooks load wherever the plugin does, cloud threads excepted. The `Stop` hook ([`step-check`](../plugins/devflow/scripts/step-check)) enforces only when `GITHUB_ACTIONS=true`; it needs `jq` on the runner. Run it on an execution log (`step-check <log>`) to score a finished run.
+- Plugin hooks load wherever the plugin does, including a user-scope install in a cloud thread. The `SessionStart` hook (`version-check`) skips GitHub Actions, which installs the default branch per run. The `Stop` hook ([`step-check`](../plugins/devflow/scripts/step-check)) enforces only when `GITHUB_ACTIONS=true`; it needs `jq` on the runner. Run it on an execution log (`step-check <log>`) to score a finished run.
 - Headless runs force foreground subagents. Parallel implementer calls issued in one message run concurrently where the host allows and serially otherwise; correctness does not depend on concurrency, only wall-clock does.
 - Only the default app token is available; no board access.
 - One run per issue at a time; refine needs a shorter budget than orchestrate.
