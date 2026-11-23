@@ -152,6 +152,8 @@ Claude Code Projects threads do not load plugins from `.claude/settings.json`
    the default branch:
 
    ```bash
+   # Runs only when the environment snapshot is built. Bump the stamp to rebuild it.
+   # devflow-stamp: <sha of main>
    if ! claude plugin list 2>/dev/null | grep -q 'devflow@claude-skills'; then
      claude plugin marketplace add WrackedFella/claude-skills --scope user
      claude plugin install devflow@claude-skills --scope user
@@ -164,7 +166,10 @@ Claude Code Projects threads do not load plugins from `.claude/settings.json`
    environment setup command in `CLAUDE.md` (Moho: `bash scripts/cloud-tools.sh`), so
    text-only threads start fast.
 3. Link the repositories to the Project. The environment is a cached snapshot, so a merge
-   to `main` reaches threads only after the script changes or the snapshot expires.
+   to `main` reaches threads only after the script changes or the snapshot expires. When a
+   session starts on an older plugin, devflow's `SessionStart` hook says so and names the
+   SHA to put on the `devflow-stamp:` line; the change rebuilds the snapshot for new
+   sessions.
 
 ## 8 Turn on acceptance tests and review (optional)
 

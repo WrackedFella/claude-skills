@@ -33,3 +33,4 @@ status `Superseded by DNNNN`; the replacement links back.
 | [D0020](0020-verdict-from-a-script.md) | The PR review's verdict lines are computed by a script | Proposed | 2026-11-23 |
 | [D0021](0021-wiki-does-not-restate-skills.md) | The wiki explains and links; it does not restate a skill's procedure | Proposed | 2026-11-23 |
 | [D0022](0022-entry-point-skills-not-model-invocable.md) | Entry-point skills start only when named; plugin agents carry no hooks | Proposed | 2026-11-23 |
+| [D0023](0023-stale-plugin-check.md) | A SessionStart hook reports a stale devflow; a cloud environment refreshes by a setup-script change | Accepted | 2026-11-23 |
