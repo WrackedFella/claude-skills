@@ -7,15 +7,20 @@ call() { jq -cn --arg n "$1" --argjson i "$2" '{type:"assistant", message:{conte
 agent() { call Agent "$(jq -cn --arg s "devflow:$1" --arg p "${2:-}" '{subagent_type:$s, prompt:$p}')"; }
 skill() { call Skill "$(jq -cn --arg s "$1" '{skill:$s}')"; }
 bash_call() { call Bash "$(jq -cn --arg c "$1" '{command:$c}')"; }
+agree() { bash_call '"${CLAUDE_PLUGIN_ROOT}/scripts/intake-agree" a.md b.md'; }
+guard() { bash_call '${CLAUDE_PLUGIN_ROOT}/scripts/test-guard --since abc123 --marker x'; }
 say() { jq -cn --arg t "$1" '{type:"assistant", message:{content:[{type:"text", text:$t}]}}'; }
 
 full_run() {
   user "/devflow:orchestrate 12 <!-- board: gate=glue; eligible=yes -->"
   agent design-critic "Mode: intake"
+  agent design-critic "Mode: intake"
+  agree
   agent test-writer
   agent implementer
   agent test-writer "challenge"
   skill simplify
+  guard
   bash_call "just mutants"
   skill devflow:comment-audit
   skill devflow:wiki
@@ -38,8 +43,8 @@ assert_rc 1
 assert_json .missing '["challenge"]'
 
 t "mutation testing before the last code change does not count"
-{ user "/devflow:orchestrate 12 gate=glue"; agent design-critic; agent test-writer; agent implementer
-  bash_call "just mutants"; agent test-writer challenge; skill simplify; skill comment-audit; skill wiki; agent reviewer
+{ user "/devflow:orchestrate 12 gate=glue"; agent design-critic; agree; agent test-writer; agent implementer
+  bash_call "just mutants"; agent test-writer challenge; guard; skill simplify; skill comment-audit; skill wiki; agent reviewer
 } >"$dir/late.jsonl"
 run "$SCRIPTS/step-check" --claude-md "$dir/CLAUDE.md" "$dir/late.jsonl"
 assert_rc 1
@@ -55,20 +60,82 @@ t "a domain item needs no test-critic call when a human reviews tests"
 printf 'Domain-test review: required\n' >"$dir/human.md"
 run "$SCRIPTS/step-check" --claude-md "$dir/human.md" "$dir/domain.jsonl"
 assert_rc 0
-assert_json .required '["intake","tests","implement","challenge","simplify","mutation","comments","review"]'
+assert_json .required '["intake","intake-agree","tests","implement","challenge","simplify","guard","mutation","comments","review"]'
 
 t "builder briefs stand in for test-writer and implementer"
-{ user "/devflow:orchestrate 3 gate=glue"; agent design-critic; agent builder "Mode: tests"
+{ user "/devflow:orchestrate 3 gate=glue"; agent design-critic; agree; agent builder "Mode: tests"
   call SendMessage '{"to":"builder","message":"Mode: implement"}'
   call SendMessage '{"to":"builder","message":"Mode: challenge"}'
-  skill simplify; bash_call "just mutants"; skill comment-audit; skill wiki; agent reviewer
+  skill simplify; guard; bash_call "just mutants"; skill comment-audit; skill wiki; agent reviewer
 } >"$dir/builder.jsonl"
 run "$SCRIPTS/step-check" --claude-md "$dir/CLAUDE.md" "$dir/builder.jsonl"
 assert_rc 0
 
+t "a run that skipped the test guard is stopped"
+full_run | grep -v 'test-guard' >"$dir/noguard.jsonl"
+run "$SCRIPTS/step-check" --claude-md "$dir/CLAUDE.md" "$dir/noguard.jsonl"
+assert_rc 1
+assert_json .missing '["guard"]'
+
+t "a test-guard call before the last worker call does not count"
+{ user "/devflow:orchestrate 12 gate=glue"; agent design-critic; agree; agent test-writer; agent implementer; guard
+  agent test-writer challenge; skill simplify; bash_call "just mutants"; skill comment-audit; skill wiki; agent reviewer
+} >"$dir/lateguard.jsonl"
+run "$SCRIPTS/step-check" --claude-md "$dir/CLAUDE.md" "$dir/lateguard.jsonl"
+assert_rc 1
+assert_json .missing '["guard"]'
+
+t "a command that only mentions test-guard is not a guard call"
+full_run | grep -v 'test-guard' >"$dir/mention.jsonl"
+bash_call 'git commit -m "wire test-guard" && cat scripts/test-guard' >>"$dir/mention.jsonl"
+run "$SCRIPTS/step-check" --claude-md "$dir/CLAUDE.md" "$dir/mention.jsonl"
+assert_rc 1
+assert_json .missing '["guard"]'
+
+t "quoted and heredoc mentions of test-guard are not guard calls"
+full_run | grep -v 'test-guard' >"$dir/quoted.jsonl"
+bash_call 'gh pr comment 5 --body "notes; test-guard not run"' >>"$dir/quoted.jsonl"
+bash_call $'git commit -F - <<EOF\nscripts/test-guard skipped\nEOF' >>"$dir/quoted.jsonl"
+run "$SCRIPTS/step-check" --claude-md "$dir/CLAUDE.md" "$dir/quoted.jsonl"
+assert_json .missing '["guard"]'
+
+t "a guard call behind env assignments or timeout counts"
+full_run | grep -v 'test-guard' >"$dir/prefixed.jsonl"
+bash_call 'LC_ALL=C timeout 600 ${CLAUDE_PLUGIN_ROOT}/scripts/test-guard --since a' >>"$dir/prefixed.jsonl"
+run "$SCRIPTS/step-check" --claude-md "$dir/CLAUDE.md" "$dir/prefixed.jsonl"
+assert_rc 0
+
+t "a mode-less guard-failure message to the builder is not an unlabelled brief"
+{ user "/devflow:orchestrate 3 gate=glue"; agent design-critic; agree; agent builder "Mode: tests"
+  call SendMessage '{"to":"builder","message":"The guard failed: restore x."}'
+  call SendMessage '{"to":"builder","message":"Mode: implement"}'
+  call SendMessage '{"to":"builder","message":"Mode: challenge"}'
+  skill simplify; guard; bash_call "just mutants"; skill comment-audit; skill wiki; agent reviewer
+} >"$dir/rebrief.jsonl"
+run "$SCRIPTS/step-check" --claude-md "$dir/CLAUDE.md" "$dir/rebrief.jsonl"
+assert_rc 0
+
+t "--help prints the exit codes"
+run "$SCRIPTS/step-check" --help
+assert_contains "3 when the"
+
+t "intake without the agreement script is stopped"
+full_run | grep -v 'intake-agree' >"$dir/noagree.jsonl"
+run "$SCRIPTS/step-check" --claude-md "$dir/CLAUDE.md" "$dir/noagree.jsonl"
+assert_rc 1
+assert_json .missing '["intake-agree"]'
+
+t "a builder brief without a Mode line is one finding"
+{ user "/devflow:orchestrate 45 gate=glue"; agent design-critic; agree; agent builder "Build the item."
+  skill simplify; guard; bash_call "just mutants"; skill comment-audit; skill wiki; agent reviewer
+} >"$dir/unlabelled.jsonl"
+run "$SCRIPTS/step-check" --claude-md "$dir/CLAUDE.md" "$dir/unlabelled.jsonl"
+assert_rc 1
+assert_json .missing '["unlabelled brief"]'
+
 t "intake after the first test-writer call does not count"
 { user "/devflow:orchestrate 3 gate=glue"; agent test-writer; agent design-critic; agent implementer
-  agent test-writer; skill simplify; bash_call "just mutants"; skill comment-audit; skill wiki; agent reviewer
+  agent test-writer; guard; skill simplify; bash_call "just mutants"; skill comment-audit; skill wiki; agent reviewer
 } >"$dir/lateintake.jsonl"
 run "$SCRIPTS/step-check" --claude-md "$dir/CLAUDE.md" "$dir/lateintake.jsonl"
 assert_rc 1

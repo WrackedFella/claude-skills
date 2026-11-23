@@ -22,10 +22,13 @@ Challenges, triage and decisions are its own judgment work.
 - Headless: the plugin's `Stop` hook runs [`scripts/step-check`](../plugins/devflow/scripts/step-check),
   which blocks the first stop of a run whose main loop never made a mandatory step's call
   (the intake design-critic before the first test-writer call unless the run resumed,
+  a Bash call to `scripts/intake-agree` after the intake critics,
   test-writer or builder `Mode: tests`, test-critic when it applies, implementer or
   builder `Mode: implement`, a test-writer or builder `Mode: challenge` call after it,
-  `/simplify`, a mutation run after the last worker call, comment
-  audit, wiki when a docs directory is set, reviewer) and names the missing steps. A
+  `/simplify`, a `scripts/test-guard` call and a mutation run after the last worker call, comment
+  audit, wiki when a docs directory is set, reviewer) and names the missing steps. Script
+  calls are matched by basename; a builder start with no `Mode:` line is reported once as
+  `unlabelled brief`. A
   paused run (the `agent-paused` label added, or a final report whose first line is
   `Paused: needs a human answer`) owes nothing more. The next stop
   goes through, so a step the skill exempts is explained in the final report.
