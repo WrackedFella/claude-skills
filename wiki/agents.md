@@ -145,7 +145,8 @@ expected fix; an ambiguity is a question with both readings and a proposed defau
 - **refuter.** One finding per call, with a mandate to disprove it: reruns the test
   itself (B2 also on reverted code), checks the rule, the code path and the named item,
   and may lower the severity, except that B2, B4 and B6 stay blockers. Mode `fixed`
-  rechecks an earlier blocker at a new head.
+  rechecks an earlier blocker at a new head. An advisory reviewer's comment arrives
+  unclassified; the refuter settles its class or refutes it.
   Reports `CONFIRMED`, `REFUTED`, `FIXED` or `NOT FIXED` with what it ran.
 - **Written rules outrank the work item.** The finders and the refuter read the
   project's `CLAUDE.md`, planning standards, ADR directory and its README, and the

@@ -39,6 +39,10 @@ item asked for what the rule forbids.
   code path is real; for C3 the named item exists, is open, and would have to undo this
   code; for C4 there is truly one use and no item naming a second; for C2 the spec and
   ADRs really are silent.
+- **Unclassified.** A `path:line` and a claim with no class or evidence: settle the
+  class it would have (B1 to B6, C1 to C4) and check it as that class above, writing
+  the test yourself for B1 or B2. A claim no class fits with its required evidence (a
+  preference, a style point, a guess) is `REFUTED`. Report the class you settled.
 - **Severity.** Check the class and the blocker or follow-up call against
   `engineering-standards` Changeability; change it when the evidence supports less.
   B2, B4 and B6 stay blockers: confirm or refute them, never downgrade them.

@@ -1,7 +1,7 @@
 # shellcheck shell=bash disable=SC2016,SC2089,SC2090 # fixtures hold literal $, backticks and JSON
 # pr-facts: deterministic review facts, in dry-run (two commits) and PR mode.
 
-export GITHUB_REPOSITORY=o/r ISSUE_BODY="" CHECKS='[]'
+export GITHUB_REPOSITORY=o/r ISSUE_BODY="" CHECKS='[]' PR_COMMENTS='[]' REVIEWS='[]' REQUESTED='[]'
 setup() {
   git_repo
   git config uploadpack.allowAnySHA1InWant true
@@ -20,7 +20,10 @@ gh_stub() {
     "api repos/o/r/compare/"*) jq -cn --arg b "$BASE" '{merge_base_commit:{sha:$b}}' ;;
     "api repos/o/r/commits/"*"/check-runs"*) jq -cn --argjson c "$CHECKS" '{check_runs:$c}' ;;
     "api repos/o/r/commits/"*"/status") echo '{"statuses":[]}' ;;
-    "api repos/o/r/"*"comments"*|"api repos/o/r/pulls/9/reviews"*) echo '[]' ;;
+    "api repos/o/r/pulls/9/comments"*) echo "$PR_COMMENTS" ;;
+    "api repos/o/r/pulls/9/reviews"*) echo "$REVIEWS" ;;
+    "api repos/o/r/pulls/9/requested_reviewers") jq -cn --argjson r "$REQUESTED" '{users: ($r | map({login: .})), teams: []}' ;;
+    "api repos/o/r/"*"comments"*) echo '[]' ;;
     "api repos/o/r/actions/runs/200"*) echo '{"workflow_id":55}' ;;
     "api repos/o/r/actions/workflows/55/runs"*) echo '{"workflow_runs":[{"id":100},{"id":200}]}' ;;
     "api graphql"*) echo '{"data":{"repository":{"issue":{"lastEditedAt":"2025-12-01T00:00:00Z"}}}}' ;;
@@ -131,6 +134,36 @@ export HEAD BASE CHECKS
 use_gh_stub
 run "$SCRIPTS/pr-facts" 9
 assert_json '[.ci_covers.gate.state, .ci_covers.mutation.state]' '["missing","missing"]'
+
+t "advisory reviewers' top-level comments since the last review are candidates"
+printf '# Project\n- **Advisory reviewers:** `copilot-pull-request-reviewer[bot]`, `Copilot`\n' >CLAUDE.md
+git add CLAUDE.md && base=$(commit base3) && git remote set-url origin "$PWD"
+echo d >>app/x.txt
+HEAD=$(commit change3) BASE=$base CHECKS='[]'
+PR_COMMENTS='[
+  {"id":1,"user":{"login":"Copilot"},"path":"app/x.txt","line":2,"body":"off by one","created_at":"2026-01-01T00:05:00Z","in_reply_to_id":null},
+  {"id":2,"user":{"login":"Copilot"},"path":"app/x.txt","line":null,"original_line":1,"body":"later","created_at":"2026-01-02T00:00:00Z","in_reply_to_id":null},
+  {"id":3,"user":{"login":"Copilot"},"path":"app/x.txt","line":2,"body":"reply","created_at":"2026-01-02T00:00:00Z","in_reply_to_id":2},
+  {"id":4,"user":{"login":"someone"},"path":"app/x.txt","line":2,"body":"nit","created_at":"2026-01-02T00:00:00Z","in_reply_to_id":null}]'
+REVIEWS='[{"id":9,"user":{"login":"bot","type":"Bot"},"author_association":"NONE","commit_id":"x","submitted_at":"2026-01-01T12:00:00Z","body":"Verdict: reject\nRoute: fix\nRound: 1"}]'
+REQUESTED='["Copilot"]'
+export HEAD BASE CHECKS PR_COMMENTS REVIEWS REQUESTED
+use_gh_stub
+run "$SCRIPTS/pr-facts" 9
+assert_rc 0
+assert_json '.advisory' '{"reviewers":["copilot-pull-request-reviewer[bot]","Copilot"],"pending":true,"comments":[{"id":2,"author":"Copilot","path":"app/x.txt","line":1,"body":"later"}]}'
+
+t "no Advisory reviewers setting yields no candidates"
+setup
+ISSUE_BODY='gate=glue'
+echo b >>app/x.txt
+HEAD=$(commit change) BASE=$base REVIEWS='[]'
+export HEAD BASE REVIEWS
+use_gh_stub
+run "$SCRIPTS/pr-facts" 9
+assert_json '.advisory' '{"reviewers":[],"pending":false,"comments":[]}'
+PR_COMMENTS='[]' REQUESTED='[]'
+export PR_COMMENTS REQUESTED
 
 t "no PR and no range is a usage error"
 run "$SCRIPTS/pr-facts"

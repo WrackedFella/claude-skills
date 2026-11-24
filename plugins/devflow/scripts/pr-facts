@@ -14,7 +14,7 @@
 # Output fields: mode, repo, pr, head_sha, base_ref, base_sha, author, draft, state,
 # labels, issue, issue_title, id_match, gate_class, tier, ci, conflict, changed_lines,
 # files, domain_hits, signoff_triggers, outside_comments, issue_edited_after_open,
-# prior_reviews, stop.
+# prior_reviews, ci_covers, advisory, stop.
 #   tier: "full" when the gate class is domain or unknown, a changed file is under the
 #         project's domain-logic paths, or the PR carries the label review:full; else "light".
 #   stop: null, or {verdict, route, reason}; the review ends with it before any model runs.
@@ -26,6 +26,11 @@
 #         at least one check matches and every match concluded success on the head; otherwise
 #         "missing", "pending" or "failed". A command with no regex, or no setting, is "missing"
 #         (the defect finder runs it itself); dry runs have no checks, so always "missing".
+#   advisory: {reviewers, pending, comments}. reviewers: the backticked logins of the base
+#         CLAUDE.md's `Advisory reviewers` line. comments: their top-level inline comments
+#         created after the latest prior review, each {id, author, path, line, body}; candidate
+#         findings for the refuter, never findings. pending: one of them is still a requested
+#         reviewer. Dry runs and an unset line: no comments, not pending.
 #   signoff_triggers: the path- and forge-based Sign-off triggers; the skill adds the ones
 #         only a reading can find (security-relevant code, an undeclared public API).
 #
@@ -41,7 +46,7 @@ while [[ $# -gt 0 ]]; do
     --issue) issue=${2:?}; shift 2 ;;
     --claude-md) claude_md=${2:?}; shift 2 ;;
     --ignore-check) ignore+=("${2:?}"); shift 2 ;;
-    -h|--help) sed -n '2,32p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,37p' "$0"; exit 0 ;;
     -*) die "unknown option $1" ;;
     *) pr=$1; shift ;;
   esac
@@ -160,6 +165,10 @@ if [[ -n $pr ]]; then
            verdict: ($l[0] | sub("^Verdict: *"; "") | split(" ")[0]),
            route: ([$l[] | select(startswith("Route:")) | sub("^Route: *"; "")] | first),
            round: ([$l[] | (capture("Round: *(?<r>[0-9]+)") | .r | tonumber)?] | first)})')
+  gh api "repos/$repo/pulls/$pr/comments?per_page=100" --paginate -q '.[]' | jq -sc . >"$tmp/review_comments.json" \
+    || die "cannot read review comments"
+  gh api "repos/$repo/pulls/$pr/requested_reviewers" -q '[.users[].login]' >"$tmp/requested.json" \
+    || die "cannot read requested reviewers"
 else
   mode=dry-run
   base_sha=$(git rev-parse --verify "${range%%..*}^{commit}") || die "bad base in $range"
@@ -174,6 +183,20 @@ if [[ -z $claude_md ]]; then
 fi
 mapfile -t domain_globs < <(setting_globs 'Domain-logic paths' "$claude_md")
 mapfile -t human_globs < <(setting_globs 'Human-only paths' "$claude_md")
+
+# Advisory reviewers' inline comments that no earlier review saw: candidates for the
+# refuter. The finders never see them.
+mapfile -t adv_logins < <(setting_globs 'Advisory reviewers' "$claude_md")
+adv_who=$(printf '%s\n' "${adv_logins[@]+"${adv_logins[@]}"}" | jq -R . | jq -sc 'map(select(length > 0))')
+[[ -f $tmp/review_comments.json ]] || echo '[]' >"$tmp/review_comments.json"
+[[ -f $tmp/requested.json ]] || echo '[]' >"$tmp/requested.json"
+since=$(jq -r '[.[].submitted_at // empty] | max // ""' <<<"$prior")
+advisory=$(jq -c --argjson who "$adv_who" --arg since "$since" --slurpfile req "$tmp/requested.json" '
+  {reviewers: $who,
+   pending: any($req[0][]; IN($who[])),
+   comments: [.[] | select((.user.login | IN($who[])) and .in_reply_to_id == null and .created_at > $since)
+              | {id, author: .user.login, path, line: (.line // .original_line), body}]}' \
+  "$tmp/review_comments.json")
 
 # CI-covered commands: the check each one is bound to, and whether it passed on the head.
 cover_line=$(grep -m1 -iE '^[[:space:]]*[-*]?[[:space:]]*[^[:alnum:]]{0,3}CI covers[^[:alnum:]]{0,3}:' "$claude_md" || true)
@@ -283,7 +306,7 @@ jq -n \
   --argjson domain "$(arr "${domain_hits[@]+"${domain_hits[@]}"}")" \
   --argjson triggers "$(arr "${triggers[@]+"${triggers[@]}"}")" \
   --argjson covers "$ci_covers" --argjson outside "$outside" --argjson edited "$edited" --argjson prior "$prior" \
-  --argjson stop "$stop" '
+  --argjson advisory "$advisory" --argjson stop "$stop" '
   {mode: $mode, repo: $repo, pr: (if $pr == "" then null else ($pr | tonumber) end),
    head_sha: $head, base_ref: $base_ref, base_sha: $base, author: $author,
    draft: $draft, state: $state, labels: $labels,
@@ -291,4 +314,5 @@ jq -n \
    id_match: $id_match, gate_class: $gate, tier: $tier, ci: $ci, conflict: $conflict,
    changed_lines: $lines, files: $files, domain_hits: $domain,
    signoff_triggers: $triggers, outside_comments: $outside,
-   issue_edited_after_open: $edited, prior_reviews: $prior, ci_covers: $covers, stop: $stop}'
+   issue_edited_after_open: $edited, prior_reviews: $prior, ci_covers: $covers, advisory: $advisory,
+   stop: $stop}'
