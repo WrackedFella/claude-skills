@@ -46,7 +46,10 @@ point is to recover where *this session* stands. Do not delegate it to a subagen
   mismatch on one line (e.g. "ENG-F7-02, legion removed: PR merged, card still in
   progress"). Read the project's `CLAUDE.md` first: if it uses feature integration
   branches, card PRs do not auto-close issues, so an open issue is not a mismatch until
-  the rule says it should be closed.
+  the rule says it should be closed. On Azure DevOps the states after In review (the
+  `State map`'s testing and closed states) belong to people and CI, so a merged item
+  still in the In review state (for example `Resolved`) is not a mismatch unless the
+  project's `CLAUDE.md` says so.
 - **Published spec vs. working copy:** where a card or feature has an issue, the issue
   body is the accepted spec. Report a local file whose spec differs from its issue, or
   an issue body that is only a pointer to the file.

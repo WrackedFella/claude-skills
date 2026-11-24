@@ -18,7 +18,7 @@ task:
 - Push the work branch after every commit (tests, implementation, refactor, docs). A
   cloud sandbox that cannot resume continues from a fresh clone, so anything unpushed
   is lost.
-- In a headless run (`GITHUB_ACTIONS=true`, or no person attached) run every subagent
+- In a headless run (`GITHUB_ACTIONS=true`, `TF_BUILD=True`, or no person attached) run every subagent
   in the foreground and wait for its report; the run ends when you stop.
 - Every numbered step runs unless its own text exempts the item (gate class, a project
   setting, a pause). Small size is not an exemption: a one-line change still gets its
@@ -141,9 +141,11 @@ asking which to use. Never start a second work branch for an item that has one.
 
 Use the item's work branch if the Tech Lead already pushed one (it carries the spec
 commit); otherwise create it from the project's base branch, named per its standards.
-Claim the item before any other work: set Status to `In progress` on the board (or the
-card to `in progress` without one). If the board already showed it `In progress` and the item was not paused,
-another session holds it; stop.
+Claim the item before any other work (`${CLAUDE_PLUGIN_ROOT}/operations.md`'s *Claim*): on
+GitHub, set Status to `In progress` on the board (or the card to `in progress` without
+one); on Azure DevOps, the State write that tests the item's revision. If the board already
+showed it `In progress`, or the revision test was rejected and the re-read shows it
+claimed, and the item was not paused, another session holds it; stop.
 
 If the project names an environment setup command and this session is remote
 (`CLAUDE_CODE_REMOTE=true`), run it before the first build.
@@ -225,8 +227,8 @@ changes scope or a public contract the spec didn't name, pause and ask.
 ## 4. Adversarial challenge (at most 2 rounds)
 
 Attack the implementation. Look for edge cases, invalid input, boundary values,
-ordering and state bugs, error paths, and performance traps in hot paths. Every
-challenge must be concrete: a specific input or sequence with an expected outcome.
+ordering and state bugs, error paths, cancellation, and performance traps in hot paths
+(unbounded materialization, N+1 queries). Every challenge must be concrete: a specific input or sequence with an expected outcome.
 Vague concerns don't count.
 
 Send the round's challenges to the builder with `Mode: challenge`: it pins each in a
@@ -255,7 +257,7 @@ code this work changed, send it to the builder with `Mode: challenge` to strengt
 tests, never weaken the code. Then run the command again: the counts you report come from
 a run on the final code, after the last builder change, including any fix from
 steps 10 and 11 (re-run it before ship when one of those changed code). A mutant you judge equivalent (no observable behavior change) gets a one-line
-justification in the PR. A mutant that cannot be tested gets the same, plus the exact exclusion line for the mutation config; never edit the config's exclusions yourself, a human adds them. Record caught / missed / unviable counts.
+justification in the PR. A mutant that cannot be tested gets the same, plus the exact exclusion line for the mutation config; never edit the config's exclusions yourself, a human adds them. Record the tool's counts (cargo-mutants: caught / missed / unviable; Stryker: killed / survived / timeout / no-coverage).
 
 ## 7. Comment audit
 
@@ -274,7 +276,8 @@ Carry its report into the PR body; new pages are flagged there for the user's re
 ## 9. Platform coverage
 
 If the change could behave differently per platform (target-specific code or
-dependencies, auto traits of platform types, file paths, threading) and PR CI doesn't
+dependencies, auto traits of platform types, file paths, threading; in .NET,
+OS-specific APIs, runtime-identifier-specific packages, culture or time-zone handling) and PR CI doesn't
 cover every target, trigger the project's full-platform CI run on the branch (command
 in its `CLAUDE.md`) and report the result in the PR. Don't ship on reasoning alone.
 

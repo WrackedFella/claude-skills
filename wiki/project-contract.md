@@ -14,6 +14,10 @@ and the planning standards it names. Unset optional items disable the step that 
 | Docs directory | no | `wiki`, `reviewer` | `wiki/`; without it the docs step is skipped |
 | Environment setup command | no | orchestrate, ship | `bash scripts/cloud-tools.sh`; run only when `CLAUDE_CODE_REMOTE=true` |
 | `Tracker` | no | every skill and agent that touches work items or PRs | `github` (default) or `azure-devops`; selects the column of the [operations table](#operations) |
+| Azure DevOps organization, project and repository | with `Tracker: azure-devops` | every Azure DevOps operation | the `<p>` and `<r>` route parameters and `--org`/`--project` (or `az devops configure` defaults) |
+| Work item types | with `Tracker: azure-devops` | tech-lead, refine, publish, *Create child work item* | card type (for example `User Story` or `Product Backlog Item`, per the process) and feature type (`Feature`) |
+| Area path, Iteration path | no | *Create child work item* | the team's area and current iteration; unset uses the project defaults |
+| `State map` | with `Tracker: azure-devops` | *Claim*, *Set state*, sitrep | the process's State for each devflow status, for example `Ready=New, In progress=Active, In review=Resolved`; later states (testing, closed) belong to people and CI |
 | Project board | no | board script, orchestrate, tech-lead | owner and project number; none declared = no board, and every board step is skipped |
 | `Board header` | no | tech-lead, refine, publish | `yes`: the project's automation applies a `<!-- board: gate=<class>; eligible=<yes\|no>; priority=<P?> -->` comment at the top of an issue body to the board (`priority` optional). Skills write it and, when the board is unreachable, still file the issue; unset = no header, board fields are set with `scripts/board` |
 | `Card review` | no | BA, Tech Lead, refine, publish | `required` (default) or `not required`: `not required` also lets skills apply `agent-ready` to cards that pass the [promotion checks](planning.md#6-promotion) |
@@ -65,6 +69,13 @@ stay GitHub-only. A project that declares no board skips every board step. `Trac
 | `follow-up` | Filed by `pr-review` from a confirmed non-blocking finding; a backlog observation, never `agent-ready` |
 | `needs-human` | Set by `pr-review` on a PR whose reject is routed to a person |
 | `review:full` | On a PR, forces the full review tier |
+
+## Commits
+
+devflow skills commit and push as their procedures say (tests, implementation, refactor
+and docs as separate commits); invoking the skill is the request. A personal or project
+rule against unprompted commits needs an exception for `/devflow:*` skills, or the run
+stops at its first commit.
 
 ## Cloud environments
 
