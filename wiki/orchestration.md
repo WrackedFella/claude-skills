@@ -101,4 +101,4 @@ pushed branch. See [Unattended runs](runtimes.md#unattended-runs).
 | `test-guard` fails | Restore the removed or rewritten test code and re-brief the agent |
 | `step-check` blocks the stop (headless) | Run the named steps, then finish; report any the skill exempts |
 | Acceptance review: a judgment fail stands after round 2 | Pause, with its screenshots |
-| Board unreachable (`board` exit 5) | Skip all board steps; PR body lists the Status changes left to the environment |
+| Board unreachable (`board` exit 5) | Skip all board steps; PR body lists only a Status change no event covers |
