@@ -128,13 +128,13 @@ nothing itself; it never pushes or merges. Arguments: a PR number, or `--dry-run
    when it is a plan deviation.
 6. **Verdict.** Blockers B1 to B6 (wrong behavior, unmet criterion, weakened gate,
    broken written rule, changeability blocker, plan deviation) reject; otherwise
-   approve. Unmet criteria, broken rules and plan deviations are never follow-ups. The
-   work item is not ground truth: a fix that would follow a work-item instruction a
-   written rule contradicts is needs-decision.
-   `Route: human` for a needs-decision blocker, a declined blocker, a blocker surviving
-   two rounds, no progress, or the round cap (`PR_REVIEW_MAX_ROUNDS`, default 3); else
-   `fix`. Questions never reject but set `Sign-off: human`, as do the facts triggers, C2,
-   security-relevant code and an unnamed public API or format.
+   approve. The skill classifies each confirmed finding and passes the findings, the
+   facts and three judgment flags (security-relevant code, undeclared public API,
+   incomplete toolchain) to `scripts/pr-verdict`, which prints Verdict, Route, Sign-off
+   and Round; the rules (never-follow-up classes, needs-decision, rounds and progress,
+   questions, C2, Sign-off triggers, later-round goalposts) live in `pr-review` §4-5 and
+   the script's header ([D0020](../docs/decisions/0020-verdict-from-a-script.md)). The
+   same inputs always give the same lines.
 7. **Post.** One review on the head SHA: reject requests changes (plus `needs-human` on
    Route human); approve approves only with `PR approval: agent`, author separation and
    stale-approval dismissal on the base branch, else comments. It resolves its own

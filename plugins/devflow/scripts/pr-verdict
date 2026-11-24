@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+# The verdict lines of a PR review, computed from the confirmed findings, the pr-facts
+# JSON and the prior review's blocker count. Applies pr-review §4 (later-round goalposts)
+# and §5 (verdict, route, sign-off) and nothing else; the same inputs always give the
+# same lines.
+#
+#   pr-verdict --facts <file> --findings <file> [--max-rounds <n>]
+#              [--security-relevant] [--undeclared-api] [--toolchain-incomplete]
+#
+# --facts      pr-facts output (head_sha, tier, signoff_triggers, prior_reviews, stop).
+# --findings   {"prior_blockers": <n>, "findings": [<finding>...]}; prior_blockers is the
+#              blocker count of the latest prior review (0 or absent in round 1).
+#              A finding: {"id":"X1", "class":"B1".."B6" or other, "kind":"blocker" |
+#              "followup" | "question", "fix":"auto" | "needs-decision", "carried":bool,
+#              "declined":bool, "in_changed_lines":bool, "failing_test":bool, "c2":bool}.
+#              Only findings that survived the refuter are listed; absent booleans are false.
+# --max-rounds PR_REVIEW_MAX_ROUNDS; default 3.
+# Judgment flags, read by the skill and never inferred here: --security-relevant (change
+# touches authentication, input parsing at a trust boundary, unsafe or its equivalent),
+# --undeclared-api (public API or persisted format the spec does not name),
+# --toolchain-incomplete (a full-tier toolchain could not run).
+#
+# Rules:
+#   promote   a follow-up of class B2, B4 or B6 becomes a blocker.
+#   goalposts from round 2, a new (not carried) blocker stays one only when
+#             in_changed_lines, or class B1/B2 with failing_test, or class B6; else it
+#             becomes a follow-up.
+#   Verdict   reject with at least one blocker, else approve.
+#   Route     approve: none. reject: human when a blocker is needs-decision, a carried
+#             blocker was declined, any carried blocker remains (it survived two rounds),
+#             round >= 2 with blockers >= prior_blockers, or round > max rounds; else fix.
+#   Sign-off  human on any facts trigger, a question, a C2 finding of any kind, a judgment
+#             flag; else agent.
+#   Round     1 + the prior reviews with Route: fix.
+#
+# Output: Verdict, Route, Sign-off, Round, Blockers, Follow-ups, Questions (IDs, "none"
+# when empty), then one "Route because:" and one "Sign-off because:" line per reason, and
+# one "Promoted:" or "Demoted:" line per reclassified finding.
+# Exit codes: 0 printed, 2 usage error or facts.stop set (the review ended before this).
+set -euo pipefail
+
+die() { echo "pr-verdict: $*" >&2; exit 2; }
+
+facts="" findings="" max=3 security=false api=false toolchain=false
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --facts) facts=${2:?}; shift 2 ;;
+    --findings) findings=${2:?}; shift 2 ;;
+    --max-rounds) max=${2:?}; shift 2 ;;
+    --security-relevant) security=true; shift ;;
+    --undeclared-api) api=true; shift ;;
+    --toolchain-incomplete) toolchain=true; shift ;;
+    -h|--help) sed -n '2,38p' "$0"; exit 0 ;;
+    *) die "unknown argument $1" ;;
+  esac
+done
+[[ -r $facts && -r $findings ]] || die "usage: pr-verdict --facts <file> --findings <file> [options]"
+[[ $max =~ ^[0-9]+$ ]] || die "--max-rounds must be a number"
+jq -e . "$facts" >/dev/null 2>&1 || die "$facts is not JSON"
+jq -e '.findings | type == "array"' "$findings" >/dev/null 2>&1 || die "$findings needs a findings array"
+[[ $(jq -r '.stop // empty' "$facts") == "" ]] || die "facts.stop is set; the review ended before the verdict"
+
+jq -rn \
+  --slurpfile f "$facts" --slurpfile d "$findings" --argjson max "$max" \
+  --argjson security "$security" --argjson api "$api" --argjson toolchain "$toolchain" '
+  def t: . // false;
+  $f[0] as $facts | $d[0] as $in
+  | (1 + ([$facts.prior_reviews[]? | select(.route == "fix")] | length)) as $round
+  | ($in.prior_blockers // 0) as $prior
+  | ($in.findings | map(. + {orig: .kind})) as $raw
+  # promote: B2, B4 and B6 are never follow-ups
+  | ($raw | map(if .kind == "followup" and (.class | IN("B2","B4","B6")) then .kind = "blocker" else . end)) as $p
+  # goalposts: from round 2 a new blocker must be on changed lines, a proven B1/B2, or B6
+  | ($p | map(
+      (.kind == "blocker" and $round >= 2 and (.carried | t | not)
+       and (((.in_changed_lines | t) or ((.class | IN("B1","B2")) and (.failing_test | t)) or .class == "B6") | not)) as $demote
+      | if $demote then .kind = "followup" else . end)) as $fs
+  | ($fs | map(select(.kind == "blocker"))) as $blockers
+  | ($fs | map(select(.kind == "followup"))) as $follow
+  | ($fs | map(select(.kind == "question"))) as $questions
+  | (if ($blockers | length) > 0 then "reject" else "approve" end) as $verdict
+  | ([
+      (if ($blockers | any(.fix == "needs-decision")) then "a blocker is needs-decision" else empty end),
+      (if ($blockers | any(.declined | t)) then "a carried blocker was declined" else empty end),
+      (if ($blockers | any(.carried | t)) then "a blocker survived two rounds" else empty end),
+      (if $round >= 2 and ($blockers | length) >= $prior then "no progress: \($blockers | length) blockers, \($prior) in the last review" else empty end),
+      (if $round > $max then "round \($round) exceeds the cap of \($max)" else empty end)
+    ]) as $human
+  | (if $verdict == "approve" then "none" elif ($human | length) > 0 then "human" else "fix" end) as $route
+  | ([
+      ($facts.signoff_triggers[]? | "facts trigger: \(.)"),
+      (if ($questions | length) > 0 then "a question stands" else empty end),
+      (if ($fs | any(.c2 | t)) then "a C2 finding was confirmed" else empty end),
+      (if $security then "security-relevant code" else empty end),
+      (if $api then "public API or persisted format the spec does not name" else empty end),
+      (if $toolchain then "a full-tier toolchain could not run" else empty end)
+    ]) as $signoff
+  | def ids: if length == 0 then "none" else map(.id) | join(" ") end;
+    "Verdict: \($verdict)",
+    "Route: \($route)",
+    "Sign-off: \(if ($signoff | length) > 0 then "human" else "agent" end)",
+    "Round: \($round)",
+    "Blockers: \($blockers | ids)",
+    "Follow-ups: \($follow | ids)",
+    "Questions: \($questions | ids)",
+    (if $verdict == "reject" then $human[] | "Route because: \(.)" else empty end),
+    ($signoff[] | "Sign-off because: \(.)"),
+    ($fs[] | select(.orig == "followup" and .kind == "blocker") | "Promoted: \(.id) (\(.class) is never a follow-up)"),
+    ($fs[] | select(.orig == "blocker" and .kind == "followup") | "Demoted: \(.id) (new blocker outside the changed lines in round \($round))")
+'
