@@ -129,7 +129,9 @@ A comment earns its place only by preserving what the code cannot: why it is sha
 this way, a constraint, invariant, tradeoff, workaround or gotcha.
 
 - **Keep:** why-comments; doc comments that state an item's contract (behavior, errors,
-  failures, invariants); canonical reference links; `TODO:` with what to do.
+  failures, invariants); canonical reference links and cross-references to files in the
+  same repository; the reason on a lint or analyzer suppression; `TODO:` with what to
+  do.
 - **Remove:** narration of what the next line does; restated names or signatures;
   history (what it used to be, what changed); settled decisions and alternatives
   considered (they belong in an ADR or work item); references to work-item IDs,
