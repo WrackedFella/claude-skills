@@ -55,10 +55,10 @@ A runner (for example `claude-code-action`) reacts to a label and invokes a skil
 - One run per issue at a time; refine needs a shorter budget than orchestrate.
 - Run output lives in the runner's logs or step summary, not in the issue, except a pause.
 - **Pause and resume.** A run that needs a person's answer comments its questions on the
-  issue, labels it `agent-paused` and stops. A reply from an owner, member or collaborator
-  makes the runner start the same skill again; intake removes the label, reads the replies and continues from the pushed
+  issue, labels it `agent-paused` and stops. A comment starting with `Resume` from an owner, member or collaborator
+  makes the runner start the same skill again; other comments do not. Intake removes the label, reads the answers (every comment since the pause, the Resume comment included) and continues from the pushed
   branch or published cards. PR-side runs (`respond`, `pr-review`) reply on the PR, and an `@claude`
-  comment resumes them. The runner must start on issue comments for this to work.
+  comment resumes them. The runner must start on issue comments whose body starts with `Resume` for this to work.
 - Workflow file edits need a human merge.
 - Under `Card review: required`, a human applies `agent-ready` to each card; under
   `not required`, the Tech Lead, `refine` and `publish` apply it to cards that pass the promotion checks and the runner

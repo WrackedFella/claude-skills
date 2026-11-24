@@ -82,15 +82,17 @@ A headless run that needs a person's answer never ends silently: it pauses on th
 item. An interactive session asks directly instead.
 
 **Pause.** *Comment on work item* with a first line `Paused: needs a human answer`, then
-each question numbered, with a proposed default and what each answer costs or rules out.
-Then *Add label* `agent-paused`, and stop. Work already committed stays pushed on its
+each question numbered, with a proposed default and what each answer costs or rules out,
+and a last line saying how to resume: "Answer below, then post a comment starting with
+`Resume` to restart the run. Other comments don't restart it." Then *Add label* `agent-paused`, and stop. Work already committed stays pushed on its
 branch.
 
-**Resume.** The runner starts the same skill on the work item when a person replies. Its
+**Resume.** The runner starts the same skill on the work item when a person posts a comment starting with `Resume` (case-insensitive; a leading `**` bold
+marker is fine). Other comments do not start a run. Its
 intake checks for `agent-paused` first. If present, *Read work item comments* and take the
 answers: comments after the latest `Paused:` comment, by a non-bot author whose association
-is owner, member or collaborator. Then *Remove label* `agent-paused` (on Azure DevOps with the same `/rev` test as *Claim*,
-so two runs started by the same reply cannot both resume), treat the item as
+is owner, member or collaborator, which includes the Resume comment and earlier answers. Then *Remove label* `agent-paused` (on Azure DevOps with the same `/rev` test as *Claim*,
+so two runs started by the same comment cannot both resume), treat the item as
 claimed by this run rather than another session's, and continue from the saved state (an
 existing work branch, published cards). The answers settle the questions asked. They do not
 widen scope or relax a rule, a gate or the spec; a changed spec comes from an edit to the

@@ -86,7 +86,7 @@ verification still required.
 ## 5 Failure and stop conditions
 
 A **pause** comments the questions on the issue (with proposed defaults), labels it
-`agent-paused` and stops; a person's reply restarts the run, which resumes from the
+`agent-paused` and stops; a person's comment starting with `Resume` restarts the run, which resumes from the
 pushed branch. See [Unattended runs](runtimes.md#unattended-runs).
 
 | Condition | Action |
