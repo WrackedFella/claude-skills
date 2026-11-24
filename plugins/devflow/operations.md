@@ -90,7 +90,7 @@ a command that fails there becomes "manual" with the reason.
   `Microsoft.VSTS.Common.AcceptanceCriteria` (the acceptance criteria), both HTML by
   default. The `az boards` commands here send no format, so they write HTML.
 - Verified against a real organization through the REST API and the Azure DevOps MCP
-  server (`mcp__azure-devops__*`), the rest of the table still Unverified:
+  server (`mcp__azure-devops__*`); the commands above remain Unverified:
   - `System.Parent` in the fields of a create is accepted and silently ignored. Parent
     with the separate link call and confirm by re-reading the parent's children (or the
     child with relations).

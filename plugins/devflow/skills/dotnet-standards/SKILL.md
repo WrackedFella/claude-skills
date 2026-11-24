@@ -149,8 +149,9 @@ against its official documentation before relying on it.
 - **Check an assertion library's license before adding one.** FluentAssertions 8+ is
   under the Xceed commercial license (v7 and earlier are Apache-2.0); AwesomeAssertions
   is the Apache-2.0 fork. Prefer plain xUnit `Assert`. The same check applies elsewhere:
-  MediatR 13+ is commercially licensed (with a free community tier), so a mediator is a deliberate choice (hand-rolled,
-  or a permissively licensed alternative), not a default.
+  MediatR 13+ is commercially licensed (with a free community tier), so a mediator is
+  a deliberate choice (hand-rolled, or a permissively licensed alternative), not a
+  default.
 
 ## Documentation comments
 
