@@ -68,7 +68,7 @@ Give every added test exactly one verdict:
   - it can't fail (no assertion, asserts the stub's own value);
   - it passes only because every collaborator is mocked, so real code could be broken;
   - it tests the language, the framework or a library (a derive, a record's generated
-    equality, the DI container itself rather than the project's registrations, EF mapping conventions) rather than this code;
+    equality, the DI container itself (not the project's registrations), EF mapping conventions) rather than this code;
   - it is a change-detector (mock interaction the spec doesn't promise, private
     state, call order);
   - it pins behavior the spec clearly doesn't ask for (an inference from "tests change
