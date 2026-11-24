@@ -1,6 +1,7 @@
 ---
 name: pr-review
 description: Adversarial review of an open pull request against its work item - deterministic facts, blind finders (defect-finder, design-critic) and a refuter, then one review with Verdict approve or reject, Route fix or human, and Sign-off agent or human. Requests changes on reject; approves only when the project enables it. Never merges.
+disable-model-invocation: true
 argument-hint: "[pr-number] | --dry-run <base-sha>..<head-sha> <issue> [out-file]"
 ---
 

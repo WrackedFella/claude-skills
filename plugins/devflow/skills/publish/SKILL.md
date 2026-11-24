@@ -1,6 +1,7 @@
 ---
 name: publish
 description: File approved local draft cards (Status Draft, no issue link) as GitHub issues under their feature, set their board fields, and update the card header. Use from a session that can reach the board, after a cloud thread left drafts behind.
+disable-model-invocation: true
 argument-hint: "[card-id ...]"
 arguments: [cards]
 ---
