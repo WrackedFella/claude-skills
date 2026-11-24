@@ -35,3 +35,4 @@ status `Superseded by DNNNN`; the replacement links back.
 | [D0022](0022-entry-point-skills-not-model-invocable.md) | Entry-point skills start only when named; plugin agents carry no hooks | Accepted | 2026-11-23 |
 | [D0023](0023-stale-plugin-check.md) | A SessionStart hook reports a stale devflow; a cloud environment refreshes by a setup-script change | Accepted | 2026-11-23 |
 | [D0024](0024-cloud-refresh-needs-one-tap.md) | Nothing outside a session can refresh a cloud environment's devflow; staleness is detected and a stamp bump is one approval | Accepted | 2026-11-23 |
+| [D0025](0025-advisory-reviewer-comments-go-to-the-refuter.md) | An advisory reviewer's comments are candidates for the refuter, never findings; the trial counts what only it found | Proposed | 2026-11-24 |

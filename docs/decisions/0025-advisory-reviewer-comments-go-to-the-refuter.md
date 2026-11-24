@@ -1,0 +1,17 @@
+# D0025 An advisory reviewer's comments are candidates for the refuter, never findings; the trial counts what only it found
+
+- **Status:** Proposed, 2026-11-24 (Justin enabled automatic Copilot review on moho `dev` and `main`; trial for value before keeping it).
+- **Decision:**
+  - A project names advisory reviewers in `CLAUDE.md` (`Advisory reviewers`). `scripts/pr-facts` lists their top-level inline comments created since the last pr-review verdict; the finders never see them, so they stay blind and the comparison stays fair.
+  - `pr-review` drops a comment that falls inside a finder finding's lines (counted `matched`) and sends each other one, at most 5 per review, to `devflow:refuter` as an unclassified finding: path, line and text, never the author. The refuter settles a class (B1 to B6, C1 to C4) with that class's evidence, or refutes it; a preference or style point no class fits is refuted. Confirmed ones go through `pr-verdict` like any finding. The verdict never comes from the advisory reviewer.
+  - `respond` never acts on an advisory thread; it fixes only what the review carries as its own blocker. pr-review never replies on or resolves those threads.
+  - pr-review does not wait for an advisory review that has not arrived; it says so under Not reviewed.
+  - Measure: each review's `Advisory` line (comments, matched, checked, confirmed, blockers, unchecked). Trial ends after 10 reviewed PRs that had an advisory review. Keep when confirmed (found only by the advisory reviewer) is at least one blocker or two follow-ups across them; drop the setting and the ruleset rule when confirmed is 0; otherwise Justin decides on the counts and the refuter cost.
+- **Why:**
+  - **Different model family, different misses.** The review design keeps finders independent and makes a refuter reproduce every finding (D0020, S18); a reviewer from another model family is more independent still, and the refuter already filters false positives (S20).
+  - **Comments are not evidence.** An LLM reviewer often flags correct code (S20). Routing its comments straight to `respond` would start fix loops on noise; routing them through the refuter costs at most 5 refuter calls per review and keeps one verdict path.
+  - **No merge stall on `dev`.** The `dev` ruleset requests the Copilot review on open only (`review_on_push: false`) and does not require thread resolution, so unresolved Copilot threads do not block an agent merge. moho's merge-eligibility rule treated any non-member comment as a blocker; the advisory logins are exempt when the comment predates the reviewed verdict (moho PR).
+  - **`main` is human-merged** and requires thread resolution, with Copilot reviewing every push: a person resolves those threads when promoting.
+- **Evidence:** moho rulesets read through the REST API on 2026-11-24: `dev` has `copilot_code_review {review_on_push: false, review_draft_pull_requests: false}` and `required_review_thread_resolution: false`; `main` has `review_on_push: true` and `required_review_thread_resolution: true`. `scripts/pr-facts` already excludes bot accounts from outside-comment Sign-off triggers. The Copilot logins (`copilot-pull-request-reviewer[bot]` for the review, `Copilot` for inline comments) are unconfirmed: check them on the first Copilot review.
+- **Sources:** S18, S20, S24.
+- **Reopen when:** the trial ends, Copilot starts approving or requesting changes, or a confirmed advisory finding is lost because the review ran before the advisory review arrived.
