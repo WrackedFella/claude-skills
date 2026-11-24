@@ -62,6 +62,9 @@ brief:
 - Issue one command per Bash call: no `&&`, `;`, pipes, `cd` or `$(...)`. The allow-list
   matches each command by prefix, so a compound is denied unless every part is allowed, and
   a denial costs a turn.
+- Rebuild committed generated files (assets, fixtures, generated code) only with the
+  project's Generate command, never by running a generator or interpreter directly. A
+  change that needs one rebuilt in a project without that command pauses.
 - A reply with no tool call ends the run, and the job reports success. After a skill or
   subagent returns, its report is input: record it and start the next step in the same
   turn. End only with the final report or a pause.

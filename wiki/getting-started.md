@@ -58,6 +58,7 @@ Moho's `CLAUDE.md` section, abbreviated:
 - **Base branch:** `dev`. Branch `<type>/<ID>-<slug>`, PR into `dev`. No skill merges.
 - **Project board:** WrackedFella, project 1.
 - **Planning:** index `_todo/README.md`, rules `_todo/_STANDARDS.md`.
+- **Generate command:** `just assets` (rebuilds committed generated assets).
 - **Environment setup command:** `bash scripts/cloud-tools.sh` (cloud threads only).
 - **Domain-logic paths:** rules in `moho_game`, `moho_core`.
 - **Human review points:** `Card review: required`, `Domain-test review: agent`.
