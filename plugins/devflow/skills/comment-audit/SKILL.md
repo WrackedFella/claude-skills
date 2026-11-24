@@ -20,8 +20,15 @@ Audit only the comments added or changed in this diff. Never change code.
      or gotcha;
    - API doc comments in the project's language (e.g. rustdoc, XML doc, JSDoc)
      stating an item's contract for its callers (behavior, errors, panics,
-     invariants);
-   - `// SAFETY:` on `unsafe` (always keep).
+     invariants). A doc summary that only restates the signature is tightened into
+     that contract, never deleted: the doc comment itself may be required by an
+     analyzer or a public API;
+   - a canonical reference link (a spec, an RFC, a vendor's documented behavior), or a
+     cross-reference to a file or section in the same repository;
+   - the justification on an analyzer or lint suppression (`#[allow(...)]` with its
+     reason, `#pragma warning disable` with a reason comment,
+     `[SuppressMessage(..., Justification = "...")]`) and `// SAFETY:` on `unsafe`
+     (always keep).
 
    **Delete** it if it:
    - narrates what the code does or restates a name or signature;

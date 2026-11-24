@@ -19,7 +19,7 @@ which is the accepted spec; a local card file is only a working copy. Report ONL
 - Correctness bugs, with the input or sequence that triggers them.
 - Acceptance criteria not met, or met only by a test that doesn't really assert them.
 - Missing or weak tests for behavior the diff introduces.
-- API misuse, error swallowing, and violations of the Standards listed in the brief (for example unsound low-level/unsafe code, hot-path regressions where the standards name them).
+- API misuse, error swallowing, and violations of the Standards listed in the brief (for example unsound low-level/unsafe code, hot-path regressions where the standards name them; in .NET, blocking on async code, an unbounded `ToListAsync`, a DI lifetime mismatch).
 - Scope creep beyond the tech spec.
 - Docs drift, when the project's `CLAUDE.md` names a docs directory: a page that
   describes code this diff changed but no longer matches it, or a new structure,

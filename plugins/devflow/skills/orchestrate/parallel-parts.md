@@ -7,8 +7,8 @@ the single `devflow:implementer` call of step 3.
 1. Confirm the footprints are disjoint by reading the spec and the code. Merge any
    parts that share a file; if one part remains, stop here and use the single call.
 2. Pick the model per part: `sonnet` for bounded work against the spec; `opus` only for
-   a part whose design the spec leaves open or that is delicate (concurrency, unsafe,
-   numerics). Record the choice and why.
+   a part whose design the spec leaves open or that is delicate (concurrency, unsafe or
+   interop code, numerics, transactions). Record the choice and why.
 3. In one message, issue one Agent call per part, each `devflow:implementer`,
    `isolation: "worktree"`, foreground (`run_in_background: false`), with the tech
    spec, the `Standards:` line, the part's tests and footprint, and the instruction to commit on its own

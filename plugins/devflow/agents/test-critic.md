@@ -67,7 +67,8 @@ Give every added test exactly one verdict:
 - **REMOVE**: delete it. Valid reasons:
   - it can't fail (no assertion, asserts the stub's own value);
   - it passes only because every collaborator is mocked, so real code could be broken;
-  - it tests the language, a library or a derive rather than this code;
+  - it tests the language, the framework or a library (a derive, a record's generated
+    equality, the DI container itself (not the project's registrations), EF mapping conventions) rather than this code;
   - it is a change-detector (mock interaction the spec doesn't promise, private
     state, call order);
   - it pins behavior the spec clearly doesn't ask for (an inference from "tests change
@@ -95,7 +96,8 @@ After the verdicts, list only gaps that matter:
   ordering, error paths) that no test covers. Prefer one parameterized test over
   several copies, and don't ask for cases the spec doesn't imply.
 - Tests that fail for the wrong reason (compile error, typo, missing fixture), or
-  that pass against the `todo!()` stub.
+  that pass against the not-implemented stub (Rust `todo!()`, C#
+  `NotImplementedException`).
 - Criteria too ambiguous to test; say what must be decided.
 
 No style preferences, no praise, no new feature ideas. Cite `file:line` per finding.

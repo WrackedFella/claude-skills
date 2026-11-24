@@ -32,15 +32,18 @@ Rules for every mode:
 
 You get the acceptance criteria and the tech-spec test map. Derive tests from that
 spec, not from any existing implementation, and write tests only. If a test can't
-compile without a new type or function, add the smallest stub that compiles (`todo!()`
-body) and say so in your report.
+compile without a new type or function, add the smallest stub that compiles and throws
+as not implemented (Rust `todo!()`, C# `throw new NotImplementedException()`) and say so
+in your report.
 
 - One test per scenario in the test map, named exactly as the map names it
-  (`scenario_expected_result`). Add edge cases and invalid input the scenarios imply.
+  (in the form the project's language standard gives: Rust `scenario_expected_result`,
+  C# `Method_Scenario_ExpectedResult`). Add edge cases and invalid input the scenarios imply.
 - Assert observable behavior, not internals. A test that passes against a stub or a
   plausible wrong implementation is not done.
 - Run the new tests with the project's test command and confirm each fails for the
-  right reason (assertion or `todo!()`, not a compile error elsewhere or a typo).
+  right reason (an assertion or the not-implemented stub, not a compile error elsewhere,
+  a missing fixture or a typo).
 
 Test-map entries tagged `e2e` go in the project's acceptance suite (its `Acceptance test
 paths`) and follow the acceptance-test rules in `engineering-standards`. Confirm their red
