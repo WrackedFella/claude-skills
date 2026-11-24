@@ -101,7 +101,7 @@ Addresses review feedback on one pull request. Never resolves a thread, never me
 3. Run the gate and the test guards after each change set; never push red. `test-guard --since <tip at start>` (and `e2e-guard` when the project has acceptance tests) rejects a fix that edits or removes a test that existed at the reviewed head; a commit that only adds the test a blocker asked for is passed with `--allow`. Commit per change set; merge the
    base branch if the PR is behind, never rebase or force-push.
 4. Push and reply on every thread with the commit SHA or the reason nothing changed.
-5. Headless runs use foreground subagents only and issue one command per Bash call (no `&&`, `;`, pipes, `cd` or `$(...)`), since the allow-list denies compounds.
+5. Headless runs follow [`operations.md`](../plugins/devflow/operations.md)'s *Headless runs* section.
 
 Report: threads addressed and declined, commits, anything needing the user.
 
@@ -184,7 +184,7 @@ complexity and abstraction.
 
 ## 9 rust-standards
 
-Rust-only deltas, default second module of `Standards`; it defers to `engineering-standards`
+Rust-only deltas, selected through `Standards`; it defers to `engineering-standards`
 for every other rule. Covers crate layout, `Result`/panic wording, `thiserror`/`anyhow`,
 `#[non_exhaustive]`, drop-based async cancellation, `tracing` macros, test naming and
 `#[cfg(test)]`/`#[ignore]`, rustdoc and `// SAFETY:`, ECS and hot-path items.

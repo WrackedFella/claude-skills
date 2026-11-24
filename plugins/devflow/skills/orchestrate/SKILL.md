@@ -18,16 +18,15 @@ task:
 - Push the work branch after every commit (tests, implementation, refactor, docs). A
   cloud sandbox that cannot resume continues from a fresh clone, so anything unpushed
   is lost.
-- In a headless run (`GITHUB_ACTIONS=true`, `TF_BUILD=True`, or no person attached) run every subagent
-  in the foreground and wait for its report; the run ends when you stop.
+- A headless run follows `${CLAUDE_PLUGIN_ROOT}/operations.md`'s *Headless runs* section; the run
+  ends when you stop.
 - Every numbered step runs unless its own text exempts the item (gate class, a project
   setting, a pause). Small size is not an exemption: a one-line change still gets its
   challenge round, `/simplify`, comment audit and independent review. In Actions a Stop
   hook (`scripts/step-check`) blocks the first stop of a run that skipped one.
-- A reply with no tool call ends a headless run, and the job reports success. After any
-  skill or subagent returns (`/simplify`, `/devflow:wiki`, `/devflow:comment-audit`),
-  its report is input, not your answer: record it and start the next step in the same
-  turn. End only with the final report after the PR is open, or with a pause.
+- After any skill or subagent returns (`/simplify`, `/devflow:wiki`, `/devflow:comment-audit`),
+  its report is input, not your answer: start the next step in the same turn. End only with
+  the final report after the PR is open, or with a pause.
 - Only the orchestrator spawns subagents: the worker agents' tool lists omit `Agent`,
   so fan-out is always driven from here.
 - Steps 5, 7 and 8 invoke skills through the Skill tool. If the Skill tool refuses a
@@ -54,7 +53,7 @@ task:
 ## Standards
 
 Read the project's `Standards` setting in `CLAUDE.md`: an ordered list of skill names;
-unset means `engineering-standards, rust-standards`. Map each name to
+unset means `engineering-standards`. Map each name to
 `${CLAUDE_PLUGIN_ROOT}/skills/<name>/SKILL.md` and put the resulting paths, in order,
 on a `Standards:` line in every worker brief (builder, test-writer, implementer, test-critic,
 design-critic, reviewer, acceptance-reviewer, including those in `parallel-parts.md`, `test-review.md`
@@ -103,7 +102,7 @@ and never accept the change. Added tests pass the guard.
 
 ## Bash commands
 
-In a headless run, issue one command per Bash call: no `&&`, `;`, pipes, `cd` or `$(...)`. The allow-list matches each command by prefix, so a compound is denied unless every part is allowed, and a denial costs a turn. Search with the Grep, Glob and Read tools and edit with Edit or Write; never use `python`, `sed`, `printenv` or `env` in a Bash call. Put these rules in every worker brief.
+In a headless run, one command per Bash call (*Headless runs*). Search with the Grep, Glob and Read tools and edit with Edit or Write; never use `python`, `sed`, `printenv` or `env` in a Bash call. Put these rules in every worker brief.
 
 ## Project board
 
