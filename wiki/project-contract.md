@@ -31,7 +31,7 @@ and the planning standards it names. Unset optional items disable the step that 
 | `PR approval` | no | pr-review | `off` (default) or `agent`: `agent` lets a verdict of `approve` with `Sign-off: agent` be submitted as a forge approval; `off` posts it as a comment. A `reject` requests changes under either value |
 | `PR follow-ups` | no | pr-review | `comment` (default): follow-ups are listed in the review; `issue`: also filed (at most 3 per review, label `follow-up`, never `agent-ready`); `off`: omitted |
 | `Human-only paths` | no | pr-review | globs, in the same format as the domain-logic paths, whose changes always set `Sign-off: human`, on top of the built-in triggers |
-| `Standards` | no | orchestrate, respond, pr-review, tech-lead, refine, BA, sitrep | ordered devflow skill names, e.g. `engineering-standards, dotnet-standards, azure-standards`; each resolves to `${CLAUDE_PLUGIN_ROOT}/skills/<name>/SKILL.md` (devflow skills only), and workers receive only the paths in their brief; unset = `engineering-standards, rust-standards` |
+| `Standards` | no | orchestrate, respond, pr-review, tech-lead, refine, BA, sitrep | ordered devflow skill names, e.g. `engineering-standards, dotnet-standards, azure-standards`; each resolves to `${CLAUDE_PLUGIN_ROOT}/skills/<name>/SKILL.md` (devflow skills only), and workers receive only the paths in their brief; unset = `engineering-standards` |
 | Pre-commit change check | no | ship, agents | GitNexus `detect_changes` |
 | `PR_REVIEW_MAX_ROUNDS` (repository variable, not `CLAUDE.md`) | no | pr-review | fix rounds before a reject routes to a person; default 3 |
 

@@ -39,7 +39,7 @@ enable auto-merge.
    config's exclusions (for example `.cargo/mutants.toml`) to get green: that loosens the gate,
    and the harness protects such paths in headless runs. When a mutant cannot be tested, reply with
    the exact exclusion line and why, and leave the config unchanged for a human.
-6. In a headless run, run every subagent in the foreground and wait for its report, and issue one command per Bash call: no `&&`, `;`, pipes, `cd` or `$(...)`. The allow-list matches by prefix, so a compound is denied unless every part is allowed.
+6. A headless run follows `${CLAUDE_PLUGIN_ROOT}/operations.md`'s *Headless runs* section.
 
 ## Test guard
 

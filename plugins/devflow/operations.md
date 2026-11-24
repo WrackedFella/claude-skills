@@ -52,10 +52,26 @@ instruction.
 - A project that declares no board skips every board step as if the board were
   unreachable: no reads, no writes, and the PR body says which Status changes were skipped.
 
+## Headless runs
+
+A run is headless when `GITHUB_ACTIONS=true`, `TF_BUILD=True` (an Azure Pipelines job), or no
+person is attached. Skills that run headless follow these rules and put them in every worker
+brief:
+
+- Run every subagent in the foreground and wait for its report.
+- Issue one command per Bash call: no `&&`, `;`, pipes, `cd` or `$(...)`. The allow-list
+  matches each command by prefix, so a compound is denied unless every part is allowed, and
+  a denial costs a turn.
+- A reply with no tool call ends the run, and the job reports success. After a skill or
+  subagent returns, its report is input: record it and start the next step in the same
+  turn. End only with the final report or a pause.
+- A run that needs a person's answer pauses (*Pause and resume*), or on a pull request
+  says so in a PR-level reply, and never ends silently.
+
 ## Pause and resume
 
-A headless run (`GITHUB_ACTIONS=true`, `TF_BUILD=True` in an Azure Pipelines job, or no person attached) that needs a person's answer
-never ends silently: it pauses on the work item. An interactive session asks directly instead.
+A headless run that needs a person's answer never ends silently: it pauses on the work
+item. An interactive session asks directly instead.
 
 **Pause.** *Comment on work item* with a first line `Paused: needs a human answer`, then
 each question numbered, with a proposed default and what each answer costs or rules out.

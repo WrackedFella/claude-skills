@@ -16,7 +16,7 @@ Arguments: `$ARGUMENTS`. A PR number, or none for the current branch's PR, or
 issue, posts nothing, files nothing, and writes the review to `out-file` (default
 `pr-review-<short head>.md` in the system temp directory).
 
-Headless runs use foreground subagents only and one command per Bash call.
+A headless run follows `${CLAUDE_PLUGIN_ROOT}/operations.md`'s *Headless runs* section.
 
 ## 1 Facts
 
