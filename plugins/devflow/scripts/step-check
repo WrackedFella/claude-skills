@@ -11,6 +11,8 @@
 # Required calls, in the order orchestrate defines them:
 #   intake     Agent devflow:design-critic before the first test-writer call (step 1),
 #              unless the run resumed from a pause
+#   intake-agree a Bash call to scripts/intake-agree after the intake critics, when intake
+#              is required and ran (step 1)
 #   tests      Agent devflow:test-writer, or devflow:builder with `Mode: tests` (step 2)
 #   test-review Agent devflow:test-critic, for a domain item when the project sets
 #              `Domain-test review: agent` (step 2)
@@ -20,11 +22,19 @@
 # A builder brief is an Agent devflow:builder call or a SendMessage to the builder; its
 # prompt or message names the mode.
 #   simplify   Skill simplify (step 5)
+#   guard      a Bash call to scripts/test-guard after the last test-writer, implementer or
+#              builder call, when one follows step 2 (test guard)
 #   mutation   a Bash command running the mutation tool after the last test-writer,
 #              implementer or builder call, so the reported counts are for the final code (step 6)
 #   comments   Skill devflow:comment-audit (step 7)
 #   docs       Skill devflow:wiki, when the project names a docs directory (step 8)
 #   review     Agent devflow:reviewer (step 11)
+# Bash calls are matched by script basename at the start of a command, so a path, a quoted
+# `${CLAUDE_PLUGIN_ROOT}/scripts/` prefix or a `bash` prefix all count and a mention does not.
+# Quoted text with spaces and heredoc bodies are ignored when matching. A builder start
+# (Agent devflow:builder) with no `Mode:` line is reported once as `unlabelled brief`, in
+# place of the tests, implement and challenge steps it would otherwise leave missing;
+# SendMessage briefs are not checked, since a guard-failure re-brief carries no mode.
 # A run that added `agent-paused` to its item, or whose last message starts with the pause
 # comment's first line (`Paused: needs a human answer`, used where the run can't label),
 # has paused and owes no later step. A run that removed the label has resumed. The
@@ -47,7 +57,7 @@ while [[ $# -gt 0 ]]; do
   case $1 in
     --hook) hook=true; shift ;;
     --claude-md) claude_md=${2:?}; shift 2 ;;
-    -h|--help) sed -n '2,36p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,50p' "$0"; exit 0 ;;
     -*) usage "unknown option $1" ;;
     *) transcript=$1; shift ;;
   esac
@@ -84,6 +94,13 @@ report=$(jq -c --arg domain_review "$domain_review" --argjson docs "$docs" '
   def brief($c): ($c.input.prompt // $c.input.message // "") | tostring;
   def builder($c; $m): ((($c.name == "Agent" or $c.name == "Task") and (($c.input.subagent_type // "") | test("(^|:)builder$")))
       or $c.name == "SendMessage") and (brief($c) | test("Mode: *" + $m));
+  def command_text: (.input.command // "") | split("\n") as $l
+      | ([ $l | to_entries[] | select(.value | test("<<")) | .key ] | first) as $h
+      | (if $h == null then $l else $l[0:$h + 1] end) | join("\n")
+      | gsub("\"[^\"]*\\s[^\"]*\"|\u0027[^\u0027]*\\s[^\u0027]*\u0027"; "");
+  def script_call($n): .name == "Bash" and (command_text
+      | test("(^|[;&|(\n])\\s*((\\w+=\\S*|env|time|timeout|nice|bash|sh|[0-9]+)\\s+)*[\"\u0027]?(\\S*/)?" + $n + "[\"\u0027]?(\\s|$)"));
+  def builder_brief: (.name == "Agent" or .name == "Task") and ((.input.subagent_type // "") | test("(^|:)builder$"));
   def mutation_call: .name == "Bash" and ((.input.command // "") | test("mutant|mutation|stryker"; "i"));
   . as $msgs
   | ($msgs | calls) as $calls
@@ -100,28 +117,37 @@ report=$(jq -c --arg domain_review "$domain_review" --argjson docs "$docs" '
   | ([ $calls | to_entries[] | select(.value as $c | ("implementer" | agent($c)) or builder($c; "implement")) | .key ] | first) as $impl
   | ([ $calls | to_entries[] | select(.value as $c | ("test-writer" | agent($c)) or builder($c; "tests")) | .key ] | first) as $first_tests
   | ([ $calls | to_entries[] | select(.value as $c | ("test-writer" | agent($c)) or ("implementer" | agent($c)) or builder($c; "")) | .key ] | last) as $last_change
+  | ([ $calls | to_entries[] | select(.value as $c | "design-critic" | agent($c)) | .key ] | last) as $last_critic
+  | ([ $calls[] | select(builder_brief) | select(brief(.) | test("Mode: *[a-z]") | not) ] | length > 0) as $unlabelled
   | {
       intake: any($calls | to_entries[] | select($first_tests == null or .key < $first_tests) | .value;
         . as $c | "design-critic" | agent($c)),
+      "intake-agree": any($calls | to_entries[] | select($last_critic != null and .key > $last_critic) | .value; script_call("intake-agree")),
       tests: ($first_tests != null),
       "test-review": any($calls[]; . as $c | "test-critic" | agent($c)),
       implement: ($impl != null),
       challenge: ($impl != null and any($calls | to_entries[] | select(.key > $impl) | .value;
         . as $c | ("test-writer" | agent($c)) or builder($c; "challenge"))),
       simplify: any($calls[]; .name == "Skill" and ((.input.skill // "") | test("(^|:)simplify$"))),
+      guard: (($first_tests == null or $last_change == null or $last_change <= $first_tests)
+        or any($calls | to_entries[] | select(.key > $last_change) | .value; script_call("test-guard"))),
       mutation: any($calls | to_entries[] | select($last_change == null or .key > $last_change) | .value; mutation_call),
       comments: any($calls[]; .name == "Skill" and ((.input.skill // "") | test("comment-audit$"))),
       docs: any($calls[]; .name == "Skill" and ((.input.skill // "") | test("(^|:)wiki$"))),
       review: any($calls[]; . as $c | "reviewer" | agent($c))
     } as $done
-  | ((if $resumed then [] else [ "intake" ] end) + [ "tests" ]
+  | ((if $resumed then [] else [ "intake", "intake-agree" ] end) + [ "tests" ]
      + (if $gate == "domain" and $domain_review == "agent" then [ "test-review" ] else [] end)
-     + [ "implement", "challenge", "simplify", "mutation", "comments" ]
+     + [ "implement", "challenge", "simplify", "guard", "mutation", "comments" ]
      + (if $docs then [ "docs" ] else [] end)
      + [ "review" ]) as $required
   | {
       orchestrate: $orchestrate, paused: $paused, gate_class: $gate, required: $required,
-      missing: (if $paused then [] else [ $required[] | select($done[.] | not) ] end)
+      missing: (if $paused then [] else
+        [ $required[] | select($done[.] | not)
+          | select(. != "intake-agree" or $done.intake)
+          | select(($unlabelled | not) or (. != "tests" and . != "implement" and . != "challenge")) ]
+        + (if $unlabelled then [ "unlabelled brief" ] else [] end) end)
     }' <<<"$messages")
 
 if $hook; then
