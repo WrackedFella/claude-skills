@@ -6,8 +6,7 @@ arguments: [target]
 ---
 
 Report status for `$target`. Read-only: never edit, commit or comment. Load the skills
-listed in the project's `Standards` setting (unset means
-`engineering-standards, rust-standards`) with the Skill tool.
+listed in the project's `Standards` setting (unset means `engineering-standards`) with the Skill tool.
 
 This skill runs inline, not forked: it must use the conversation so far, because the
 point is to recover where *this session* stands. Do not delegate it to a subagent.

@@ -20,7 +20,7 @@ removes the label and uses the answers. Every comment is `${CLAUDE_PLUGIN_ROOT}/
   item you did not create, except the feature's Items table.
 - Never apply `agent-ready` unless the project's `Card review` is `not required` (see
   Labels).
-- In a headless run, run every subagent in the foreground and wait for its report.
+- A headless run follows `${CLAUDE_PLUGIN_ROOT}/operations.md`'s *Headless runs* section.
 
 Read `${CLAUDE_SKILL_DIR}/../business-analyst/SKILL.md` and `${CLAUDE_SKILL_DIR}/../tech-lead/SKILL.md`
 and apply their rules for scope, acceptance criteria, tech spec, test map and gate class.
@@ -38,7 +38,7 @@ published.
 Read the project's `CLAUDE.md` (review settings, planning standards, domain-logic paths,
 base branch, `Standards`), the planning standards it names, the ADRs and the roadmap the feature
 links, and the code the feature touches. Load the skills listed in `Standards` with the Skill tool
-(unset means `engineering-standards, rust-standards`).
+(unset means `engineering-standards`).
 
 List the cards that already exist: the *List children* operation on `$issue`.
 They are work already done or in flight. Never edit, close or relabel them. Decompose
