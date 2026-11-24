@@ -62,6 +62,11 @@ brief:
 - Issue one command per Bash call: no `&&`, `;`, pipes, `cd` or `$(...)`. The allow-list
   matches each command by prefix, so a compound is denied unless every part is allowed, and
   a denial costs a turn.
+- Search with the Grep, Glob and Read tools, only inside the working directories; edit with
+  Edit or Write. Never run `python`, `sed` or a heredoc to change a file: the allow-list
+  denies interpreters.
+- Write scratch files (probe tests, temp output) only where the change's tests live, and
+  delete each one with `rm <path>` before reporting; a recursive `rm` is denied.
 - Rebuild committed generated files (assets, fixtures, generated code) only with the
   project's Generate command, never by running a generator or interpreter directly. A
   change that needs one rebuilt in a project without that command pauses.

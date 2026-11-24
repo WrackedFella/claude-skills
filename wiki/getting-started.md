@@ -132,8 +132,10 @@ For unattended runs ([Runtimes](runtimes.md#unattended-runs)). Moho's examples:
 - **Budgets:** `--max-turns` (100 for refine, 200 for orchestrate) and `timeout-minutes`
   (30 and 60).
 - **Allow-list:** `--allowedTools` limited to what the skills need (`git`, the gate runner,
-  `gh issue`, `gh pr`, `Edit`, `Write`, `Task`, `Skill`). Compound shell commands are
-  denied by an allow-list, which costs turns.
+  `gh issue`, `gh pr`, `Edit`, `Write`, `Task`, `Skill`, and `rm` for scratch files).
+  Compound shell commands are denied by an allow-list, which costs turns. Pair it with
+  `--disallowedTools` for recursive `rm`, force pushes, branch deletes and `gh pr merge`;
+  a deny rule wins over an allow rule.
 - **Toolchain:** install the build toolchain before the agent step, and restore a build
   cache read-only.
 - **Concurrency:** one run per issue.

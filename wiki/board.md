@@ -59,8 +59,9 @@ or Projects. Skills detect it by `board` exit 5 (`board probe` checks before the
 publish). When it happens:
 
 - The orchestrator skips every board read and write. Where an Action moves Status on PR
-  and label events, nothing is lost and the run does not mention it; the PR body lists
-  only a Status change no event covers.
+  and label events, nothing is lost and the run does not mention it, in the PR body or its
+  final report, and never asks a person to set the board; the PR body lists only a Status
+  change no event covers.
 - With `Board header: yes` the Tech Lead files the issue with the header and the automation sets the fields. Otherwise it does not file an issue, since one without Status, Gate class and
   Agent-eligible is half-published. The card stays a local draft (`Status: Draft`,
   intended gate class and labels, full spec) for a full-access session to file with `/devflow:publish`.
