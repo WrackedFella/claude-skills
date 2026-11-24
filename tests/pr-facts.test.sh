@@ -93,6 +93,33 @@ use_gh_stub
 run "$SCRIPTS/pr-facts" 9
 assert_json '[.ci.state, .stop]' '["green",null]'
 
+t "a CI covers line binds a command to its passing check"
+printf '# Project\n- **CI covers:** gate (`^Gate`), mutation (`^Mutants`)\n' >CLAUDE.md
+git add CLAUDE.md && base=$(commit base2) && git remote set-url origin "$PWD"
+echo c >>app/x.txt
+HEAD=$(commit change2) BASE=$base
+CHECKS='[{"name":"Gate (linux)","status":"completed","conclusion":"success","details_url":"u"},{"name":"Mutants (diff)","status":"completed","conclusion":"success","details_url":"u"}]'
+export HEAD BASE CHECKS
+use_gh_stub
+run "$SCRIPTS/pr-facts" 9
+assert_json '[.ci_covers.gate.state, .ci_covers.mutation.state]' '["passed","passed"]'
+
+t "a covered command whose check is absent or not green is not passed"
+CHECKS='[{"name":"Gate (linux)","status":"completed","conclusion":"success","details_url":"u"},{"name":"Gate (macos)","status":"completed","conclusion":"success","details_url":"u"},{"name":"Gate (windows)","status":"completed","conclusion":"skipped","details_url":"u"}]'
+use_gh_stub
+run "$SCRIPTS/pr-facts" 9
+assert_json '[.ci_covers.gate.state, .ci_covers.mutation.state]' '["failed","missing"]'
+
+t "no CI covers setting leaves every command missing"
+setup
+ISSUE_BODY='gate=glue'
+echo b >>app/x.txt
+HEAD=$(commit change) BASE=$base CHECKS='[{"name":"Gate","status":"completed","conclusion":"success","details_url":"u"}]'
+export HEAD BASE CHECKS
+use_gh_stub
+run "$SCRIPTS/pr-facts" 9
+assert_json '[.ci_covers.gate.state, .ci_covers.mutation.state]' '["missing","missing"]'
+
 t "no PR and no range is a usage error"
 run "$SCRIPTS/pr-facts"
 assert_rc 1

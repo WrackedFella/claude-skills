@@ -19,6 +19,12 @@
 #   stop: null, or {verdict, route, reason}; the review ends with it before any model runs.
 #         verdict "skip" (draft, closed, no linked issue), "wait" (CI pending), "reject"
 #         (CI failing or merge conflict, route "fix").
+#   ci_covers: {gate, mutation}, each {check, state}. The base CLAUDE.md's `CI covers` line
+#         names each covered command with the check-name regex of the CI job that runs it, in
+#         backticks: "CI covers: gate (`^Gate`), mutation (`^Mutants`)". state is "passed" when
+#         at least one check matches and every match concluded success on the head; otherwise
+#         "missing", "pending" or "failed". A command with no regex, or no setting, is "missing"
+#         (the defect finder runs it itself); dry runs have no checks, so always "missing".
 #   signoff_triggers: the path- and forge-based Sign-off triggers; the skill adds the ones
 #         only a reading can find (security-relevant code, an undeclared public API).
 #
@@ -34,7 +40,7 @@ while [[ $# -gt 0 ]]; do
     --issue) issue=${2:?}; shift 2 ;;
     --claude-md) claude_md=${2:?}; shift 2 ;;
     --ignore-check) ignore+=("${2:?}"); shift 2 ;;
-    -h|--help) sed -n '2,26p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,32p' "$0"; exit 0 ;;
     -*) die "unknown option $1" ;;
     *) pr=$1; shift ;;
   esac
@@ -159,6 +165,22 @@ fi
 mapfile -t domain_globs < <(setting_globs 'Domain-logic paths' "$claude_md")
 mapfile -t human_globs < <(setting_globs 'Human-only paths' "$claude_md")
 
+# CI-covered commands: the check each one is bound to, and whether it passed on the head.
+cover_line=$(grep -m1 -iE '^[[:space:]]*[-*]?[[:space:]]*[^[:alnum:]]{0,3}CI covers[^[:alnum:]]{0,3}:' "$claude_md" || true)
+cover_re() { sed -nE "s/.*\\b$1\\b[^\`,]*\`([^\`]+)\`.*/\\1/p" <<<"$cover_line" | head -n1; }
+ci_covers='{}'
+[[ -f $tmp/checks.jsonl ]] || : >"$tmp/checks.jsonl"
+for kind in gate mutation; do
+  re=$(cover_re "$kind")
+  ci_covers=$(jq -c --arg k "$kind" --arg re "$re" --slurpfile c "$tmp/checks.jsonl" '
+    ($c | map(select($re != "" and (.name | test($re))))) as $m
+    | .[$k] = {check: (if $re == "" then null else $re end),
+               state: (if ($m | length) == 0 then "missing"
+                       elif any($m[]; .status != "completed") then "pending"
+                       elif all($m[]; .conclusion == "success") then "passed"
+                       else "failed" end)}' <<<"$ci_covers")
+done
+
 # --- diff ---------------------------------------------------------------------------
 git diff --numstat "$base_sha" "$head_sha" >"$tmp/numstat"
 changed_lines=0 files=() domain_hits=() human_hits=() config_hits=() dep_hits=()
@@ -250,7 +272,7 @@ jq -n \
   --argjson lines "$changed_lines" --argjson files "$(arr "${files[@]+"${files[@]}"}")" \
   --argjson domain "$(arr "${domain_hits[@]+"${domain_hits[@]}"}")" \
   --argjson triggers "$(arr "${triggers[@]+"${triggers[@]}"}")" \
-  --argjson outside "$outside" --argjson edited "$edited" --argjson prior "$prior" \
+  --argjson covers "$ci_covers" --argjson outside "$outside" --argjson edited "$edited" --argjson prior "$prior" \
   --argjson stop "$stop" '
   {mode: $mode, repo: $repo, pr: (if $pr == "" then null else ($pr | tonumber) end),
    head_sha: $head, base_ref: $base_ref, base_sha: $base, author: $author,
@@ -259,4 +281,4 @@ jq -n \
    id_match: $id_match, gate_class: $gate, tier: $tier, ci: $ci, conflict: $conflict,
    changed_lines: $lines, files: $files, domain_hits: $domain,
    signoff_triggers: $triggers, outside_comments: $outside,
-   issue_edited_after_open: $edited, prior_reviews: $prior, stop: $stop}'
+   issue_edited_after_open: $edited, prior_reviews: $prior, ci_covers: $covers, stop: $stop}'
