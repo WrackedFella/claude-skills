@@ -114,8 +114,9 @@ works by field and option names. Without a board, the card status is the record,
 `board` exits 5 when it cannot reach Projects (some environments move Status by events
 instead and give the agent no project access). On exit 5, don't retry or work around
 it: skip every board read and write in this task and carry on. A project whose Actions move
-Status by events (the usual case) loses nothing, so say nothing in the PR body or a pause
-comment; list a Status change in the PR body only when no event covers it.
+Status by events (the usual case) loses nothing, so say nothing in the PR body, a pause
+comment or the final report, and never ask a person to set the board; list a Status change
+in the PR body only when no event covers it.
 
 ## 1. Intake
 
@@ -148,7 +149,8 @@ showed it `In progress`, or the revision test was rejected and the re-read shows
 claimed, and the item was not paused, another session holds it; stop.
 
 If the project names an environment setup command and this session is remote
-(`CLAUDE_CODE_REMOTE=true`), run it before the first build.
+(`CLAUDE_CODE_REMOTE=true`), run it before the first build. Never run it in Actions
+(`GITHUB_ACTIONS=true`): the workflow installs the toolchain before the agent starts.
 
 **Conformance check.** Before step 2, delegate to `devflow:design-critic` twice, in
 parallel, with the same brief: `Mode: intake`, the `Read work item:` and `Standards:`
@@ -307,6 +309,11 @@ tests with the last acceptance run and guard results and the Acceptance review s
 (when they apply), reviewer
 findings and their resolution, and manual verification still required. Once the PR
 is open, set the board Status to `In review` (or the card status without a board).
+
+Before the final report, `git status --porcelain` must list no untracked file: delete each
+scratch file you or a worker created (probe tests, temp files) with `rm <path>`, one file
+per call, and commit any test-tool output the project keeps under version control (for
+example proptest's `proptest-regressions/`). Never ask a person to clean the worktree.
 
 Finish with a short report: PR link, what the human must check, and anything left
 unresolved.

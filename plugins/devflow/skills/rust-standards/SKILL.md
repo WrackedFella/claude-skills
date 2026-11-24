@@ -69,6 +69,8 @@ Stack assumptions: stable Rust, a Cargo workspace, an async runtime or job pool,
   `#[cfg(test)] mod tests`, nested modules for the behavior groups; integration tests
   in `tests/`.
 - **Slow-test gate:** `#[ignore = "reason"]`, or a Cargo feature.
+- **Proptest seeds:** commit the `proptest-regressions/` files proptest writes; they make a
+  found failure replay first on every run.
 
 ## Comments
 
