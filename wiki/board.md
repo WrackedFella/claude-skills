@@ -58,9 +58,9 @@ Some environments (cloud threads, runners with a default app token) cannot use G
 or Projects. Skills detect it by `board` exit 5 (`board probe` checks before the first
 publish). When it happens:
 
-- The orchestrator skips every board read and write and states in the PR body which
-  Status changes were left to the environment (for example an Action reacting to PR
-  and label events).
+- The orchestrator skips every board read and write. Where an Action moves Status on PR
+  and label events, nothing is lost and the run does not mention it; the PR body lists
+  only a Status change no event covers.
 - With `Board header: yes` the Tech Lead files the issue with the header and the automation sets the fields. Otherwise it does not file an issue, since one without Status, Gate class and
   Agent-eligible is half-published. The card stays a local draft (`Status: Draft`,
   intended gate class and labels, full spec) for a full-access session to file with `/devflow:publish`.

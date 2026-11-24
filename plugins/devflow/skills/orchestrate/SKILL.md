@@ -113,8 +113,9 @@ works by field and option names. Without a board, the card status is the record,
 
 `board` exits 5 when it cannot reach Projects (some environments move Status by events
 instead and give the agent no project access). On exit 5, don't retry or work around
-it: skip every board read and write in this task, carry on, and say in the PR body which
-Status changes were left to the environment.
+it: skip every board read and write in this task and carry on. A project whose Actions move
+Status by events (the usual case) loses nothing, so say nothing in the PR body or a pause
+comment; list a Status change in the PR body only when no event covers it.
 
 ## 1. Intake
 
