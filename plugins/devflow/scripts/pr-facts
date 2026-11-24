@@ -166,7 +166,7 @@ mapfile -t domain_globs < <(setting_globs 'Domain-logic paths' "$claude_md")
 mapfile -t human_globs < <(setting_globs 'Human-only paths' "$claude_md")
 
 # CI-covered commands: the check each one is bound to, and whether it passed on the head.
-cover_line=$(grep -m1 -iE '^[[:space:]]*[-*]?[[:space:]]*(\*\*)?`?CI covers`?(\*\*)?[[:space:]]*:' "$claude_md" || true)
+cover_line=$(grep -m1 -iE '^[[:space:]]*[-*]?[[:space:]]*[^[:alnum:]]{0,3}CI covers[^[:alnum:]]{0,3}:' "$claude_md" || true)
 cover_re() { sed -nE "s/.*\\b$1\\b[^\`,]*\`([^\`]+)\`.*/\\1/p" <<<"$cover_line" | head -n1; }
 ci_covers='{}'
 [[ -f $tmp/checks.jsonl ]] || : >"$tmp/checks.jsonl"
