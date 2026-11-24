@@ -10,6 +10,7 @@ Checks:
   - hooks/hooks.json parses and every hook command it names exists and is executable;
   - every agent and skill has YAML frontmatter with known keys, a name matching its
     file or directory, a description, a valid model, known tools and existing skills;
+  - every agent is named in README.md and wiki/agents.md at the repository root;
   - every file under scripts/ is executable and starts with a shebang;
   - every ${CLAUDE_PLUGIN_ROOT}/... and ${CLAUDE_SKILL_DIR}/... path exists;
   - every `<plugin>:<name>` reference names an agent or skill of that plugin.
@@ -44,6 +45,9 @@ NAME = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 # A path ends before a character that can't be in one, or a sentence's closing period.
 ROOT_REF = re.compile(r"\$\{CLAUDE_PLUGIN_ROOT\}/([A-Za-z0-9_./-]*[A-Za-z0-9_/-]|)")
 SKILL_REF = re.compile(r"\$\{CLAUDE_SKILL_DIR\}/([A-Za-z0-9_./-]*[A-Za-z0-9_/-]|)")
+
+# Docs that must name every agent, relative to the repository root.
+AGENT_DOCS = ("README.md", "wiki/agents.md")
 
 problems = []
 
@@ -83,6 +87,14 @@ def frontmatter(path):
         problem(rel(path), "frontmatter is not a mapping")
         return None
     return data
+
+
+def read_text(path):
+    try:
+        with open(path, encoding="utf-8") as f:
+            return f.read()
+    except OSError:
+        return ""
 
 
 def as_list(value):
@@ -151,6 +163,12 @@ def check_plugin(pdir, pname):
         for skill in as_list(data.get("skills")):
             if skill.split(":")[-1] not in skills:
                 problem(rel(path), f"skills names '{skill}', which is not a skill of {pname}")
+
+    for doc in AGENT_DOCS:
+        text = read_text(os.path.join(ROOT, doc))
+        for a in agents:
+            if not re.search(r"(?<![\w-])" + re.escape(a) + r"(?![\w-])", text):
+                problem(rel(os.path.join(agents_dir, a + ".md")), f"agent is not named in {doc}")
 
     hooks_path = os.path.join(pdir, "hooks", "hooks.json")
     if os.path.exists(hooks_path):

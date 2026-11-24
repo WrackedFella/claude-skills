@@ -10,6 +10,9 @@ fixture() {
   printf -- '---\nname: a\ndescription: "Does a: the thing"\ntools: Read, Bash, mcp__x__y\nskills: base\nmodel: opus\n---\nUse p:s and ${CLAUDE_PLUGIN_ROOT}/scripts/go.\n' >"$root/p/agents/a.md"
   printf -- '---\nname: s\ndescription: Skill s\n---\nRead ${CLAUDE_SKILL_DIR}/more.md and ${CLAUDE_SKILL_DIR}/../base/SKILL.md; spawn p:a.\n' >"$root/p/skills/s/SKILL.md"
   echo "more" >"$root/p/skills/s/more.md"
+  mkdir -p "$root/wiki"
+  echo 'Agents: a.' >"$root/README.md"
+  echo '## a' >"$root/wiki/agents.md"
   printf -- '---\nname: base\ndescription: Base\nuser-invocable: false\n---\n' >"$root/p/skills/base/SKILL.md"
   printf '#!/usr/bin/env bash\n' >"$root/p/scripts/go" && chmod +x "$root/p/scripts/go"
   echo '{"hooks":{"Stop":[{"hooks":[{"type":"command","command":"${CLAUDE_PLUGIN_ROOT}/scripts/go --hook"}]}]}}' >"$root/p/hooks/hooks.json"
@@ -98,3 +101,19 @@ echo '{"name":' >"$root/.claude-plugin/marketplace.json"
 check
 assert_rc 1
 assert_contains "marketplace.json: invalid JSON"
+
+t "an agent not named in README.md or wiki/agents.md fails"
+fixture
+printf -- '---\nname: b\ndescription: Agent b\n---\n' >"$root/p/agents/b.md"
+check
+assert_rc 1
+assert_contains "p/agents/b.md: agent is not named in README.md"
+assert_contains "p/agents/b.md: agent is not named in wiki/agents.md"
+
+t "an agent named only inside a longer hyphenated name is not documented"
+fixture
+printf -- '---\nname: b\ndescription: Agent b\n---\n' >"$root/p/agents/b.md"
+echo 'Agents: a, a-b, b-a.' >"$root/README.md"
+echo '## a' >>"$root/wiki/agents.md"
+check
+assert_contains "p/agents/b.md: agent is not named in README.md"
