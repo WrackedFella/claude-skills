@@ -130,7 +130,7 @@ the BA and Tech Lead skills and applies their rules, escalating where they would
   means the feature is too big: it comments a proposed split and stops.
 - **Escalates instead of guessing.** Unanswered direction-setting questions, criteria
   that conflict with an ADR, or untestable criteria pause the run: one comment (questions,
-  proposed defaults, costs), the `agent-paused` label, a stop. A reply resumes it.
+  proposed defaults, costs), the `agent-paused` label, a stop. A comment starting with `Resume` resumes it.
   Independent cards may still publish.
 - **Publishes** each card with `scripts/card publish` as `[<ID>] <title>`, labeled with the
   feature's line and linked as a sub-issue, then adds them to the feature's item table.

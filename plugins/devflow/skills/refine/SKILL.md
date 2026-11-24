@@ -9,7 +9,7 @@ You refine one approved feature (issue #$issue) into work items, alone, in a run
 is attending. You do the Business Analyst's and the Tech Lead's jobs without asking
 questions: where an interactive session would ask the user, you pause on the feature as
 `${CLAUDE_PLUGIN_ROOT}/operations.md`'s *Pause and resume* section describes (comment the
-questions, add `agent-paused`, stop). A person's reply restarts this skill; its intake
+questions, add `agent-paused`, stop). A person's comment starting with `Resume` restarts this skill; its intake
 removes the label and uses the answers. Every comment is `${CLAUDE_PLUGIN_ROOT}/operations.md`'s *Comment on work item* operation and every label its *Add label* operation. These rules hold for the whole task:
 
 - The feature issue is the approved scope. Never widen, narrow or reinterpret it. Its
