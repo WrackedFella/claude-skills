@@ -21,6 +21,8 @@ gh_stub() {
     "api repos/o/r/commits/"*"/check-runs"*) jq -cn --argjson c "$CHECKS" '{check_runs:$c}' ;;
     "api repos/o/r/commits/"*"/status") echo '{"statuses":[]}' ;;
     "api repos/o/r/"*"comments"*|"api repos/o/r/pulls/9/reviews"*) echo '[]' ;;
+    "api repos/o/r/actions/runs/200"*) echo 55 ;;
+    "api repos/o/r/actions/workflows/55/runs"*) echo '["100","200"]' ;;
     "api graphql"*) echo '{"data":{"repository":{"issue":{"lastEditedAt":"2025-12-01T00:00:00Z"}}}}' ;;
     *) echo "unexpected gh $*"; return 1 ;;
   esac
@@ -92,6 +94,16 @@ CHECKS='[{"name":"test","status":"completed","conclusion":"success","details_url
 use_gh_stub
 run "$SCRIPTS/pr-facts" 9
 assert_json '[.ci.state, .stop]' '["green",null]'
+
+t "an earlier failed run of the review workflow on the head is not CI, but another workflow's failure is"
+CHECKS='[{"name":"Review and fix","status":"completed","conclusion":"failure","details_url":"https://x/runs/100/job/1"},{"name":"Review and fix","status":"in_progress","conclusion":null,"details_url":"https://x/runs/200/job/2"},{"name":"test","status":"completed","conclusion":"success","details_url":"https://x/runs/300/job/3"}]'
+use_gh_stub
+GITHUB_RUN_ID=200 run "$SCRIPTS/pr-facts" 9
+assert_json '[.ci.state, .ci.failing, .stop]' '["green",[],null]'
+CHECKS='[{"name":"Review and fix","status":"completed","conclusion":"failure","details_url":"https://x/runs/100/job/1"},{"name":"test","status":"completed","conclusion":"failure","details_url":"https://x/runs/300/job/3"}]'
+use_gh_stub
+GITHUB_RUN_ID=200 run "$SCRIPTS/pr-facts" 9
+assert_json '[.ci.state, .ci.failing]' '["failing",["test"]]'
 
 t "a CI covers line binds a command to its passing check"
 printf '# Project\n- **CI covers:** gate (`^Gate`), mutation (`^Mutants`)\n' >CLAUDE.md
