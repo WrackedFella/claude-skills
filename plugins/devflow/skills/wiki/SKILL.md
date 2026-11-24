@@ -23,7 +23,7 @@ Bring the project's wiki in line with this diff. Never change code.
    - a pattern: an extension point, or the way a kind of thing is added;
    - a convention: naming, layout, error handling or a workflow rule;
    - a format or contract other code or people depend on (file formats, GPU layouts,
-     commands).
+     wire contracts, schemas, commands).
 
    Bug fixes, internal refactors, tests and tuning usually don't qualify. Then check
    drift: does any existing page describe code this diff changed? A page that no

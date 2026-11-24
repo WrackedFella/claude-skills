@@ -11,8 +11,9 @@ override them; it wins. A language skill adds only what is specific to that lang
 
 ## Architecture and layering
 
-- **Dependencies point inward:** entry/presentation → domain/simulation →
-  infrastructure (I/O, assets, platform, GPU). Domain code never names concrete
+- **Dependencies point inward:** entry/presentation → domain (simulation, business
+  rules) → infrastructure (I/O, assets, platform, GPU; persistence, messaging, external
+  APIs). Domain code never names concrete
   infrastructure types in its public surface; it depends on abstractions it defines.
 - **SOLID, weighted to SRP and DIP.** If a type's single responsibility can't be named
   in one sentence, split it.
@@ -28,12 +29,13 @@ override them; it wins. A language skill adds only what is specific to that lang
 ## Resources and memory
 
 - **Stream, don't materialize** unbounded or large data; stream or memory-map large
-  assets.
+  assets, and stream query results, exports and files of unbounded size.
 - **Keep I/O and platform types behind the infrastructure boundary.**
 
 ## Validation and errors
 
-- **Validate at the boundary** (parsing, deserialization, config/asset load) into a
+- **Validate at the boundary** (parsing, deserialization, config/asset load, incoming
+  requests and messages) into a
   typed failure value, not a crash.
 - **Types enforce their invariants** in a validating constructor or conversion. Make
   illegal states unrepresentable.
@@ -67,7 +69,9 @@ override them; it wins. A language skill adds only what is specific to that lang
 ## Observability
 
 - **Structured logging fields**, not interpolated strings.
-- **Spans around meaningful units of work** (frame stages, asset loads, jobs).
+- **Spans around meaningful units of work** (frame stages, asset loads, jobs; requests,
+  messages, external calls), with the trace or correlation id carried across every
+  process boundary.
 - **Intentional levels:** `error` an operator must see; `warn` recoverable degradation;
   `info` state transitions; `debug`/`trace` off by default.
 - **Emit counts, durations and deltas** so anomalies show without reading code.
@@ -83,14 +87,15 @@ override them; it wins. A language skill adds only what is specific to that lang
 
 - Call follow-on effects directly in an obvious sequence by default.
 - Use an event channel only for real decoupling needs: many independent
-  consumers, cross-system fan-out, or frame-deferred handling.
-- Event names are past tense (`EntitySpawned`); payloads are immutable and carry
+  consumers, cross-system or cross-service fan-out, or frame-deferred handling. Don't
+  build outbox or event infrastructure before a concrete consumer needs it.
+- Event names are past tense (`EntitySpawned`, `JobProcessed`); payloads are immutable and carry
   enough data that consumers needn't re-fetch. A published event shape is a contract.
 
 ## Testing
 
-- **Priority:** domain/simulation rules and regression-prone contracts (math,
-  serialization formats, state machines), not a line-coverage number.
+- **Priority:** domain rules (simulation, business rules) and regression-prone contracts
+  (math, serialization and wire formats, persistence, routing, security, state machines), not a line-coverage number.
 - **Test-first for domain logic and bug fixes touching it.** The project defines which
   tests need human review before implementation; tests are the spec.
 - **Test-after is fine** for thin adapters, plumbing and trivial conversions.

@@ -1,6 +1,6 @@
 ---
 name: dotnet-standards
-description: "C#/.NET-specific engineering standards layered on engineering-standards: solution layout, compiler and analyzers as gate, records and value objects, exceptions vs result types, CancellationToken, DI and options, ILogger, xUnit and Stryker.NET, XML docs. Load before writing, refactoring or reviewing C#/.NET code."
+description: "C#/.NET-specific engineering standards layered on engineering-standards: solution layout, compiler and analyzers as gate, records and value objects, exceptions vs result types, API error contracts, EF Core data access, CancellationToken, DI and options, ILogger, xUnit and Stryker.NET, XML docs. Load before writing, refactoring or reviewing C#/.NET code."
 user-invocable: false
 ---
 
@@ -29,7 +29,10 @@ against its official documentation before relying on it.
 ## Compiler as gate
 
 - **Enable `<Nullable>enable</Nullable>`** so absence is visible in the type system and
-  a missing null check is a warning, not a runtime fault.
+  a missing null check is a warning, not a runtime fault. Use `required` members and
+  primary constructors so a type cannot be built half-initialized. The null-forgiving
+  `!` is for a guard the compiler can't see through, never to silence a diagnostic that
+  needs a structural fix.
 - **Set `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>`** in the shared props,
   with a curated analyzer set and severities in `.editorconfig`. Suppress with `#pragma warning disable` plus a
   reason comment, or `[SuppressMessage(..., Justification = "...")]`, never in a
@@ -66,7 +69,11 @@ against its official documentation before relying on it.
 - **At API edges, map failures to `ProblemDetails`** (RFC 9457, which obsoletes
   RFC 7807) in one place, `AddProblemDetails` with an `IExceptionHandler` (which also needs
   `AddExceptionHandler<T>()` and `UseExceptionHandler()`), so clients
-  get a uniform error shape and internals do not leak.
+  get a uniform error shape and internals do not leak. Validation failures use
+  `ValidationProblemDetails` with field-level errors; application error codes go in a
+  custom extension member of the problem document.
+- **gRPC uses status codes plus `google.rpc.Status` details** (the `grpc-status-details-bin`
+  trailer, `Grpc.StatusProto` in .NET): the same contract in the protocol's shape.
 
 ## Async and cancellation
 
@@ -76,6 +83,9 @@ against its official documentation before relying on it.
   it ties up a thread and risks deadlock. Async goes all the way up.
 - **Return `IAsyncEnumerable<T>` to stream** unbounded or large results instead of
   buffering a list.
+- **Omit `ConfigureAwait(false)` in application code:** ASP.NET Core and generic-host
+  workers install no synchronization context, so it is noise there. A library that may
+  run under a UI or legacy ASP.NET context follows that host's rule instead.
 - **Don't wrap I/O in `Task.Run`:** async I/O already frees the thread; `Task.Run` only
   moves CPU-bound work off a caller that must stay responsive.
 
@@ -83,7 +93,10 @@ against its official documentation before relying on it.
 
 - **One composition root** (`Program.cs` or the host builder) registers services;
   everything else takes dependencies through its constructor. No `IServiceProvider`
-  resolved inside domain code, no static state.
+  resolved inside business or domain code, no static state. A service locator is for
+  framework edges only (a factory the framework calls, a hosted service creating a
+  scope), with the reason stated; a constructor with too many parameters is a type to
+  split, not a reason to resolve lazily.
 - **Bind configuration to typed options (`IOptions<T>`) and validate on start:**
   `.ValidateDataAnnotations().ValidateOnStart()` on the options builder, or
   `AddOptionsWithValidateOnStart<T>()` (.NET 8+), with `IValidateOptions<T>` for custom
@@ -95,6 +108,16 @@ against its official documentation before relying on it.
   lifetime management, and attach one resilience handler per client
   (`Microsoft.Extensions.Http.Resilience`: `AddStandardResilienceHandler`, or
   `AddResilienceHandler` for a custom pipeline) rather than hand-rolled loops.
+
+## Data access (EF Core)
+
+- **Never apply migrations at application startup.** Apply them manually or from the
+  deployment pipeline (a migration bundle or idempotent script), so several instances
+  never race a schema change and the app needs no DDL rights.
+- **Stream unbounded reads** with `AsAsyncEnumerable()` (consumed with `await foreach`)
+  instead of `ToListAsync()`; materialize only a result whose size is bounded.
+- **Watch the query shape:** no query per item in a loop (N+1); load related data with
+  `Include`, a projection or one batched query.
 
 ## Logging
 
@@ -116,7 +139,8 @@ against its official documentation before relying on it.
 - **Use Testcontainers for real infrastructure** (databases, brokers) instead of mocks
   of them; this assumes Docker is available where tests run, so tag such tests
   `[Trait("Category","Integration")]` and run the fast set with
-  `dotnet test --filter "Category!=Integration"`.
+  `dotnet test --filter "Category!=Integration"`. Use that same filter in the gate and in
+  the mutation run, and honor any other trait the project already uses to gate slow tests.
 - **Mutation testing with Stryker.NET** in diff mode
   (`dotnet stryker --since:<base-branch>`; without `--since` it mutates the whole
   project), with
@@ -124,13 +148,16 @@ against its official documentation before relying on it.
   a score below it exits non-zero.
 - **Check an assertion library's license before adding one.** FluentAssertions 8+ is
   under the Xceed commercial license (v7 and earlier are Apache-2.0); AwesomeAssertions
-  is the Apache-2.0 fork. Prefer plain xUnit `Assert`.
+  is the Apache-2.0 fork. Prefer plain xUnit `Assert`. The same check applies elsewhere:
+  MediatR 13+ is commercially licensed (with a free community tier), so a mediator is a deliberate choice (hand-rolled,
+  or a permissively licensed alternative), not a default.
 
 ## Documentation comments
 
 - **XML doc comments (`///`) state a public member's contract:** behavior, `<exception>`
   for what it throws, thread-safety and invariants. The keep/remove rules from
-  `engineering-standards` apply; don't restate the signature in `<summary>`.
+  `engineering-standards` apply: a `<summary>` that only restates the signature is
+  tightened into the contract, not deleted.
 - **Enable doc generation for library projects** (`GenerateDocumentationFile`) so a
   missing doc on public API surfaces as a warning, and therefore an error under the gate.
 
@@ -141,5 +168,5 @@ A minimal gate for the project contract; each command must exit non-zero on fail
 ```bash
 dotnet build -warnaserror
 dotnet format --verify-no-changes
-dotnet test
+dotnet test --filter "Category!=Integration"
 ```
