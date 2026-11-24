@@ -29,6 +29,8 @@ card's spec.
      'Gate class'=<header value> Agent-eligible=Yes`. Use `Agent-eligible=No` if the
      header or the user says the item is human-driven; use `Status=Ready` only if the
      card is approved.
+   - For each card it depends on (already filed, or filed earlier in this run), the
+     `${CLAUDE_PLUGIN_ROOT}/operations.md`'s *Add dependency* operation, so the queue does not start it first.
    - Set the card header's `Issue` link and status per the planning standards, and add
      the card to the feature's item table.
 5. With `Card review: not required`, apply the tech-lead's **Promotion** checks to each filed card and add `agent-ready` (the *Add label* operation) to those that pass. With `required`, apply none.
