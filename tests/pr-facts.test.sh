@@ -21,8 +21,8 @@ gh_stub() {
     "api repos/o/r/commits/"*"/check-runs"*) jq -cn --argjson c "$CHECKS" '{check_runs:$c}' ;;
     "api repos/o/r/commits/"*"/status") echo '{"statuses":[]}' ;;
     "api repos/o/r/"*"comments"*|"api repos/o/r/pulls/9/reviews"*) echo '[]' ;;
-    "api repos/o/r/actions/runs/200"*) echo 55 ;;
-    "api repos/o/r/actions/workflows/55/runs"*) echo '["100","200"]' ;;
+    "api repos/o/r/actions/runs/200"*) echo '{"workflow_id":55}' ;;
+    "api repos/o/r/actions/workflows/55/runs"*) echo '{"workflow_runs":[{"id":100},{"id":200}]}' ;;
     "api graphql"*) echo '{"data":{"repository":{"issue":{"lastEditedAt":"2025-12-01T00:00:00Z"}}}}' ;;
     *) echo "unexpected gh $*"; return 1 ;;
   esac
