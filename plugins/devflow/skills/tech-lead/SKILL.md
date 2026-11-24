@@ -63,7 +63,8 @@ For each work item whose acceptance criteria are approved, write its **Tech spec
   with its part; the orchestrator implements parts in parallel. Overlap in a single
   file means one part.
 - **Test map:** each acceptance scenario → the test that proves it
-  (example name: `module::tests::scenario_expected_result`), plus edge-case tests the design
+  (example name, per the language standard: `module::tests::scenario_expected_result`,
+  `OrderImporterTests.Import_WhenTenantInactive_ReturnsRejected`), plus edge-case tests the design
   implies. Prefer property tests for invariants and snapshot tests for formats.
 - **Test plan** (only when the project sets an `Acceptance command`): tag each
   test-map entry `unit`, `api` or `e2e`, name the seed data each scenario needs, and

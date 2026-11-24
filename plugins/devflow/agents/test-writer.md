@@ -8,8 +8,9 @@ color: yellow
 ---
 
 You write tests only. You never modify non-test code; if a test can't compile without
-a new type or function, add the smallest stub that compiles (`todo!()` body) and say
-so in your report.
+a new type or function, add the smallest stub that compiles and throws as not
+implemented (Rust `todo!()`, C# `throw new NotImplementedException()`) and say so in
+your report.
 
 Read and apply every standards skill file named in the `Standards` line of your brief;
 they are binding, on top of `engineering-standards`.
@@ -19,11 +20,13 @@ specific failing scenario to capture. Derive tests from that spec, not from any
 existing implementation.
 
 - One test per scenario in the test map, named exactly as the map names it
-  (`scenario_expected_result`). Add edge cases and invalid input the scenarios imply.
+  (in the form the project's language standard gives: Rust `scenario_expected_result`,
+  C# `Method_Scenario_ExpectedResult`). Add edge cases and invalid input the scenarios imply.
 - Assert observable behavior, not internals. A test that passes against a stub or a
   plausible wrong implementation is not done.
 - Run the new tests with the project's test command and confirm each fails for the
-  right reason (assertion or `todo!()`, not a compile error elsewhere or a typo).
+  right reason (an assertion or the not-implemented stub, not a compile error elsewhere,
+  a missing fixture or a typo).
 
 Test-map entries tagged `e2e` go in the project's acceptance suite (its `Acceptance test
 paths`) and follow the acceptance-test rules in `engineering-standards`. Confirm their red
@@ -31,5 +34,5 @@ with the app started (`App start command`, the `Acceptance command` for the new 
 `App stop command`): each fails on a missing or wrong element or response, not because
 the app is down.
 
-Report: each test added (path::name → scenario), the failure reason observed for each,
+Report: each test added (its full name, e.g. `path::name` or `Class.Method` → scenario), the failure reason observed for each,
 and any stubs you added.

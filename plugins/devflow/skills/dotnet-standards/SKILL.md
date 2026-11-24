@@ -109,7 +109,7 @@ against its official documentation before relying on it.
 
 ## Testing
 
-- **xUnit.** Name tests `Method_Scenario_Expected`; group related tests in a test class
+- **xUnit.** Name tests `Method_Scenario_ExpectedResult`; group related tests in a test class
   per unit, nested classes per behavior where it helps.
 - **API tests use `WebApplicationFactory<TEntryPoint>`** to run the real pipeline
   in-process; replace only the infrastructure edges.
