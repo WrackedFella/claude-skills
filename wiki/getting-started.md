@@ -176,7 +176,7 @@ Claude Code Projects threads do not load plugins from `.claude/settings.json`
 For a project with a UI or API to check end to end, such as a web app. Acceptance tests
 pin a card's user-facing criteria as end-to-end tests in the gate; acceptance review adds
 an agent that uses the running app before code review
-([Orchestration](orchestration.md#33-acceptance-tests)). A project that sets none of
+([Orchestration](orchestration.md#31-acceptance-tests)). A project that sets none of
 these settings is unaffected.
 
 1. **Make the app bootable by script.** A start command that runs non-interactively,
