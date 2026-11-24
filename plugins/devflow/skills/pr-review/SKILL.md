@@ -64,7 +64,8 @@ Launch the tier's finders in one message so they run in parallel where the runti
 allows (foreground; a runtime that serializes them still completes). Every agent runs on
 its own default model; pass a model only when the caller's instructions name one. Each brief holds only: base SHA, head SHA, the worktree path, the tier,
 the `Read work item:` and `Standards:` lines, and, for the defect finder, the gate and
-mutation commands. Never the PR number, PR text or an earlier review.
+mutation commands, each marked `CI covered` when the facts' `ci_covers` for it has state
+`passed` (unset, missing or anything else: no mark, and the finder runs it). Never the PR number, PR text or an earlier review.
 
 ## 4 Refute
 

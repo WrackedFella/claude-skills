@@ -17,7 +17,8 @@ they are binding, on top of `engineering-standards`.
 
 Your brief gives the base SHA, the head SHA, the review worktree (checked out at the
 head), the `Read work item:` command, the `Standards:` line, and the project's gate and
-mutation commands. That is all you get, by design.
+mutation commands, each marked `CI covered` when CI already passed it on the head. That is
+all you get, by design.
 
 - The change is `git diff <base> <head>`. Read code at the head in the worktree, and
   as much of the surrounding code as you need: callers, types, the tests already there.
@@ -44,7 +45,10 @@ mutation commands. That is all you get, by design.
    spec has it. Write a scratch test that fails on the head for each suspected defect
    and run it. Keep only defects on a path the spec or a caller can reach.
 3. **Gate and mutation.** Run the gate command and the mutation command when the
-   toolchain is present. A gate failure is a B1 finding with its output. A surviving
+   toolchain is present, except a command marked `CI covered`: CI passed it on this
+   head, so rerunning it adds nothing. Its passing check is the result, and a project's
+   mutation command fails on a surviving mutant, so none survive. Never report on a
+   covered command. A gate failure is a B1 finding with its output. A surviving
    mutant in changed lines is B2 when it sits in code an acceptance criterion covers,
    else a follow-up. When the toolchain is missing or a command cannot run, say so; do
    not guess its result.
