@@ -77,11 +77,12 @@ the tier does not refute is listed under Follow-ups as not filed (unverified).
 **Later rounds keep the goalposts.** From round 2, a new blocker counts only when its
 lines changed since the last reviewed SHA (`git diff <prior commit_id> <head_sha>`), or
 it is a B1 or B2 proven by a failing test, or a B6 (the work item is the goalpost).
-Any other new blocker becomes a follow-up.
+Any other new blocker becomes a follow-up, except that B2 and B4 are never follow-ups (§5). §5 applies this through `pr-verdict`; record
+each surviving finding's `in_changed_lines` and `failing_test` for it.
 
 ## 5 Verdict
 
-Apply these rules to the surviving findings and the facts. Add nothing of your own.
+Classify each surviving finding, then let the script decide. Add nothing of your own.
 
 | Class | Blocker | Required evidence |
 |---|---|---|
@@ -92,34 +93,52 @@ Apply these rules to the surviving findings and the facts. Add nothing of your o
 | B5 | Changeability blocker (C1 to C4 at blocker severity, `engineering-standards`) | The named item or missing consumer, and the lines |
 | B6 | Plan deviation: a Footprint entry or tech-spec design item the diff does not deliver | The work item line quoted, and the diff at that path (or its absence) |
 
+### Computing the lines
+
+Write the findings file from the refuter's confirmed findings (nothing else):
+`{"prior_blockers": <blockers in the latest prior review, 0 in round 1>, "findings":
+[{"id", "class": "B1".."B6", "kind": "blocker|followup|question", "fix":
+"auto|needs-decision", "carried", "declined", "rounds_survived", "in_changed_lines", "failing_test",
+"c2"}]}`. `carried` and `declined` come from §2; `rounds_survived` counts the earlier reviews that listed the blocker while it stayed unfixed; `fix: needs-decision` applies when a
+finding's fix would follow a work-item instruction that a written rule contradicts (the
+work item is not ground truth). Save the facts JSON (§1) to a file, then run, as one
+Bash call:
+
+```
+${CLAUDE_PLUGIN_ROOT}/scripts/pr-verdict --facts <facts> --findings <findings> [--max-rounds $PR_REVIEW_MAX_ROUNDS] [--security-relevant] [--undeclared-api] [--toolchain-incomplete]
+```
+
+Pass the three flags only when you read the change that way: `--security-relevant`
+(authentication, input parsing at a trust boundary, `unsafe` or its equivalent),
+`--undeclared-api` (a public API or persisted format the spec does not name),
+`--toolchain-incomplete` (a full-tier toolchain could not run). The script never infers
+them.
+
+Copy its `Verdict`, `Route`, `Sign-off` and `Round` lines into the body unchanged, and
+list the findings it names under Blockers, Questions and Follow-ups; its `Promoted`,
+`Demoted`, `Route because` and `Sign-off because` lines are the reasons to cite. If you
+disagree with a line, change the inputs with evidence, never the line. Its rules, for
+reference:
+
 - **Verdict.** `reject` when at least one blocker survives (carried or new), else
-  `approve`: the change leaves the codebase better and nothing blocks it. Real issues
-  that are not blockers are follow-ups; preferences were never reported.
-- **Never follow-ups.** B2, B4 and B6 are never follow-ups. A finder or refuter
-  that rates one a follow-up is overruled: it is a blocker.
-- **The work item is not ground truth.** A finding whose fix would follow a work-item
-  instruction that a written rule contradicts is `Fix: needs-decision`.
-- **Route** (reject only). `human` when any blocker is `Fix: needs-decision`, a carried
-  blocker was declined, the same blocker survived two rounds, this round does not have
-  fewer blockers than the last, or the round exceeds the cap. Otherwise `fix`. Approve has
-  `Route: none`.
-- **Questions** do not reject. Each confirmed question is listed with its proposed
-  default and sets Sign-off to `human`.
-- **Sign-off.** `human` when any facts trigger is listed, a question stands, a C2
-  finding was confirmed (even as a follow-up), the change touches security-relevant code
-  (authentication, input parsing at a trust boundary, `unsafe` or its equivalent) or a
-  public API or persisted format the spec does not name, or a full-tier toolchain could
-  not run. Else `agent`.
+  `approve`. Real issues that are not blockers are follow-ups; preferences were never
+  reported.
+- **Never follow-ups.** B2, B4 and B6 are promoted to blockers when rated follow-ups.
+- **Route** (reject only). `human` when a blocker is `needs-decision`, a carried blocker
+  was declined, a blocker survived two rounds (`rounds_survived` of 2 or more), the round does not have
+  fewer blockers than the last, or the round exceeds the cap. Otherwise `fix`. Approve
+  has `Route: none`.
+- **Questions** do not reject; each sets Sign-off to `human`.
+- **Sign-off.** `human` on any facts trigger, a question, a confirmed C2 finding (even
+  as a follow-up), or a judgment flag. Else `agent`.
 
 ## 6 Post
 
 Body, in this order, no other prose:
 
 ```
-Verdict: <approve|reject>
-Route: <fix|human|none>
-Sign-off: <agent|human>
-Head: <head_sha>   Tier: <light|full>   Round: <n>
+Verdict, Route and Sign-off: the script's lines, unchanged
+Head: <head_sha>   Tier: <light|full>   Round: <the script's>
 
 Blockers          [Xn] class, file:line, failure scenario, evidence (test or rule), expected fix
 Questions         numbered, each with a proposed default
