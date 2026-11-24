@@ -12,6 +12,7 @@ and the planning standards it names. Unset optional items disable the step that 
 | Domain-logic paths | yes | gate class, `pr-review` tier | crates holding game rules; matching items are `domain`, the rest `glue`. `scripts/pr-facts` reads the backticked globs of the nested list under the line naming the setting (`**` and `*` match across directories) |
 | Full-platform CI command | no | orchestrate step 9 | `gh workflow run CI --ref <branch>` |
 | Docs directory | no | `wiki`, `reviewer` | `wiki/`; without it the docs step is skipped |
+| Generate command | no | orchestrate, agents | `just assets`: rebuilds every committed generated file (assets, fixtures, generated code) from its generator. Agents rebuild generated files only through it; unset, a change that needs one rebuilt pauses. The gate should fail while a committed generated file is stale |
 | Environment setup command | no | orchestrate, ship | `bash scripts/cloud-tools.sh`; run only when `CLAUDE_CODE_REMOTE=true` |
 | `Tracker` | no | every skill and agent that touches work items or PRs | `github` (default) or `azure-devops`; selects the column of the [operations table](#operations) |
 | Azure DevOps organization, project and repository | with `Tracker: azure-devops` | every Azure DevOps operation | the `<p>` and `<r>` route parameters and `--org`/`--project` (or `az devops configure` defaults) |

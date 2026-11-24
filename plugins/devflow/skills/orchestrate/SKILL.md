@@ -102,7 +102,7 @@ and never accept the change. Added tests pass the guard.
 
 ## Bash commands
 
-In a headless run, one command per Bash call (*Headless runs*). Search with the Grep, Glob and Read tools and edit with Edit or Write; never use `python`, `sed`, `printenv` or `env` in a Bash call. Put these rules in every worker brief.
+In a headless run, one command per Bash call (*Headless runs*). Search with the Grep, Glob and Read tools and edit with Edit or Write; never use `python`, `sed`, `printenv` or `env` in a Bash call; rebuild generated files with the project's Generate command. Put these rules in every worker brief.
 
 ## Project board
 
