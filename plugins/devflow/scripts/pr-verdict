@@ -12,7 +12,11 @@
 #              blocker count of the latest prior review (0 or absent in round 1).
 #              A finding: {"id":"X1", "class":"B1".."B6" or other, "kind":"blocker" |
 #              "followup" | "question", "fix":"auto" | "needs-decision", "carried":bool,
+#              "rounds_survived":n,
 #              "declined":bool, "in_changed_lines":bool, "failing_test":bool, "c2":bool}.
+#              rounds_survived: earlier reviews that listed the blocker while it stayed
+#              unfixed (the skill counts them; 0 when new). kind, class and fix are
+#              checked against closed sets; anything else is a usage error.
 #              Only findings that survived the refuter are listed; absent booleans are false.
 # --max-rounds PR_REVIEW_MAX_ROUNDS; default 3.
 # Judgment flags, read by the skill and never inferred here: --security-relevant (change
@@ -22,12 +26,13 @@
 #
 # Rules:
 #   promote   a follow-up of class B2, B4 or B6 becomes a blocker.
-#   goalposts from round 2, a new (not carried) blocker stays one only when
-#             in_changed_lines, or class B1/B2 with failing_test, or class B6; else it
-#             becomes a follow-up.
+#   goalposts from round 2, a new (not carried) blocker of class B1, B3 or B5 stays one
+#             only when in_changed_lines, or B1 with failing_test; else it becomes a
+#             follow-up. B2, B4 and B6 are never follow-ups, so they stay blockers
+#             (§5 wins over §4 for them).
 #   Verdict   reject with at least one blocker, else approve.
 #   Route     approve: none. reject: human when a blocker is needs-decision, a carried
-#             blocker was declined, any carried blocker remains (it survived two rounds),
+#             blocker was declined, a blocker survived two rounds (rounds_survived >= 2),
 #             round >= 2 with blockers >= prior_blockers, or round > max rounds; else fix.
 #   Sign-off  human on any facts trigger, a question, a C2 finding of any kind, a judgment
 #             flag; else agent.
@@ -60,6 +65,9 @@ jq -e . "$facts" >/dev/null 2>&1 || die "$facts is not JSON"
 jq -e '.findings | type == "array"' "$findings" >/dev/null 2>&1 || die "$findings needs a findings array"
 [[ $(jq -r '.stop // empty' "$facts") == "" ]] || die "facts.stop is set; the review ended before the verdict"
 
+jq -e '.findings | all(.kind | IN("blocker","followup","question")) and all(.class | IN("B1","B2","B3","B4","B5","B6")) and all((.fix // "auto") | IN("auto","needs-decision"))' "$findings" >/dev/null \
+  || die "$findings: kind must be blocker|followup|question, class B1..B6, fix auto|needs-decision"
+
 jq -rn \
   --slurpfile f "$facts" --slurpfile d "$findings" --argjson max "$max" \
   --argjson security "$security" --argjson api "$api" --argjson toolchain "$toolchain" '
@@ -73,7 +81,8 @@ jq -rn \
   # goalposts: from round 2 a new blocker must be on changed lines, a proven B1/B2, or B6
   | ($p | map(
       (.kind == "blocker" and $round >= 2 and (.carried | t | not)
-       and (((.in_changed_lines | t) or ((.class | IN("B1","B2")) and (.failing_test | t)) or .class == "B6") | not)) as $demote
+       and (.class | IN("B1","B3","B5"))
+       and (((.in_changed_lines | t) or (.class == "B1" and (.failing_test | t))) | not)) as $demote
       | if $demote then .kind = "followup" else . end)) as $fs
   | ($fs | map(select(.kind == "blocker"))) as $blockers
   | ($fs | map(select(.kind == "followup"))) as $follow
@@ -82,7 +91,7 @@ jq -rn \
   | ([
       (if ($blockers | any(.fix == "needs-decision")) then "a blocker is needs-decision" else empty end),
       (if ($blockers | any(.declined | t)) then "a carried blocker was declined" else empty end),
-      (if ($blockers | any(.carried | t)) then "a blocker survived two rounds" else empty end),
+      (if ($blockers | any((.rounds_survived // 0) >= 2)) then "a blocker survived two rounds" else empty end),
       (if $round >= 2 and ($blockers | length) >= $prior then "no progress: \($blockers | length) blockers, \($prior) in the last review" else empty end),
       (if $round > $max then "round \($round) exceeds the cap of \($max)" else empty end)
     ]) as $human

@@ -77,7 +77,7 @@ the tier does not refute is listed under Follow-ups as not filed (unverified).
 **Later rounds keep the goalposts.** From round 2, a new blocker counts only when its
 lines changed since the last reviewed SHA (`git diff <prior commit_id> <head_sha>`), or
 it is a B1 or B2 proven by a failing test, or a B6 (the work item is the goalpost).
-Any other new blocker becomes a follow-up. §5 applies this through `pr-verdict`; record
+Any other new blocker becomes a follow-up, except that B2 and B4 are never follow-ups (§5). §5 applies this through `pr-verdict`; record
 each surviving finding's `in_changed_lines` and `failing_test` for it.
 
 ## 5 Verdict
@@ -98,8 +98,8 @@ Classify each surviving finding, then let the script decide. Add nothing of your
 Write the findings file from the refuter's confirmed findings (nothing else):
 `{"prior_blockers": <blockers in the latest prior review, 0 in round 1>, "findings":
 [{"id", "class": "B1".."B6", "kind": "blocker|followup|question", "fix":
-"auto|needs-decision", "carried", "declined", "in_changed_lines", "failing_test",
-"c2"}]}`. `carried` and `declined` come from §2; `fix: needs-decision` applies when a
+"auto|needs-decision", "carried", "declined", "rounds_survived", "in_changed_lines", "failing_test",
+"c2"}]}`. `carried` and `declined` come from §2; `rounds_survived` counts the earlier reviews that listed the blocker while it stayed unfixed; `fix: needs-decision` applies when a
 finding's fix would follow a work-item instruction that a written rule contradicts (the
 work item is not ground truth). Save the facts JSON (§1) to a file, then run, as one
 Bash call:
@@ -125,7 +125,7 @@ reference:
   reported.
 - **Never follow-ups.** B2, B4 and B6 are promoted to blockers when rated follow-ups.
 - **Route** (reject only). `human` when a blocker is `needs-decision`, a carried blocker
-  was declined, a blocker is carried (it survived two rounds), the round does not have
+  was declined, a blocker survived two rounds (`rounds_survived` of 2 or more), the round does not have
   fewer blockers than the last, or the round exceeds the cap. Otherwise `fix`. Approve
   has `Route: none`.
 - **Questions** do not reject; each sets Sign-off to `human`.

@@ -68,12 +68,17 @@ verdict
 assert_contains "Route: human"
 assert_contains "Route because: a carried blocker was declined"
 
-t "a carried blocker has survived two rounds"
-facts fix; find_ 3 '{"id":"X1","class":"B1","kind":"blocker","fix":"auto","carried":true}' '{"id":"X2","class":"B1","kind":"blocker","fix":"auto","in_changed_lines":true}'
+t "a blocker carried through two fix rounds routes to a human"
+facts fix fix; find_ 3 '{"id":"X1","class":"B1","kind":"blocker","fix":"auto","carried":true,"rounds_survived":2}' '{"id":"X2","class":"B1","kind":"blocker","fix":"auto","in_changed_lines":true}'
 verdict
-assert_contains "Round: 2"
+assert_contains "Round: 3"
 assert_contains "Route because: a blocker survived two rounds"
 assert_lacks "no progress"
+
+t "a blocker carried once with fewer blockers than the last round routes to fix"
+facts fix; find_ 3 '{"id":"X1","class":"B1","kind":"blocker","fix":"auto","carried":true,"rounds_survived":1}'
+verdict
+assert_contains "Route: fix"
 
 t "a round with as many blockers as the last routes to a human"
 facts fix; find_ 1 "$B1"
@@ -142,10 +147,29 @@ facts fix; find_ 2 '{"id":"X2","class":"B1","kind":"blocker","fix":"auto","faili
 verdict
 assert_contains "Blockers: X2"
 
-t "round 2: a new B3 with a failing test but outside the changed lines is demoted"
+t "round 2: a new B3 outside the changed lines is demoted"
 facts fix; find_ 2 '{"id":"X2","class":"B3","kind":"blocker","fix":"auto","failing_test":true}'
 verdict
 assert_contains "Demoted: X2"
+
+t "round 2: B2 and B4 outside the changed lines stay blockers, rated either way"
+facts fix; find_ 3 '{"id":"X2","class":"B2","kind":"blocker","fix":"auto"}' '{"id":"X3","class":"B4","kind":"followup"}'
+verdict
+assert_contains "Verdict: reject"
+assert_contains "Blockers: X2 X3"
+assert_contains "Promoted: X3"
+assert_lacks "Demoted"
+
+t "an unknown kind, class or fix is a usage error, never dropped"
+facts; find_ 0 '{"id":"X1","class":"B1","kind":"Blocker"}'
+verdict
+assert_rc 2
+find_ 0 '{"id":"X1","class":"b4","kind":"followup"}'
+verdict
+assert_rc 2
+find_ 0 '{"id":"X1","class":"B1","kind":"blocker","fix":"maybe"}'
+verdict
+assert_rc 2
 
 t "round 2: a new B6 stays a blocker"
 facts fix; find_ 2 '{"id":"X2","class":"B6","kind":"blocker","fix":"auto"}'
