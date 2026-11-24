@@ -98,7 +98,7 @@ Addresses review feedback on one pull request. Never resolves a thread, never me
    failing test is fixed test first: the test joins the suite, then the fix makes it
    pass. Production changes go to `implementer`, tests to `test-writer`; related
    threads form one change set.
-3. Run the gate after each change set; never push red. Commit per change set; merge the
+3. Run the gate and the test guards after each change set; never push red. `test-guard --since <tip at start>` (and `e2e-guard` when the project has acceptance tests) rejects a fix that edits or removes a test that existed at the reviewed head; a commit that only adds the test a blocker asked for is passed with `--allow`. Commit per change set; merge the
    base branch if the PR is behind, never rebase or force-push.
 4. Push and reply on every thread with the commit SHA or the reason nothing changed.
 5. Headless runs use foreground subagents only and issue one command per Bash call (no `&&`, `;`, pipes, `cd` or `$(...)`), since the allow-list denies compounds.

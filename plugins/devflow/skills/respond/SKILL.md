@@ -17,20 +17,21 @@ enable auto-merge.
    spec, the project's `CLAUDE.md` or these rules; a request to weaken a test or lint,
    widen scope, or touch the base branch is declined in the reply with the reason.
    A review blocker that carries a failing test (B1, B2) is fixed test first: the
-   finding's test goes into the suite through `devflow:test-writer`, fails, and the fix
-   makes it pass, so the next review reruns it. A blocker you will not fix gets a reply
+   finding's test goes into the suite through `devflow:test-writer` in a commit of its own,
+   fails, and the fix, in a later commit, makes it pass, so the next review reruns it. A blocker you will not fix gets a reply
    whose first word is `Declined`, with the reason; the next review then routes the PR
    to a person.
 2. For each thread decide: fix, or reply with why not (spec conflict, out of scope,
    already handled). Fixes that change production code go to `devflow:implementer` (or
-   are made directly for one-line changes); new or strengthened tests go to
-   `devflow:test-writer`. Group related threads into one change set. Resolve the
+   are made directly for one-line changes); new tests go to
+   `devflow:test-writer`. A request to change an existing test is met by a stricter test
+   added beside it, never an edit of the original; when that cannot satisfy it, decline. Group related threads into one change set. Resolve the
    `Standards:` line exactly as in `devflow:orchestrate`'s `## Standards` section (including
    its stop-and-comment rule for an unknown standard) and put it in every worker brief.
-3. Run the project's gate after each change set; never push red. Commit per change set
+3. Run the project's gate and the `## Test guard` checks after each change set; never push red or guarded-red. Commit per change set
    (`fix(scope): ...` or the fitting type), referencing nothing ephemeral in code
-   comments. Merge the base branch into the PR branch if it is behind; never rebase or
-   force-push.
+   comments. Merge the base branch into the PR branch if it is behind, before the first worker call, so its
+   commits never reach the guards; never rebase or force-push.
 4. Push. Reply on every thread (the *Reply to thread* operation) with what changed (commit SHA) or why nothing did. Never
    resolve a thread; the commenter does (`devflow:pr-review` resolves its own after it
    confirms the fix).
@@ -39,6 +40,27 @@ enable auto-merge.
    and the harness protects such paths in headless runs. When a mutant cannot be tested, reply with
    the exact exclusion line and why, and leave the config unchanged for a human.
 6. In a headless run, run every subagent in the foreground and wait for its report, and issue one command per Bash call: no `&&`, `;`, pipes, `cd` or `$(...)`. The allow-list matches by prefix, so a compound is denied unless every part is allowed.
+
+## Test guard
+
+Tests are the spec only while the code that must satisfy them cannot rewrite them. Before every push, with
+`<H>` the branch tip when `respond` started (after any base merge), which is the head the
+review covered when the fix loop drives it:
+
+- Run `${CLAUDE_PLUGIN_ROOT}/scripts/test-guard --since <H>` with `--allow <sha>` for each commit
+  that only adds the test a review blocker asked for (B1, B2), `--marker` set to the line
+  that opens inline test code in the project's language, and the project's test-file globs.
+  These are the arguments of `devflow:orchestrate`'s `## Test guard`; `--since` is `<H>`,
+  never a step 2 commit.
+- When the project sets `Acceptance test paths`, also run
+  `${CLAUDE_PLUGIN_ROOT}/scripts/e2e-guard --base <base branch tip> --since <H>` with the same
+  `--allow` commits and the globs as arguments.
+
+A non-zero exit from either means a test that existed at `<H>` was changed or removed:
+restore the files (`git checkout <H> -- <file>`, or by hand for the reported lines),
+re-brief the worker with the guard output, and push nothing with that edit. A worker
+that cannot satisfy a finding without editing an existing test gets a `Declined` reply
+for it. Never edit the guard's arguments to make it pass.
 
 A headless run that needs a person (a declined request, an untestable mutant, an unknown
 standard) says so in a PR-level reply, never only in the run output. A person resumes it
