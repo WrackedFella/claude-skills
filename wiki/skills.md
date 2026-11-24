@@ -1,6 +1,6 @@
 # Skills
 
-Definitions: `plugins/devflow/skills/<name>/SKILL.md`. Invoked as `/devflow:<name>`.
+Definitions: `plugins/devflow/skills/<name>/SKILL.md`. Invoked as `/devflow:<name>`. `publish` and `pr-review` start only when typed; `orchestrate`, `refine` and `respond` stay model-invocable.
 
 | Skill | Kind | Arguments | Runs | Output |
 |---|---|---|---|---|

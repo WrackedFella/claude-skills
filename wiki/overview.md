@@ -8,9 +8,9 @@ project-specific lives in the consumer's `CLAUDE.md` ([project contract](project
 
 | Principle | Mechanism |
 |---|---|
-| Humans decide and merge | Agents never merge, enable auto-merge, or push to the base branch. Feature approval and merge are always human. |
+| Humans decide; checks and review gate merges | Skills and agents never merge, enable auto-merge, or push to the base branch. Feature approval is always human. A project may let its PR review workflow merge an agent PR after required checks and an agent sign-off; `main` promotions stay human ([D0016](../docs/decisions/0016-agents-may-merge.md), [D0017](../docs/decisions/0017-agent-merge-step.md)). |
 | The spec is the issue | The published GitHub issue is the accepted spec; local files are drafts or working copies. The issue wins on disagreement. |
-| Tests before code | `test-writer` produces failing tests first; `implementer` sees them as the definition of done. |
+| Tests before code | The `builder` writes failing tests first and implements against them; a split item uses `test-writer` then one `implementer` per part. |
 | Gates are not negotiable | No agent edits, skips or weakens a test or lint to get green. The project gate runs after every change set. |
 | Independent judgment | Test review and final review run in fresh context (`test-critic`, `reviewer`) and never see the author's reasoning. PR review finders never see the PR text, and a refuter must reproduce every finding. |
 | Cheapest capable model | Haiku for broad read-only sweeps, Sonnet for spec-driven work, Opus for judgment and review. Output the orchestrator judges (gate, tests, mutation) is never summarized by another agent. |
@@ -46,7 +46,7 @@ published issue  [Ready, Agent-eligible]  ◄── card review (switch)
 Orchestrator
    1 intake and claim
    2 failing tests ──► domain-test review (switch: human | test-critic | none)
-   3 implementation (one implementer, or one per disjoint part, then merge + gate)
+   3 implementation (the builder, or one implementer per disjoint part, then merge + gate)
    4 adversarial challenges as tests (≤2 rounds)
    5 refactor under green + /simplify
    6 mutation testing
@@ -58,7 +58,7 @@ Orchestrator
   12 ship ──► PR into base branch
    │
    ▼
-human review and merge
+review and merge (human, or the project's PR review workflow for eligible agent PRs)
 ```
 
 Planning detail: [Planning](planning.md). Pipeline detail: [Orchestration](orchestration.md).
@@ -71,7 +71,7 @@ Planning detail: [Planning](planning.md). Pipeline detail: [Orchestration](orche
 | Card review | `Card review` | `required` (default), `not required` | BA and Tech Lead publish cards themselves; the Tech Lead, `refine` and `publish` label cards that pass the [promotion checks](planning.md#6-promotion) `agent-ready` |
 | Domain-test review | `Domain-test review` | `required` (default), `agent`, `not required` | `agent`: `test-critic` reviews tests, no pause. `not required`: continue and flag the tests in the PR |
 | PR approval | `PR approval` | `off` (default), `agent` | `agent`: a `pr-review` verdict of `approve` with `Sign-off: agent` is submitted as a forge approval; the human merges on it instead of reading the diff. Needs a base branch that dismisses stale approvals on push. `Sign-off: human` and `Route: human` still go to a person |
-| PR merge | none | always human | n/a |
+| PR merge | project setting (`PR_AUTOMERGE` in moho) | human by default; `main` promotions always human | The project's PR review workflow merges an eligible agent PR pinned to the reviewed SHA |
 
 Items with gate class `glue` never pause for test review.
 

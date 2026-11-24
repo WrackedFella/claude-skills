@@ -55,7 +55,7 @@ standards and the domain-logic paths. Start with both review points at their def
 Moho's `CLAUDE.md` section, abbreviated:
 
 ```markdown
-- **Base branch:** `dev`. Branch `<type>/<ID>-<slug>`, PR into `dev`. Never merge; a human does.
+- **Base branch:** `dev`. Branch `<type>/<ID>-<slug>`, PR into `dev`. No skill merges.
 - **Project board:** WrackedFella, project 1.
 - **Planning:** index `_todo/README.md`, rules `_todo/_STANDARDS.md`.
 - **Environment setup command:** `bash scripts/cloud-tools.sh` (cloud threads only).
