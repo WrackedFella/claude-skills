@@ -168,3 +168,39 @@ export PR_COMMENTS REQUESTED
 t "no PR and no range is a usage error"
 run "$SCRIPTS/pr-facts"
 assert_rc 1
+
+t "test files do not count toward changed lines"
+setup
+ISSUE_BODY='gate=glue'
+mkdir -p app/tests
+seq 1 500 >app/tests/a.rs
+seq 1 10 >app/b_test.rs
+seq 1 5 >app/c.rs
+head=$(commit change)
+use_gh_stub
+run "$SCRIPTS/pr-facts" --range "$base..$head" --issue 7
+assert_json '[.changed_lines, .test_lines, .signoff_triggers]' '[5,510,[]]'
+
+t "a large glue PR needs a person unless gate and mutation passed on the head"
+setup
+ISSUE_BODY='<!-- board: gate=glue; eligible=yes -->'
+seq 1 1000 >app/big.rs
+head=$(commit change)
+use_gh_stub
+run "$SCRIPTS/pr-facts" --range "$base..$head" --issue 7
+assert_json '.signoff_triggers' '["1000 changed lines, over 400 excluding lockfiles and tests"]'
+printf '# Project\n- **CI covers:** gate (`^Gate`), mutation (`^Mutants`)\n' >CLAUDE.md
+git add CLAUDE.md && base=$(commit base2) && git remote set-url origin "$PWD"
+seq 1001 2000 >app/big.rs
+HEAD=$(commit change2) BASE=$base
+CHECKS='[{"name":"Gate (linux)","status":"completed","conclusion":"success","details_url":"u"},{"name":"Mutants (diff)","status":"completed","conclusion":"success","details_url":"u"}]'
+export HEAD BASE CHECKS
+use_gh_stub
+run "$SCRIPTS/pr-facts" 9
+assert_json '[.tier, .signoff_triggers]' '["light",[]]'
+seq 1 3500 >app/big2.rs
+HEAD=$(commit change3) BASE=$base
+export HEAD BASE
+use_gh_stub
+run "$SCRIPTS/pr-facts" 9
+assert_json '.signoff_triggers | map(test("over 3000 excluding")) ' '[true]'

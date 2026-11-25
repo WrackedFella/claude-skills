@@ -13,6 +13,7 @@
 #
 # Output fields: mode, repo, pr, head_sha, base_ref, base_sha, author, draft, state,
 # labels, issue, issue_title, id_match, gate_class, tier, ci, conflict, changed_lines,
+# test_lines (changed_lines counts neither lockfiles nor test files),
 # files, domain_hits, signoff_triggers, outside_comments, issue_edited_after_open,
 # prior_reviews, ci_covers, advisory, stop.
 #   tier: "full" when the gate class is domain or unknown, a changed file is under the
@@ -62,13 +63,28 @@ else
   repo=$(awk -F'[/:]' '{print $(NF-1) "/" $NF}' <<<"$url")
 fi
 
-# Lockfiles and generated manifests do not count toward the 400-line trigger.
+# Lockfiles and generated manifests do not count toward the size trigger.
 is_lockfile() {
   case ${1##*/} in
     *.lock|package-lock.json|pnpm-lock.yaml|packages.lock.json|go.sum) return 0 ;;
     *) return 1 ;;
   esac
 }
+
+# Test files do not count either: a card's tests are written first and reviewed as tests,
+# so their volume says little about the change a person must read.
+is_test_file() {
+  case $1 in
+    tests/*|*/tests/*|*/__tests__/*|*.test.*|*.spec.*|*_test.*|*Tests.cs|*Test.cs|*Tests.fs|test_*.py|*/test_*.py) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+# Size trigger: above SIZE_LIMIT source lines, a person reads the PR. A light-tier review whose
+# gate and mutation checks passed on the head waives it up to SIZE_CEILING, since CI has
+# already run the commands that size would otherwise make the reviewer rerun.
+SIZE_LIMIT=400
+SIZE_CEILING=3000
 
 # Globs from a CLAUDE.md setting: the backticked items of the nested list under the line
 # that names the setting, or the backticked items on that line after its colon.
@@ -216,13 +232,15 @@ done
 
 # --- diff ---------------------------------------------------------------------------
 git diff --numstat "$base_sha" "$head_sha" >"$tmp/numstat"
-changed_lines=0 files=() domain_hits=() human_hits=() config_hits=() dep_hits=()
+changed_lines=0 test_lines=0 files=() domain_hits=() human_hits=() config_hits=() dep_hits=()
 while IFS=$'\t' read -r add del path; do
   [[ -n $path ]] || continue
   path=${path##*=> }; path=${path%\}}
   files+=("$path")
   [[ $add == - ]] && add=0 && del=0
-  is_lockfile "$path" || changed_lines=$((changed_lines + add + del))
+  if is_lockfile "$path"; then :
+  elif is_test_file "$path"; then test_lines=$((test_lines + add + del))
+  else changed_lines=$((changed_lines + add + del)); fi
   if ((${#domain_globs[@]})) && matches_any "$path" "${domain_globs[@]}"; then domain_hits+=("$path"); fi
   if ((${#human_globs[@]})) && matches_any "$path" "${human_globs[@]}"; then human_hits+=("$path"); fi
   case $path in
@@ -276,7 +294,11 @@ triggers=()
 ((${#config_hits[@]})) && triggers+=("gate, CI or agent configuration changed: ${config_hits[*]}")
 ((${#dep_hits[@]})) && triggers+=("dependencies or licenses changed: ${dep_hits[*]}")
 ((${#human_hits[@]})) && triggers+=("Human-only paths changed: ${human_hits[*]}")
-((changed_lines > 400)) && triggers+=("$changed_lines changed lines, over 400 excluding lockfiles")
+size_limit=$SIZE_LIMIT
+if [[ $tier == light ]] && jq -e '.gate.state == "passed" and .mutation.state == "passed"' <<<"$ci_covers" >/dev/null; then
+  size_limit=$SIZE_CEILING
+fi
+((changed_lines > size_limit)) && triggers+=("$changed_lines changed lines, over $size_limit excluding lockfiles and tests")
 ((outside > 0)) && triggers+=("$outside comment(s) from accounts outside the project")
 [[ $edited == true ]] && triggers+=("work item body edited after the PR opened")
 [[ $mode == pr && -n $issue && $edited == null ]] && triggers+=("work item edit time unreadable")
@@ -302,7 +324,7 @@ jq -n \
   --argjson draft "$draft" --arg state "$state" --argjson labels "$labels" \
   --arg issue "$issue" --arg title "$issue_title" --argjson id_match "$id_match" \
   --arg gate "$gate_class" --arg tier "$tier" --argjson ci "$ci" --argjson conflict "$conflict" \
-  --argjson lines "$changed_lines" --argjson files "$(arr "${files[@]+"${files[@]}"}")" \
+  --argjson lines "$changed_lines" --argjson tl "$test_lines" --argjson files "$(arr "${files[@]+"${files[@]}"}")" \
   --argjson domain "$(arr "${domain_hits[@]+"${domain_hits[@]}"}")" \
   --argjson triggers "$(arr "${triggers[@]+"${triggers[@]}"}")" \
   --argjson covers "$ci_covers" --argjson outside "$outside" --argjson edited "$edited" --argjson prior "$prior" \
@@ -312,7 +334,7 @@ jq -n \
    draft: $draft, state: $state, labels: $labels,
    issue: (if $issue == "" then null else ($issue | tonumber) end), issue_title: $title,
    id_match: $id_match, gate_class: $gate, tier: $tier, ci: $ci, conflict: $conflict,
-   changed_lines: $lines, files: $files, domain_hits: $domain,
+   changed_lines: $lines, test_lines: $tl, files: $files, domain_hits: $domain,
    signoff_triggers: $triggers, outside_comments: $outside,
    issue_edited_after_open: $edited, prior_reviews: $prior, ci_covers: $covers, advisory: $advisory,
    stop: $stop}'
