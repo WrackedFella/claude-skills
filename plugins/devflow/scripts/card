@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# File one work-item card as a GitHub issue, link it as a sub-issue of its feature
+# File one work-item card as a GitHub issue (REST only), link it as a sub-issue of its feature
 # issue, and optionally set board fields, so skills never hand-write the sub-issue API calls.
 #
 #   card publish <feature-issue-number> <title> <body-file> [--label <name>]...
@@ -69,10 +69,13 @@ while [[ $# -gt 0 ]]; do
 done
 
 repo=$(repo_slug)
-url=$(gh issue create --title "$title" --body-file "$body" ${labels[@]+"${labels[@]}"})
-n=${url##*/}
-[[ $n =~ ^[0-9]+$ ]] || die "could not parse issue number from '$url'"
-id=$(gh api "repos/$repo/issues/$n" --jq .id)
+# REST only: `gh issue create` is GraphQL, which cloud threads cannot reach.
+label_args=()
+for ((i = 1; i < ${#labels[@]}; i += 2)); do label_args+=(-f "labels[]=${labels[i]}"); done
+created=$(gh api -X POST "repos/$repo/issues" -f title="$title" -F body=@"$body" \
+  ${label_args[@]+"${label_args[@]}"} --jq '[.number, .id, .html_url] | @tsv')
+IFS=$'\t' read -r n id url <<<"$created"
+[[ ${n:-} =~ ^[0-9]+$ && ${id:-} =~ ^[0-9]+$ && -n ${url:-} ]] || die "could not parse the created issue from '$created'"
 
 errf=$(mktemp)
 trap 'rm -f "$errf"' EXIT
