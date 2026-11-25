@@ -145,10 +145,10 @@ labels and templates):
 - Acceptance criteria are Gherkin scenarios that cover the exit criteria it serves.
 - The tech spec has a test map, and the gate class is `glue`, or `domain` with `Domain-test review` set to `agent` or `not required`.
 - The file footprint is listed, and no unmerged card shares a file with it unless they are ordered.
-- No open question remains, and no dependency is unpublished or unmerged.
+- No open question remains, and no dependency is unpublished, or unmerged unless the promotion label is the project's `Queue label`.
 - It is not marked human-driven (`Agent-eligible=No`, `eligible=no`).
 
-Apply the label with the *Add label* operation. With `Card review: required` (or unset) apply none: report "ready to promote" and let the user label it. With a failing check, leave the card unlabeled and say which check failed. Promotion never changes the card's spec or board fields.
+The promotion label is the project's `Queue label` when it declares one, else `agent-ready`. A queue label means "approved; start once every blocking item is closed", and the project's queue workflow swaps it for `agent-ready` then, so cards ordered by dependency run one after another instead of all at once. Apply the promotion label with the *Add label* operation. With `Card review: required` (or unset) apply none: report "ready to promote" and let the user label it. With a failing check, leave the card unlabeled and say which check failed. Promotion never changes the card's spec or board fields.
 
 **Board header.** When the project declares `Board header: yes`, the first line of the published body is `<!-- board: gate=<class>; eligible=<yes|no>; priority=<P?> -->` (`eligible=no` when the user drives the item personally; `priority` only when the card, its feature or the roadmap names one). The project's automation applies it to the board when the issue is opened or its body is edited, so an unreachable board does not block filing: file the card with `card publish` without `--board`, and skip the local-draft path below.
 

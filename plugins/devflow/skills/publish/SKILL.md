@@ -33,6 +33,6 @@ card's spec.
      `${CLAUDE_PLUGIN_ROOT}/operations.md`'s *Add dependency* operation, so the queue does not start it first.
    - Set the card header's `Issue` link and status per the planning standards, and add
      the card to the feature's item table.
-5. With `Card review: not required`, apply the tech-lead's **Promotion** checks to each filed card and add `agent-ready` (the *Add label* operation) to those that pass. With `required`, apply none.
+5. With `Card review: not required`, apply the tech-lead's **Promotion** checks to each filed card and add the promotion label it names (`Queue label` when set, else `agent-ready`; the *Add label* operation) to those that pass. With `required`, apply none.
 6. Report each card as `ID → #n`, whether it was promoted (or the failed check), and anything left unfiled with the reason. Don't
    commit; leave that to `/devflow:ship` or the user.
