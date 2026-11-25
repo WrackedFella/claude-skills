@@ -111,12 +111,14 @@ record of item state; read and change it only through
 `${CLAUDE_PLUGIN_ROOT}/scripts/board` (`board set <owner> <number> <issue-url> Status=...`), which
 works by field and option names. Without a board, the card status is the record, and a project that declares no board skips every board step as an unreachable board does, with no `board` call.
 
-`board` exits 5 when it cannot reach Projects (some environments move Status by events
-instead and give the agent no project access). On exit 5, don't retry or work around
-it: skip every board read and write in this task and carry on. A project whose Actions move
-Status by events (the usual case) loses nothing, so say nothing in the PR body, a pause
-comment or the final report, and never ask a person to set the board; list a Status change
-in the PR body only when no event covers it.
+In a headless run (`GITHUB_ACTIONS=true`) make no `board` call: the Board sync Action moves
+Status on issue and PR events, and the run's token cannot reach Projects. Skip every board
+read and write, claim and `In review` included, and say nothing about the board in the PR
+body, a pause comment or the final report. Never ask a person to set the board.
+
+Elsewhere, `board` exits 5 when it cannot reach Projects. On exit 5, don't retry or work
+around it: skip every board step in this task and carry on, saying nothing unless no event
+covers the Status change, in which case list it in the PR body.
 
 ## 1. Intake
 
@@ -308,7 +310,8 @@ docs report (pages updated, new pages flagged, or why none were needed), the acc
 tests with the last acceptance run and guard results and the Acceptance review section
 (when they apply), reviewer
 findings and their resolution, and manual verification still required. Once the PR
-is open, set the board Status to `In review` (or the card status without a board).
+is open, set the board Status to `In review` (or the card status without a board; a headless
+run skips this).
 
 Before the final report, `git status --porcelain` must list no untracked file: delete each
 scratch file you or a worker created (probe tests, temp files) with `rm <path>`, one file

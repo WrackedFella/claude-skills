@@ -10,6 +10,9 @@ t() { _name=$1; _count=$((_count + 1)); }
 
 _fail() { echo "  FAIL $_name: $*"; _fails=$((_fails + 1)); }
 
+# Suites run as if outside Actions; a test that needs it sets it on its own call.
+unset GITHUB_ACTIONS
+
 # Runs a command, capturing stdout in $out, stderr in $err and the exit code in $rc.
 run() {
   local o e
