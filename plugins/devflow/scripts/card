@@ -8,12 +8,23 @@
 #
 # `publish` prints exactly one line on success: `#<n> <url>`.
 # `link` marks <issue> as blocked by <blocker> (the REST issue-dependency API, which
-# needs the blocker's numeric id, not its number); linking twice is not an error.
+# needs the blocker's numeric id, not its number) and uses REST only; linking twice is
+# not an error. The repository is GH_REPO, else the origin remote.
 # Exit codes: 1 error (including a filed-but-unlinked issue), 5 project board unreachable
 # (the issue is filed and linked; only the board fields were not set).
 set -euo pipefail
 
 die() { echo "card: $*" >&2; exit 1; }
+# owner/name from GH_REPO or the origin remote; `gh repo view` is GraphQL, which cloud
+# threads cannot reach.
+repo_slug() {
+  [[ -z ${GH_REPO:-} ]] || { echo "$GH_REPO"; return; }
+  local url
+  url=$(git remote get-url origin) || die "no origin remote; set GH_REPO=<owner>/<name>"
+  url=${url%.git}
+  [[ $url =~ ([^/:]+/[^/:]+)$ ]] || die "cannot read owner/name from '$url'; set GH_REPO"
+  echo "${BASH_REMATCH[1]}"
+}
 usage() { die "usage: card link <issue-number> <blocker-number> | card publish <feature-issue-number> <title> <body-file> [--label <name>]... [--board <owner> <number> <Field>=<Option>...]"; }
 
 if [[ ${1:-} == link ]]; then
@@ -21,7 +32,7 @@ if [[ ${1:-} == link ]]; then
   issue=$2 blocker=$3
   [[ $issue =~ ^[0-9]+$ && $blocker =~ ^[0-9]+$ ]] || die "issue and blocker must be numbers, got '$issue' '$blocker'"
   [[ $issue != "$blocker" ]] || die "#$issue cannot block itself"
-  repo=$(gh repo view --json nameWithOwner -q .nameWithOwner)
+  repo=$(repo_slug)
   bid=$(gh api "repos/$repo/issues/$blocker" --jq .id)
   errf=$(mktemp)
   trap 'rm -f "$errf"' EXIT
@@ -57,7 +68,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-repo=$(gh repo view --json nameWithOwner -q .nameWithOwner)
+repo=$(repo_slug)
 url=$(gh issue create --title "$title" --body-file "$body" ${labels[@]+"${labels[@]}"})
 n=${url##*/}
 [[ $n =~ ^[0-9]+$ ]] || die "could not parse issue number from '$url'"
