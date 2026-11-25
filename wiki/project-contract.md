@@ -22,6 +22,7 @@ and the planning standards it names. Unset optional items disable the step that 
 | Project board | no | board script, orchestrate, tech-lead | owner and project number; none declared = no board, and every board step is skipped |
 | `Board header` | no | tech-lead, refine, publish | `yes`: the project's automation applies a `<!-- board: gate=<class>; eligible=<yes\|no>; priority=<P?> -->` comment at the top of an issue body to the board (`priority` optional). Skills write it and, when the board is unreachable, still file the issue; unset = no header, board fields are set with `scripts/board` |
 | `Card review` | no | BA, Tech Lead, refine, publish | `required` (default) or `not required`: `not required` also lets skills apply `agent-ready` to cards that pass the [promotion checks](planning.md#6-promotion) |
+| `Queue label` | no | Tech Lead, refine, publish | A label name (moho: `agent-queued`). When set, promotion applies it instead of `agent-ready`, and the project's queue workflow starts each queued card once every item blocking it is closed |
 | `Domain-test review` | no | orchestrate, pr-review | `required` (default), `agent` or `not required` |
 | `Acceptance command` | no | BA, Tech Lead, refine, orchestrate, test-writer | `npx playwright test`: runs the committed end-to-end suite against the started app. Set means the project uses acceptance tests: features get a feature test plan, cards a test plan with layer-tagged test-map entries and `Visual:` items ([Planning](planning.md#32-test-plans)); unset means none of these. Orchestrate runs it after the gate on items with `e2e` entries |
 | `Acceptance test paths` | with `Acceptance command` | orchestrate, implementer, test-writer | globs, in the same format as the domain-logic paths, covering the acceptance suite and its runner config (`e2e/**`, `playwright.config.ts`); `scripts/e2e-guard` rejects implementer changes to them |
@@ -68,6 +69,7 @@ stay GitHub-only. A project that declares no board skips every board step. `Trac
 |---|---|
 | `feature` | Parent issue; `refine` accepts only this |
 | `agent-ready` | Starts an unattended run (routed by issue type); with `Card review: required`, applied by the user to approve a card |
+| `Queue label` value | Approved and waiting for its blockers; the project's queue workflow replaces it with `agent-ready` when none is open. Only a project with a queue workflow sets it |
 | line label (for example `strategy`) | Copied from the feature onto its cards |
 | `follow-up` | Filed by `pr-review` from a confirmed non-blocking finding; a backlog observation, never `agent-ready` |
 | `needs-human` | Set by `pr-review` on a PR whose reject is routed to a person |

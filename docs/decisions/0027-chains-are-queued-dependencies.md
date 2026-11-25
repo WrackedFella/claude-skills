@@ -1,6 +1,6 @@
 # D0027 A chain is the set of queued cards over their issue dependencies
 
-- **Status:** Proposed, 2026-11-25.
+- **Status:** Accepted, 2026-11-25 (Justin approved the proposal).
 - **Decision:** a work-item chain has no structure of its own. Order is the issue dependency graph (`blocked by`) that planning already writes; the opt-in to run cards unattended is a queue label (moho: `agent-queued`, "run me when my blockers close"). A queued card with no open blocker starts; the others start as their blockers close. Queueing a card approves it, as `agent-ready` does under `Card review: required`.
 - **Why:**
   - **No second record of order.** refine and the Tech Lead already add `blocked_by` for each earlier card (`operations.md`, *Add dependency*). A chain list in a body, or sub-issue order, would drift from it.

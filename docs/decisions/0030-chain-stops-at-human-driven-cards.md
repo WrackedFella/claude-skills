@@ -1,6 +1,6 @@
 # D0030 A chain stops at a human-driven card and runs at most a set number of cards at once
 
-- **Status:** Proposed, 2026-11-25. Stop marker and cap default need Justin's choice.
+- **Status:** Accepted, 2026-11-25 (Justin approved the proposal: `Agent-eligible: No` as the stop marker, cap 1).
 - **Decision:**
   - **Stop marker:** a card with `Agent-eligible: No` (board header `eligible=no`) is never started by the chain; the chain comments once that it stops there. A person drives that card in a session; when its PR merges, the card closes and the chain continues with no resume command.
   - **Cap:** repository variable `AGENT_MAX_RUNS` (default 1) bounds unattended runs across all chains, counting in-progress and queued Claude and eval runs. A run sleeping for the usage-limit reset counts, so no chain starts a card into an exhausted window.

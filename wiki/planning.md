@@ -142,12 +142,12 @@ the BA and Tech Lead skills and applies their rules, escalating where they would
 
 ## 6 Promotion
 
-`agent-ready` starts an unattended run, so the Tech Lead, `refine` and `publish` apply it only under `Card review: not required` and only when every check passes:
+`agent-ready` starts an unattended run, so the Tech Lead, `refine` and `publish` apply it only under `Card review: not required` and only when every check passes. A project that declares a `Queue label` gets that label instead, and its queue workflow starts each card once its blockers close:
 
 - Gherkin acceptance criteria cover the exit criteria the card serves.
 - The tech spec has a test map; the gate class is `glue`, or `domain` with `Domain-test review` `agent` or `not required`.
 - The file footprint is listed and does not collide with an unmerged card unless they are ordered.
-- No open question or unpublished/unmerged dependency remains.
+- No open question or unpublished dependency remains, and no unmerged one unless the label is the project's `Queue label`.
 - The card is not human-driven (`Agent-eligible=No`).
 
 A card that fails stays unlabeled and the report names the failed check. Under `required`, skills only report "ready to promote"; the user applies the label.

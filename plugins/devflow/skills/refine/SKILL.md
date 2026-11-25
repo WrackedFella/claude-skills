@@ -18,8 +18,8 @@ removes the label and uses the answers. Every comment is `${CLAUDE_PLUGIN_ROOT}/
   you publish are the only output.
 - Never touch the project board, never implement, never merge, and never change a work
   item you did not create, except the feature's Items table.
-- Never apply `agent-ready` unless the project's `Card review` is `not required` (see
-  Labels).
+- Never apply `agent-ready` or the project's `Queue label` unless the project's `Card review`
+  is `not required` (see Labels).
 - A headless run follows `${CLAUDE_PLUGIN_ROOT}/operations.md`'s *Headless runs* section.
 
 Read `${CLAUDE_SKILL_DIR}/../business-analyst/SKILL.md` and `${CLAUDE_SKILL_DIR}/../tech-lead/SKILL.md`
@@ -95,7 +95,7 @@ in the body (the *Edit work item body* operation).
 `Card review: required` (or unset): apply no label. The user reads the cards and applies
 `agent-ready` to each one to approve it.
 
-`Card review: not required`: apply the tech-lead's **Promotion** checks to each card you published and add `agent-ready` (the *Add label* operation) to those that pass. Leave the rest unlabeled and say which check failed.
+`Card review: not required`: apply the tech-lead's **Promotion** checks to each card you published and add the promotion label it names (`Queue label` when set, else `agent-ready`; the *Add label* operation) to those that pass. Leave the rest unlabeled and say which check failed.
 
 ## 5. Report
 

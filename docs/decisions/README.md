@@ -37,7 +37,7 @@ status `Superseded by DNNNN`; the replacement links back.
 | [D0024](0024-cloud-refresh-needs-one-tap.md) | Nothing outside a session can refresh a cloud environment's devflow; staleness is detected and a stamp bump is one approval | Accepted | 2026-11-23 |
 | [D0025](0025-advisory-reviewer-comments-go-to-the-refuter.md) | An advisory reviewer's comments are candidates for the refuter, never findings; the trial counts what only it found | Proposed | 2026-11-24 |
 | [D0026](0026-resume-needs-a-resume-comment.md) | A paused run restarts only on a comment starting with `Resume` | Accepted | 2026-11-24 |
-| [D0027](0027-chains-are-queued-dependencies.md) | A chain is the set of queued cards over their issue dependencies | Proposed | 2026-11-25 |
-| [D0028](0028-chain-advances-on-events-with-a-cron-backstop.md) | A chain advances on issue events, with a cron backstop, through one deterministic script | Proposed | 2026-11-25 |
-| [D0029](0029-chain-cards-merge-into-dev.md) | Chain cards merge into the base branch one by one; no chain branch, no stacked PRs | Proposed | 2026-11-25 |
-| [D0030](0030-chain-stops-at-human-driven-cards.md) | A chain stops at a human-driven card and runs at most a set number of cards at once | Proposed | 2026-11-25 |
+| [D0027](0027-chains-are-queued-dependencies.md) | A chain is the set of queued cards over their issue dependencies | Accepted | 2026-11-25 |
+| [D0028](0028-chain-advances-on-events-with-a-cron-backstop.md) | A chain advances on issue events, with a cron backstop, through one deterministic script | Accepted | 2026-11-25 |
+| [D0029](0029-chain-cards-merge-into-dev.md) | Chain cards merge into the base branch one by one; no chain branch, no stacked PRs | Accepted | 2026-11-25 |
+| [D0030](0030-chain-stops-at-human-driven-cards.md) | A chain stops at a human-driven card and runs at most a set number of cards at once | Accepted | 2026-11-25 |

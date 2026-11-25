@@ -1,6 +1,6 @@
 # D0029 Chain cards merge into the base branch one by one; no chain branch, no stacked PRs
 
-- **Status:** Proposed, 2026-11-25. Builds on D0017.
+- **Status:** Accepted, 2026-11-25 (Justin approved the proposal). Builds on D0017.
 - **Decision:** each card in a chain opens its PR into the base branch (`dev` in moho) and merges through the existing agent merge or a person. The next card starts only after its blocker's issue closes, so it always branches from a base that holds the previous card. A chain gets no feature integration branch, and no card starts before the card it depends on merges. A card the agent merge won't take (domain under `PR_AUTOMERGE=glue`, `Sign-off: human`) waits for a person, and the chain resumes on that merge.
 - **Why:**
   - **Agent merge was about to fire.** The last four agent PRs (moho #903, #908, #910, #914) were all glue with no deny path; their sign-off triggers were the 400-line size limit, plus an open question on #903. claude-skills #128 waives the size trigger up to 3000 non-test lines for light-tier PRs whose gate and mutation passed, so three of the four would now merge.

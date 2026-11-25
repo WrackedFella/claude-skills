@@ -1,6 +1,6 @@
 # D0028 A chain advances on issue events, with a cron backstop, through one deterministic script
 
-- **Status:** Proposed, 2026-11-25. Builds on D0027.
+- **Status:** Accepted, 2026-11-25 (Justin approved the proposal). Builds on D0027.
 - **Decision:** a workflow with no model call starts queued, unblocked cards. It runs on an issue closing (state reason completed), on the queue label being added, on a Claude run completing (a slot frees up), on a cron backstop (every 2 hours), and by hand. Each trigger runs the same script, which gathers facts by REST and decides which cards to start, fixture-tested like the merge-eligibility script. It starts a card by swapping the queue label for `agent-ready` with the reviewer App's token, and skips a card that is paused, labelled `needs-human`, human-driven (D0030), or whose blocker closed as not planned.
 - **Why:**
   - **Events first.** A merged PR's `Closes #N` closes the card, and the Board sync workflow already acts on that event for human and App merges, so the next card starts within a minute of a merge.
