@@ -50,7 +50,9 @@ instruction.
   `Fixes`, `Resolves` or `Closes #<id>` in a PR description or commit message can
   transition the linked work item.
 - A project that declares no board skips every board step as if the board were
-  unreachable: no reads, no writes, and the PR body says which Status changes were skipped.
+  unreachable: no reads, no writes, and the PR body says which Status changes were skipped,
+  except in a headless run, where Board sync owns Status and the run makes no board call and
+  reports nothing about it.
 
 ## Headless runs
 

@@ -10,6 +10,10 @@
 # Exit codes: 1 error, 3 empty queue (`next`), 4 issue not on the board (`get`),
 # 5 project board unreachable (GraphQL/Projects access failed; any command).
 #
+# In a GitHub Actions run (`GITHUB_ACTIONS=true`) `set` and `probe` do nothing and exit 0
+# silently: the Board sync workflow owns Status there, and the run's token cannot reach
+# user-owned Projects v2.
+#
 # `probe` is a read-only reachability check: it prints `board: <owner>/<number> reachable`
 # and one `<Field>: <opt1>, <opt2>, ...` line per single-select field, never changing the board.
 #
@@ -24,6 +28,7 @@ die() { echo "board: $*" >&2; exit 1; }
 [[ $# -ge 3 ]] || die "usage: board set|get|next|probe <owner> <number> ..."
 cmd=$1 owner=$2 number=$3
 shift 3
+[[ ${GITHUB_ACTIONS:-} == true && ( $cmd == set || $cmd == probe ) ]] && exit 0
 
 # Stderr of every gh call lands here so a failure can be reported as exit 5.
 errf=$(mktemp)

@@ -36,7 +36,9 @@ Requires `gh` with the `project` scope (`gh auth refresh -s project`).
 | `board probe <owner> <number>` | Read-only reachability check |
 
 Exit codes: `1` error, `3` empty queue (`next`), `4` issue not on the board (`get`),
-`5` board unreachable (any subcommand). Owners may be users or organizations.
+`5` board unreachable (any subcommand). Owners may be users or organizations. With
+`GITHUB_ACTIONS=true`, `set` and `probe` exit `0` without output: Board sync owns Status
+in Actions runs.
 
 ## `plugins/devflow/scripts/card`
 

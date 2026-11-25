@@ -74,3 +74,9 @@ ITEMS="$(item u/a OPEN Backlog Yes P1 "")"
 use_gh_stub
 run "$SCRIPTS/board" next o 1
 assert_rc 3
+
+t "set and probe are silent no-ops in a GitHub Actions run"
+use_gh_stub
+GITHUB_ACTIONS=true run "$SCRIPTS/board" set down 1 https://github.com/o/r/issues/1 Status=Done
+assert_rc 0
+assert_out ""
