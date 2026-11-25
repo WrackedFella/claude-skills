@@ -4,15 +4,33 @@
 #
 #   card publish <feature-issue-number> <title> <body-file> [--label <name>]...
 #                [--board <owner> <number> <Field>=<Option>...]
+#   card link    <issue-number> <blocker-number>
 #
-# Prints exactly one line on success: `#<n> <url>`.
+# `publish` prints exactly one line on success: `#<n> <url>`.
+# `link` marks <issue> as blocked by <blocker> (the REST issue-dependency API, which
+# needs the blocker's numeric id, not its number); linking twice is not an error.
 # Exit codes: 1 error (including a filed-but-unlinked issue), 5 project board unreachable
 # (the issue is filed and linked; only the board fields were not set).
 set -euo pipefail
 
 die() { echo "card: $*" >&2; exit 1; }
-usage() { die "usage: card publish <feature-issue-number> <title> <body-file> [--label <name>]... [--board <owner> <number> <Field>=<Option>...]"; }
+usage() { die "usage: card link <issue-number> <blocker-number> | card publish <feature-issue-number> <title> <body-file> [--label <name>]... [--board <owner> <number> <Field>=<Option>...]"; }
 
+if [[ ${1:-} == link ]]; then
+  [[ $# -eq 3 ]] || usage
+  issue=$2 blocker=$3
+  [[ $issue =~ ^[0-9]+$ && $blocker =~ ^[0-9]+$ ]] || die "issue and blocker must be numbers, got '$issue' '$blocker'"
+  [[ $issue != "$blocker" ]] || die "#$issue cannot block itself"
+  repo=$(gh repo view --json nameWithOwner -q .nameWithOwner)
+  bid=$(gh api "repos/$repo/issues/$blocker" --jq .id)
+  errf=$(mktemp)
+  trap 'rm -f "$errf"' EXIT
+  if ! gh api -X POST "repos/$repo/issues/$issue/dependencies/blocked_by" -F issue_id="$bid" >/dev/null 2>"$errf"; then
+    grep -qi "already" "$errf" || die "could not link #$issue as blocked by #$blocker: $(cat "$errf")"
+  fi
+  echo "#$issue blocked by #$blocker"
+  exit 0
+fi
 [[ ${1:-} == publish ]] || usage
 shift
 [[ $# -ge 3 ]] || usage

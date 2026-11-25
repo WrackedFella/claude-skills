@@ -10,6 +10,8 @@ gh_stub() {
     "issue create"*) echo "https://github.com/o/r/issues/12" ;;
     "api repos/o/r/issues/12") echo '{"id":999}' ;;
     "api repos/o/r/issues/5/sub_issues"*) [[ ${LINK_FAILS:-} ]] && { echo "HTTP 422"; return 1; }; echo '{}' ;;
+    "api repos/o/r/issues/7") echo '{"id":777}' ;;
+    "api -X POST repos/o/r/issues/8/dependencies/blocked_by"*) [[ ${DEP_FAILS:-} ]] && { echo "$DEP_FAILS"; return 1; }; echo '{}' ;;
     "api users/o") echo "HTTP 403"; return 1 ;;
     *) echo "unexpected gh $*"; return 1 ;;
   esac
@@ -48,3 +50,30 @@ use_gh_stub
 run "$SCRIPTS/card" publish 5 "T" "$body" --board o 1 Status
 assert_rc 1
 assert_err_contains "expected Field=Option"
+
+t "link posts the blocker's numeric id"
+use_gh_stub
+run "$SCRIPTS/card" link 8 7
+assert_rc 0
+assert_out "#8 blocked by #7"
+grep -q "issue_id=777" "$GH_LOG" || _fail "blocker not linked by issue id"
+
+t "linking an existing dependency is not an error"
+use_gh_stub
+run env DEP_FAILS="HTTP 422: dependency already exists" "$SCRIPTS/card" link 8 7
+assert_rc 0
+
+t "any other link failure is an error"
+use_gh_stub
+run env DEP_FAILS="HTTP 403" "$SCRIPTS/card" link 8 7
+assert_rc 1
+assert_err_contains "could not link #8"
+
+t "link rejects non-numbers and self-links before any gh call"
+use_gh_stub
+run "$SCRIPTS/card" link 8 x
+assert_rc 1
+run "$SCRIPTS/card" link 8 8
+assert_rc 1
+assert_err_contains "cannot block itself"
+[[ ! -s $GH_LOG ]] || _fail "gh was called"
