@@ -42,3 +42,4 @@ status `Superseded by DNNNN`; the replacement links back.
 | [D0029](0029-chain-cards-merge-into-dev.md) | Chain cards merge into the base branch one by one; no chain branch, no stacked PRs | Accepted | 2026-11-25 |
 | [D0030](0030-chain-stops-at-human-driven-cards.md) | A chain stops at a human-driven card and runs at most a set number of cards at once | Accepted | 2026-11-25 |
 | [D0031](0031-conflicts-resolved-only-when-present.md) | An agent PR's conflict with the base is resolved by a run only when one exists | Accepted | 2026-11-25 |
+| [D0032](0032-pr-review-resumes-after-usage-limit.md) | A PR review the usage limit cut off is dispatched again after the reset | Accepted | 2026-11-26 |
