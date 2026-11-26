@@ -52,3 +52,30 @@ t "missing --since is a usage error"
 setup
 run "$SCRIPTS/test-guard" 'tests/**'
 assert_rc 2
+
+t "--base protects test code present in the base"
+setup
+base=$since
+sed -i 's/test_a/test_x/' tests/a.txt
+commit weaken >/dev/null
+run "$SCRIPTS/test-guard" --base "$base" --marker '#\[cfg\(test\)\]' 'tests/**'
+assert_rc 1
+assert_contains "tests/a.txt:1:"
+
+t "--base lets the branch edit a test it added itself"
+setup
+base=$since
+printf 'test_new\n' >tests/b.txt
+commit add-test >/dev/null
+sed -i 's/test_new/test_newer/' tests/b.txt
+commit edit-own-test >/dev/null
+run "$SCRIPTS/test-guard" --base "$base" --marker '#\[cfg\(test\)\]' 'tests/**'
+assert_rc 0
+
+t "--base still protects inline test code below the marker"
+setup
+base=$since
+sed -i '/fn t()/d' src/lib.rs
+commit weaken >/dev/null
+run "$SCRIPTS/test-guard" --base "$base" --marker '#\[cfg\(test\)\]' 'tests/**'
+assert_rc 1
