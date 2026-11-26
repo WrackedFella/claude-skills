@@ -10,4 +10,5 @@
 - **Prevention comes first.** The first conflict (moho #941 vs #950, 2026-11-25) was a shared wiki table edited by two cards running side by side; card footprints don't list wiki pages. Under the chain's run cap of 1 (D0030), chained cards don't overlap, so conflicts come from parallel work.
 - **Evidence:** moho #941 went `dirty` after #950 merged; the only conflict was one row pair in `wiki/searchlight/architecture.md`, resolved by keeping both sides.
 - **Sources:** S12, S29, S30, S31.
+- **Amended 2026-11-26:** the scan dispatches the resolving run per PR; see [D0032](0032-pr-review-resumes-after-usage-limit.md).
 - **Reopen when:** resolve runs exceed about one per five agent merges (then shared hot files need restructuring, or footprints should list wiki pages), or a resolution lands a change a person would have stopped.
