@@ -26,8 +26,9 @@ enable auto-merge.
 2. For each thread decide: fix, or reply with why not (spec conflict, out of scope,
    already handled). Fixes that change production code go to `devflow:implementer` (or
    are made directly for one-line changes); new tests go to
-   `devflow:test-writer`. A request to change an existing test is met by a stricter test
-   added beside it, never an edit of the original; when that cannot satisfy it, decline. Group related threads into one change set. Resolve the
+   `devflow:test-writer`. A request to change a test that exists in the base branch is met by a stricter test
+   added beside it, never an edit of the original; when that cannot satisfy it, decline.
+   A test the PR itself added is not existing: it may be edited. Group related threads into one change set. Resolve the
    `Standards:` line exactly as in `devflow:orchestrate`'s `## Standards` section (including
    its stop-and-comment rule for an unknown standard) and put it in every worker brief.
 3. Run the project's gate and the `## Test guard` checks after each change set; never push red or guarded-red. Commit per change set
@@ -46,20 +47,19 @@ enable auto-merge.
 ## Test guard
 
 Tests are the spec only while the code that must satisfy them cannot rewrite them. Before every push, with
-`<H>` the branch tip when `respond` started (after any base merge), which is the head the
-review covered when the fix loop drives it:
+`<B>` the merge base of the branch and the base branch tip (after any base merge):
 
-- Run `${CLAUDE_PLUGIN_ROOT}/scripts/test-guard --since <H>` with `--allow <sha>` for each commit
-  that only adds the test a review blocker asked for (B1, B2), `--marker` set to the line
+- Run `${CLAUDE_PLUGIN_ROOT}/scripts/test-guard --base <B>` with `--marker` set to the line
   that opens inline test code in the project's language, and the project's test-file globs.
-  These are the arguments of `devflow:orchestrate`'s `## Test guard`; `--since` is `<H>`,
-  never a step 2 commit.
+  These are the marker and globs of `devflow:orchestrate`'s `## Test guard`. `--base`
+  protects only test code present in the base branch; tests the PR added stay editable.
 - When the project sets `Acceptance test paths`, also run
-  `${CLAUDE_PLUGIN_ROOT}/scripts/e2e-guard --base <base branch tip> --since <H>` with the same
-  `--allow` commits and the globs as arguments.
+  `${CLAUDE_PLUGIN_ROOT}/scripts/e2e-guard --base <base branch tip> --since <H>` with
+  `--allow <sha>` for each commit that only adds the test a review blocker asked for and the
+  globs as arguments, `<H>` being the branch tip when `respond` started (after any base merge).
 
-A non-zero exit from either means a test that existed at `<H>` was changed or removed:
-restore the files (`git checkout <H> -- <file>`, or by hand for the reported lines),
+A non-zero exit from either means a test that existed in the base was changed or removed:
+restore the lines (`git checkout <B> -- <file>` when the PR did not otherwise change the file, else by hand),
 re-brief the worker with the guard output, and push nothing with that edit. A worker
 that cannot satisfy a finding without editing an existing test gets a `Declined` reply
 for it. Never edit the guard's arguments to make it pass.
