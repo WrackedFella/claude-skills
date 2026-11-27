@@ -53,3 +53,4 @@ status `Superseded by DNNNN`; the replacement links back.
 | [D0040](0040-measure-cache-misses-and-tool-bytes.md) | Measure cache misses and tool-result bytes per tool before any new cut | Proposed | 2026-11-27 |
 | [D0041](0041-trim-by-hook-not-by-prose.md) | Context trimming is a devflow hook on documented seams, scoped by D0040's data | Proposed | 2026-11-27 |
 | [D0042](0042-code-index-and-harness-tools-not-adopted.md) | Code-index MCPs and alternative harnesses are not adopted; GitNexus licence flagged | Proposed | 2026-11-27 |
+| [D0043](0043-gitnexus-stays-as-a-quality-tool.md) | GitNexus stays as an impact-analysis tool, not a context-saving one | Proposed | 2026-11-27 |
