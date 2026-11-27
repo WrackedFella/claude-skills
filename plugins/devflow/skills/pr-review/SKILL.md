@@ -52,7 +52,8 @@ the repository variable `PR_REVIEW_MAX_ROUNDS` (default 3), read from the enviro
 ## 2 Earlier blockers (round 2 on)
 
 Read the latest prior review (*Read review threads* and its body; a dry run reads the
-`--prior` file). Its `commit_id` (the `--prior` SHA in a dry run) is the **delta base**
+`--prior` file; with no PR to read, append `{"commit_id": "<--prior SHA>", "route":
+"fix"}` to the saved facts' `prior_reviews` so that `pr-verdict` counts round 2). Its `commit_id` (the `--prior` SHA in a dry run) is the **delta base**
 that §3 passes to the finders. For each of its
 blockers, call `devflow:refuter` in mode `fixed` with that blocker. `FIXED` blockers are
 closed; `NOT FIXED` ones are carried forward with their IDs. A blocker that `respond`
