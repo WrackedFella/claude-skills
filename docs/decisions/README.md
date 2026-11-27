@@ -55,3 +55,5 @@ status `Superseded by DNNNN`; the replacement links back.
 | [D0042](0042-code-index-and-harness-tools-not-adopted.md) | Code-index MCPs and alternative harnesses are not adopted; GitNexus licence flagged | Proposed | 2026-11-27 |
 | [D0043](0043-gitnexus-stays-as-a-quality-tool.md) | GitNexus stays as an impact-analysis tool, not a context-saving one | Proposed | 2026-11-27 |
 | [D0044](0044-settings-only-context-cuts-not-adopted.md) | `bashOutputMaxChars` and `--exclude-dynamic-system-prompt-sections` are not adopted on smoke evidence | Proposed | 2026-11-27 |
+| [D0045](0045-card-prs-keep-their-own-review.md) | Card PRs keep their own review; feature-branch batching is not adopted as the default | Proposed | 2026-11-27 |
+| [D0046](0046-test-batched-review-by-replay.md) | A feature-level review is tested by replaying merged features through the dry-run review | Proposed | 2026-11-27 |
