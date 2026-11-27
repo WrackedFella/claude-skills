@@ -49,3 +49,7 @@ status `Superseded by DNNNN`; the replacement links back.
 | [D0036](0036-cut-early-tool-output-and-scope-agent-context.md) | Context cuts target early tool output, re-reads and critic context | Proposed | 2026-11-27 |
 | [D0037](0037-later-review-rounds-read-the-delta.md) | PR-review rounds 2+ read the delta | Proposed | 2026-11-27 |
 | [D0038](0038-cost-levers-held-back.md) | Cost levers held back until evidence supports them | Proposed | 2026-11-27 |
+| [D0039](0039-no-third-party-context-compressors.md) | No third-party output compressor, prompt proxy or compression MCP is adopted | Proposed | 2026-11-27 |
+| [D0040](0040-measure-cache-misses-and-tool-bytes.md) | Measure cache misses and tool-result bytes per tool before any new cut | Proposed | 2026-11-27 |
+| [D0041](0041-trim-by-hook-not-by-prose.md) | Context trimming is a devflow hook on documented seams, scoped by D0040's data | Proposed | 2026-11-27 |
+| [D0042](0042-code-index-and-harness-tools-not-adopted.md) | Code-index MCPs and alternative harnesses are not adopted; GitNexus licence flagged | Proposed | 2026-11-27 |
