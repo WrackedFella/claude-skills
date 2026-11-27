@@ -45,3 +45,7 @@ status `Superseded by DNNNN`; the replacement links back.
 | [D0032](0032-pr-review-resumes-after-usage-limit.md) | A PR review the usage limit cut off is dispatched again after the reset | Accepted | 2026-11-26 |
 | [D0033](0033-run-records-stay-otel-is-a-pilot.md) | Run records stay the per-issue usage source; OpenTelemetry export is piloted for what they cannot see | Proposed | 2026-11-27 |
 | [D0034](0034-otel-pilot-privacy-and-backend.md) | The OpenTelemetry pilot exports metrics and API events only, to Grafana Cloud Free | Proposed | 2026-11-27 |
+| [D0035](0035-cost-work-targets-the-heaviest-steps.md) | Cost work targets the builder, orchestrator loop and intake first | Proposed | 2026-11-27 |
+| [D0036](0036-cut-early-tool-output-and-scope-agent-context.md) | Context cuts target early tool output, re-reads and critic context | Proposed | 2026-11-27 |
+| [D0037](0037-later-review-rounds-read-the-delta.md) | PR-review rounds 2+ read the delta | Proposed | 2026-11-27 |
+| [D0038](0038-cost-levers-held-back.md) | Cost levers held back until evidence supports them | Proposed | 2026-11-27 |
