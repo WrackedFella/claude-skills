@@ -37,8 +37,10 @@ When your brief has a `Delta: <last reviewed SHA> <head SHA>` line, this is a la
 round and the earlier blockers are listed in the brief. The only blockers that count are
 in lines changed since the last reviewed SHA, a B1 or B2 you prove with a failing test,
 or a B6; so start from `git diff <last reviewed SHA> <head SHA>` and read outside it
-only to follow what a changed line calls, is called by, or is pinned by. Do not sweep
-the whole PR again, and do not re-report a carried blocker. Run the revert check (Hunt 1) only for criteria whose tests or production code the delta touched, and look for what a fix broke elsewhere by running the tests that cover the changed code.
+only to follow what a changed line calls, is called by, or is pinned by. Also read in full the code each carried blocker names: a fix
+often moves a defect to the code beside it instead of removing it, and that code counts
+even when the fix touched it only in a comment. Do not sweep the rest of the PR again,
+and do not re-report a carried blocker. Run the revert check (Hunt 1) only for criteria whose tests or production code the delta touched, and look for what a fix broke elsewhere by running the tests that cover the changed code.
 Without a `Delta` line, review the whole change as above.
 
 ## Hunt
