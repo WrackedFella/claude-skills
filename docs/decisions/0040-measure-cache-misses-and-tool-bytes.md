@@ -3,7 +3,7 @@
 - **Status:** Proposed, 2026-11-27.
 - **Decision:** The run record gains three fields, all from data the run already produces, with no model call:
   - **Cache split:** per model and agent, `cache_creation` by TTL (`ephemeral_5m`, `ephemeral_1h`) from the execution log, and the count of mid-conversation calls whose cache write exceeds 20k tokens (a cache miss).
-  - **Tool bytes:** tool-result bytes per tool name and agent, from a `PostToolUse` hook that appends `tool,agent,bytes` to a file and does not change the output.
+  - **Tool bytes:** tool-result bytes per tool name and step, read from the execution log (amended 2026-11-27: the log already keys every tool result to its call and step, so no `PostToolUse` hook is needed; moho PR #1099). Also the size of each subagent's returned report.
   - **Context peak** per agent.
   This extends D0036's measure-first step; D0036's context sources are provided by the hook.
 - **Why:**
@@ -14,4 +14,5 @@
 - **Evidence:** S38 and S39 are read from the docs through a subagent's extraction; the `-p` and Actions behaviour of the TTL rule is inferred (the page says `-p` turns are main conversation) and unconfirmed for `claude-code-action`.
 - **Proof:** none; no model call.
 - **Sources:** S37, S38, S39.
+- **Amendment, 2026-11-27:** implemented in `scripts/run-record.sh` from the log alone, per step: peak context, cache write by TTL, cache misses (a call after the step's first writing over 20k tokens), tool-result bytes and calls by tool, `report_bytes`. Reviewer and test-critic yield is report size only; a findings count is not derivable from the log. Whether the Actions log carries the TTL split and resolves subagent tool results is confirmed on the first production record.
 - **Reopen when:** the pilot's `tool_result` events already carry size, or the hook input lacks an agent identifier and per-agent attribution needs another route.
