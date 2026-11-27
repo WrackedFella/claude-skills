@@ -43,3 +43,5 @@ status `Superseded by DNNNN`; the replacement links back.
 | [D0030](0030-chain-stops-at-human-driven-cards.md) | A chain stops at a human-driven card and runs at most a set number of cards at once | Accepted | 2026-11-25 |
 | [D0031](0031-conflicts-resolved-only-when-present.md) | An agent PR's conflict with the base is resolved by a run only when one exists | Accepted | 2026-11-25 |
 | [D0032](0032-pr-review-resumes-after-usage-limit.md) | A PR review the usage limit cut off is dispatched again after the reset | Accepted | 2026-11-26 |
+| [D0033](0033-run-records-stay-otel-is-a-pilot.md) | Run records stay the per-issue usage source; OpenTelemetry export is piloted for what they cannot see | Proposed | 2026-11-27 |
+| [D0034](0034-otel-pilot-privacy-and-backend.md) | The OpenTelemetry pilot exports metrics and API events only, to Grafana Cloud Free | Proposed | 2026-11-27 |

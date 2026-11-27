@@ -1,0 +1,21 @@
+# D0033 Run records stay the per-issue usage source; OpenTelemetry export is piloted for what they cannot see
+
+- **Status:** Proposed, 2026-11-27.
+- **Decision:**
+  - The `RUN-RECORD` line (moho #863) stays the per-issue, per-model record of `claude.yml` runs.
+  - OpenTelemetry export is not adopted as a replacement. It is piloted on one lane (moho `claude.yml` orchestrate) and on the shared cloud environment, to answer three questions the records cannot: exact per-step output tokens, tool failures and latency, and usage of sessions that are not Actions runs.
+  - The pilot ends after ten orchestrate runs with a keep, widen or drop decision recorded here.
+- **Why:**
+  - **Same counts, different path.** `claude_code.token.usage` carries `input`, `output`, `cacheRead`, `cacheCreation` per `model`, so the primary metric (four counts per model, never summed) is available from either source (S33).
+  - **What OTel adds.**
+    - Exact per-step attribution: token and cost metrics carry `query_source` (`main`, `subagent`, `auxiliary`), `agent.name` and `skill.name`. The record estimates per-step output (`output_est`) because the log's per-message output counts are partial.
+    - Events the log does not hold as queryable rows: `tool_result` (`success`, `duration_ms`, `error_type`), `api_error` after retries, `tool_decision` with `source`.
+    - Surfaces the record never sees: cloud threads (`ccr.session.id`) and local sessions (S33).
+    - Live dashboards instead of a digest run on demand.
+  - **What OTel does not add.** Per-issue attribution is a resource attribute the workflow sets (`OTEL_RESOURCE_ATTRIBUTES`), the same fact the record gets from `ISSUE`; it is not free. The record needs no backend, secret or network egress and cannot fail a run.
+  - **Actions wiring is thin.** `action.yml` forwards `CLAUDE_CODE_ENABLE_TELEMETRY`, `OTEL_METRICS_EXPORTER`, `OTEL_LOGS_EXPORTER`, `OTEL_EXPORTER_OTLP_*`, the export intervals and `OTEL_RESOURCE_ATTRIBUTES` from the workflow `env`; the action's docs do not mention telemetry (S34). Whether `OTEL_METRICS_INCLUDE_*` and `OTEL_LOG_*` reach the CLI is untested and is the pilot's first check.
+  - **Repository settings cannot enable it.** `.claude/settings.json` ignores the OTLP exporter variables, so the pilot sets them in the workflow `env` and the cloud environment's variables (S33).
+  - **Short-lived runs.** The default metric export interval is 60 s and the default temporality is delta; a run shorter than an interval may flush only at exit, and Prometheus-style backends expect cumulative. The pilot sets `OTEL_METRIC_EXPORT_INTERVAL` low and checks that the last datapoint of a run arrives (S33).
+- **Evidence:** moho `scripts/run-record.sh` (header: per-step output is `output_est`); the monitoring reference (S33); `action.yml` of claude-code-action (S34). No run has exported telemetry yet.
+- **Sources:** S33, S34.
+- **Reopen when:** the pilot shows the last datapoint of a run is routinely lost, or the extra signal changes no decision after ten runs (drop it).
