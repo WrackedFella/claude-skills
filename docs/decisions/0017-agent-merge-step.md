@@ -24,8 +24,10 @@
   - **Green `dev` as a precondition.** Required checks are non-strict, so two green PRs can merge into a red `dev`. Requiring the last `dev` run to be green stops the next merge with no state to reset; a variable-flipping breaker would need a token that can write variables.
   - **Deny paths and the outside-comment rule are script rules.** The repository is public and agents read every comment. A rule that must always hold belongs in a script, not a prompt.
 - **Evidence:**
-  - 2 live reviews between 2026-11-13 and 2026-11-21 (moho #841, #843), both approved with `Sign-off: human`.
-  - #843 was reverted later (#847).
-  - The rules are unit-tested against fixtures (`just merge-eligibility-test`), and the script was run read-only against #841.
+  - Before the switch: 2 live reviews between 2026-11-13 and 2026-11-21 (moho #841, #843), both approved with `Sign-off: human`; #843 was reverted later (#847).
+  - 2026-11-25 to 2026-11-28 (moho `dev`): 67 reviews on 55 agent PRs. 16 agent PRs had a merge comment from the workflow: 9 merged themselves (8 glue, 1 domain, #1111 on 11-27, after `PR_AUTOMERGE` moved to `all`) and 7 were held for a person.
+  - The 7 holds: 4 domain under `glue`, 1 ADR path (#961), 2 "last CI on `dev` is cancelled" (#1067, #1089). No hold was wrong; the cancelled-CI hold is the script's weakness, since a push run superseded by a newer merge reports `cancelled` and says nothing about `dev`.
+  - Push CI ran and passed on `dev` at each automatic merge that was not itself superseded; 3 merge commits (#961, #1006, #1046, all merged by a person) were superseded by the next merge's run. No revert of an agent PR followed. One later fix (#1111, ENG-F39-11) corrects `rotation_of` in code from #1006, found by a feature-level review replay (D0046), not by that PR's review.
+  - The rules are unit-tested against fixtures (`just merge-eligibility-test`).
 - **Sources:** S7, S10, S11, S12, S13.
 - **Reopen when:** an automatic merge is reverted, `dev` goes red after one, or a merge lands a change that a person's review would have stopped.
