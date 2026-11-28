@@ -2,7 +2,7 @@
 name: pr-review
 description: Adversarial review of an open pull request against its work item - deterministic facts, blind finders (defect-finder, design-critic) and a refuter, then one review with Verdict approve or reject, Route fix or human, and Sign-off agent or human. Requests changes on reject; approves only when the project enables it. Never merges.
 disable-model-invocation: true
-argument-hint: "[pr-number] | --dry-run <base-sha>..<head-sha> <issue> [out-file]"
+argument-hint: "[pr-number] | --dry-run <base-sha>..<head-sha> <issue> [out-file] [--prior <sha> <prior-review-file>]"
 ---
 
 Review one pull request and give a verdict that the fix loop, a person, or later an
@@ -14,7 +14,9 @@ after the refuter reports it `FIXED` (§6).
 Arguments: `$ARGUMENTS`. A PR number, or none for the current branch's PR, or
 `--dry-run <base>..<head> <issue> [out-file]`, which reviews two commits against an
 issue, posts nothing, files nothing, and writes the review to `out-file` (default
-`pr-review-<short head>.md` in the system temp directory).
+`pr-review-<short head>.md` in the system temp directory). `--prior <sha>
+<prior-review-file>` makes a dry run a later round: `<sha>` is the last reviewed commit
+and the file holds the review it got, as round 2 on a PR would find them (§2, §3).
 
 A headless run follows `${CLAUDE_PLUGIN_ROOT}/operations.md`'s *Headless runs* section.
 
@@ -43,12 +45,16 @@ A headless run follows `${CLAUDE_PLUGIN_ROOT}/operations.md`'s *Headless runs* s
    (`git -C <dir> checkout --force <head_sha>`, then `git -C <dir> clean -fdq`) before
    every refuter call.
 
-**Round.** Round is 1 plus the number of `prior_reviews` with `Route: fix`. The cap is
+**Round.** Round is 1 plus the number of `prior_reviews` with `Route: fix` (a dry run
+with `--prior` is round 2). The cap is
 the repository variable `PR_REVIEW_MAX_ROUNDS` (default 3), read from the environment.
 
 ## 2 Earlier blockers (round 2 on)
 
-Read the latest prior review (*Read review threads* and its body). For each of its
+Read the latest prior review (*Read review threads* and its body; a dry run reads the
+`--prior` file; with no PR to read, append `{"commit_id": "<--prior SHA>", "route":
+"fix"}` to the saved facts' `prior_reviews` so that `pr-verdict` counts round 2). Its `commit_id` (the `--prior` SHA in a dry run) is the **delta base**
+that §3 passes to the finders. For each of its
 blockers, call `devflow:refuter` in mode `fixed` with that blocker. `FIXED` blockers are
 closed; `NOT FIXED` ones are carried forward with their IDs. A blocker that `respond`
 declined (a reply on its thread whose first word is `Declined`, from the PR's agent
@@ -68,6 +74,12 @@ the `Read work item:` and `Standards:` lines, and, for the defect finder, the ga
 mutation commands, each marked `CI covered` when the facts' `ci_covers` for it has state
 `passed` (unset, missing or anything else: no mark, and the finder runs it). Never the PR number, PR text or an earlier review.
 
+**From round 2** each brief also holds `Delta: <delta base> <head SHA>` and the carried
+blockers (ID, class, `file:line`, one-line failure scenario, no review prose). The
+finders then start from `git diff <delta base> <head SHA>`, not the whole PR; the full
+diff stays available to them for context. If the delta base is not an ancestor of the
+head (a force-push), drop the `Delta` line and the round reviews the whole PR.
+
 ## 4 Refute
 
 Collect the findings. Merge duplicates (same class, file and overlapping lines) and
@@ -78,7 +90,8 @@ settles on; record each `REFUTED` finding and its reason under Dropped. A follow
 the tier does not refute is listed under Follow-ups as not filed (unverified).
 
 **Later rounds keep the goalposts.** From round 2, a new blocker counts only when its
-lines changed since the last reviewed SHA (`git diff <prior commit_id> <head_sha>`), or
+lines changed since the last reviewed SHA (`git diff <delta base> <head_sha>`, the diff
+the finders start from), or
 it is a B1 or B2 proven by a failing test, or a B6 (the work item is the goalpost).
 Any other new blocker becomes a follow-up, except that B2 and B4 are never follow-ups (§5). §5 applies this through `pr-verdict`; record
 each surviving finding's `in_changed_lines` and `failing_test` for it.
